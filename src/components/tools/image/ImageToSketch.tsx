@@ -51,22 +51,24 @@ export function ImageToSketch() {
       
       const invData = tCtx.getImageData(0, 0, canvas.width, canvas.height)
       
-      // 4. Color Dodge Blend
-      const result = ctx.createImageData(canvas.width, canvas.height)
-      for (let i = 0; i < grayData.data.length; i += 4) {
-        // Color Dodge formula: result = base / (1 - blend)
-        for (let j = 0; j < 3; j++) {
-            const base = grayData.data[i + j]
-            const blend = invData.data[i + j]
-            const val = blend === 255 ? 255 : Math.min(255, (base * 255) / (255 - blend))
-            result.data[i + j] = val
+      // 4. Color Dodge Blend (Yield to browser to render loading state)
+      setTimeout(() => {
+        const result = ctx.createImageData(canvas.width, canvas.height)
+        for (let i = 0; i < grayData.data.length; i += 4) {
+          // Color Dodge formula: result = base / (1 - blend)
+          for (let j = 0; j < 3; j++) {
+              const base = grayData.data[i + j]
+              const blend = invData.data[i + j]
+              const val = blend === 255 ? 255 : Math.min(255, (base * 255) / (255 - blend))
+              result.data[i + j] = val
+          }
+          result.data[i + 3] = 255 // Alpha
         }
-        result.data[i + 3] = 255 // Alpha
-      }
-      
-      ctx.filter = "none"
-      ctx.putImageData(result, 0, 0)
-      setIsProcessing(false)
+        
+        ctx.filter = "none"
+        ctx.putImageData(result, 0, 0)
+        setIsProcessing(false)
+      }, 50)
     }
     img.src = previewUrl!
   }, [file, intensity, previewUrl])

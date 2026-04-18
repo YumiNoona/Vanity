@@ -1,45 +1,136 @@
 const STORAGE_KEY = "vanity_anthropic_key"
-
 const PRIMARY_MODEL = "claude-sonnet-4-20250514"
-const FALLBACK_MODEL = "claude-3-5-sonnet-20240620"
+const FALLBACK_MODEL = "claude-3-5-sonnet-20241022"
 
-export async function callAnthropic(messages: any[], system?: string) {
+export class ClaudeError extends Error {
+  code: "NO_KEY" | "RATE_LIMITED" | "INVALID_KEY" | "NETWORK_ERROR" | "UNKNOWN"
+
+  constructor(message: string, code: ClaudeError["code"]) {
+    super(message)
+    this.name = "ClaudeError"
+    this.code = code
+  }
+}
+
+export interface ClaudeMessage {
+  role: "user" | "assistant"
+  content: any
+}
+
+const getApiKey = (): string => {
   const key = localStorage.getItem(STORAGE_KEY)
-  if (!key) throw new Error("No Anthropic API key found.")
+  if (!key || key.trim() === "") {
+    throw new ClaudeError("Anthropic API Key is missing. Please add it to continue.", "NO_KEY")
+  }
+  return key.trim()
+}
 
-  const tryCall = async (model: string) => {
+const handleApiError = (status: number, message: string) => {
+  if (status === 401) {
+    throw new ClaudeError("Invalid API key provided. Please check your Anthropic key.", "INVALID_KEY")
+  }
+  if (status === 429) {
+    throw new ClaudeError("Rate limit exceeded or out of credits. Please wait and try again.", "RATE_LIMITED")
+  }
+  if (status >= 500) {
+    throw new ClaudeError("Anthropic network error. The service might be temporarily down.", "NETWORK_ERROR")
+  }
+  throw new ClaudeError(`Anthropic API error: ${message}`, "UNKNOWN")
+}
+
+export async function callClaude({
+  messages,
+  systemPrompt,
+  maxTokens = 4096,
+  temperature = 0.7
+}: {
+  messages: ClaudeMessage[]
+  systemPrompt?: string
+  maxTokens?: number
+  temperature?: number
+}) {
+  const apiKey = getApiKey()
+  
+  try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "x-api-key": key,
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "dangerously-allow-browser": "true"
+        "anthropic-dangerously-allow-browser": "true"
       },
       body: JSON.stringify({
-        model,
-        max_tokens: 4096,
-        system,
+        model: PRIMARY_MODEL || FALLBACK_MODEL,
+        max_tokens: maxTokens,
+        temperature,
+        system: systemPrompt,
         messages
       })
     })
 
     if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.error?.message || `API call failed with model ${model}`)
+      const errorData = await response.json().catch(() => ({}))
+      handleApiError(response.status, errorData?.error?.message || response.statusText)
     }
-    return await response.json()
-  }
 
-  try {
-    return await tryCall(PRIMARY_MODEL)
-  } catch (error) {
-    console.warn(`Primary model ${PRIMARY_MODEL} failed, trying fallback...`, error)
-    try {
-      return await tryCall(FALLBACK_MODEL)
-    } catch (fallbackError) {
-      console.error("All Anthropic models failed.", fallbackError)
-      throw new Error("AI processing failed. Please check your API key or try again later.")
-    }
+    const data = await response.json()
+    return data.content[0].text
+  } catch (err: any) {
+    if (err instanceof ClaudeError) throw err
+    throw new ClaudeError(err.message || "Failed to make request to Anthropic.", "NETWORK_ERROR")
   }
+}
+
+const fileToBase64 = (file: File | Blob): Promise<{ base64: string; mimeType: string }> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      const base64 = result.split(",")[1]
+      let mimeType = file.type
+      if (!mimeType) {
+         mimeType = "image/jpeg"
+      }
+      resolve({ base64, mimeType })
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+export async function callClaudeVision({
+  file,
+  prompt,
+  systemPrompt,
+  maxTokens = 4096
+}: {
+  file: File | Blob
+  prompt: string
+  systemPrompt?: string
+  maxTokens?: number
+}) {
+  const { base64, mimeType } = await fileToBase64(file)
+
+  const messages: ClaudeMessage[] = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mimeType,
+            data: base64
+          }
+        },
+        {
+          type: "text",
+          text: prompt
+        }
+      ]
+    }
+  ]
+
+  return callClaude({ messages, systemPrompt, maxTokens })
 }

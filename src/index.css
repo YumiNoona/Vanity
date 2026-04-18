@@ -45,10 +45,11 @@
     font-family: 'DM Sans', sans-serif;
     height: 100vh;
     overflow: hidden;
-    scrollbar-gutter: stable;
+    width: 100%;
   }
   html, #root {
     height: 100%;
+    width: 100%;
     overflow: hidden;
     overscroll-behavior: contain;
   }

@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle } from "lucide-react"
 import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callAnthropic } from "@/lib/anthropic"
+import { callClaudeVision } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -36,30 +36,14 @@ export function AiAltTextWriter() {
     setIsProcessing(true)
 
     try {
-      const base64 = await fileToBase64(file)
-      
-      const messages = [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: file.type as any,
-                data: base64
-              }
-            },
-            {
-              type: "text",
-              text: "Write a high-quality, descriptive alternative text for this image to be used for accessibility (screen readers). Keep it objective and concise, but include key visual details."
-            }
-          ]
-        }
-      ]
+      const responseText = await callClaudeVision({
+         file,
+         prompt: "Write a high-quality, descriptive alternative text for this image to be used for accessibility (screen readers). Keep it objective and concise, but include key visual details.",
+         systemPrompt: "You are an accessibility expert.",
+         maxTokens: 500
+      })
 
-      const response = await callAnthropic(messages, "You are an accessibility expert.")
-      setAltText(response.content[0].text)
+      setAltText(responseText)
       toast.success("Alt-text generated!")
     } catch (error: any) {
       console.error(error)

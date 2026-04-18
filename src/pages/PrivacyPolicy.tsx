@@ -76,7 +76,7 @@ export function PrivacyPolicy() {
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 <li>Ensure the website functions correctly</li>
-                <li>Remember your preferences (e.g., premium status)</li>
+                <li>Remember your preferences</li>
                 <li>Analyze website traffic and usage patterns</li>
                 <li>Serve relevant advertisements via Google AdSense</li>
                 <li>Measure the performance and effectiveness of ads</li>
@@ -85,7 +85,7 @@ export function PrivacyPolicy() {
 
             <SubSection title="3. Local Storage">
               <p>
-                We use your browser's local storage to save non-sensitive preferences, such as your Vanity Pro upgrade status. This data never leaves your browser and is not transmitted to any server.
+                We use your browser's local storage to save non-sensitive preferences. This data never leaves your browser and is not transmitted to any server.
               </p>
             </SubSection>
           </Section>

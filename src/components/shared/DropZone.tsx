@@ -33,8 +33,8 @@ export function DropZone({ onDrop, accept, maxFiles = 1, multiple = false, label
       <div className={cn("rounded-full p-4 mb-4 transition-colors", isDragActive ? "bg-primary/20 text-primary" : "bg-white/5 text-muted-foreground")}>
         <UploadCloud className="h-8 w-8" />
       </div>
-      <p className="text-lg font-medium text-foreground mb-1">{label}</p>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-lg font-medium text-foreground mb-1 text-center">{label}</p>
+      <p className="text-sm text-muted-foreground mb-4 text-center">
         {maxFiles > 1 ? `Up to ${maxFiles} files` : "Single file only"}
       </p>
       

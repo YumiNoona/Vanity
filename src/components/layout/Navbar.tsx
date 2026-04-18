@@ -1,37 +1,35 @@
 import React from "react"
 import { Link } from "react-router-dom"
-import { usePremium } from "@/hooks/usePremium"
-import { Zap } from "lucide-react"
+import { Heart } from "lucide-react"
 
-export function Navbar() {
-  const { isPremium, upgrade } = usePremium()
+interface NavbarProps {
+  onDonateOpen: () => void
+}
 
+export function Navbar({ onDonateOpen }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full px-6 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
+        <div className="flex-1 flex items-center">
           <Link to="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold font-syne text-primary">Vanity</span>
           </Link>
-          <span className="hidden text-xs text-muted-foreground sm:inline-block">
+        </div>
+
+        <div className="hidden md:flex flex-1 items-center justify-center">
+          <span className="text-sm font-bold font-syne text-primary tracking-tight bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10">
             100% Free · No Signup
           </span>
         </div>
         
-        <div className="flex items-center gap-4">
-          {!isPremium ? (
-            <button
-              onClick={upgrade}
-              className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors border border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
-            >
-              <Zap className="h-4 w-4" />
-              Go Pro
-            </button>
-          ) : (
-            <span className="flex items-center gap-2 rounded-full bg-gradient-to-r from-accent to-primary px-4 py-1.5 text-sm font-bold text-primary-foreground border border-primary/20 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-              Pro Active
-            </span>
-          )}
+        <div className="flex-1 flex items-center justify-end">
+          <button
+            onClick={onDonateOpen}
+            className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors border border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+          >
+            <Heart className="h-4 w-4 fill-primary/20" />
+            Support us
+          </button>
         </div>
       </div>
     </header>

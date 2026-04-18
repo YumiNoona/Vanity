@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Wand2, ShieldCheck, Download, Trash2 } from "lucide-react"
 import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callAnthropic } from "@/lib/anthropic"
+import { callClaude } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -42,7 +42,7 @@ export function BgReplacer() {
     setIsProcessing(true)
 
     try {
-      const messages = [
+      const messages: { role: "user"; content: string }[] = [
         {
           role: "user",
           content: `Generate a gorgeous, responsive CSS/Tailwind background based on this description: "${prompt}". 
@@ -52,8 +52,12 @@ export function BgReplacer() {
         }
       ]
 
-      const response = await callAnthropic(messages, "You are a master of CSS artistry and creative backgrounds.")
-      setGeneratedBg(response.content[0].text)
+      const responseText = await callClaude({
+         messages,
+         systemPrompt: "You are a master of CSS artistry and creative backgrounds.",
+         maxTokens: 1500
+      })
+      setGeneratedBg(responseText)
       toast.success("New background generated!")
     } catch (e: any) {
       console.error(e)

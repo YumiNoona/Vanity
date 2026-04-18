@@ -1,14 +1,16 @@
 import { 
   Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, 
   Minimize2, Lock, Images, Eraser, FileCode, Pipette, 
-  ShieldAlert, ShieldCheck, QrCode, Barcode, Sparkles, 
+  ShieldAlert, ShieldCheck, QrCode, MessageSquare, Sparkles, 
   ListOrdered, Stamp, Maximize2, Languages, FileEdit, FileImage,
   Monitor, Layout, CircleUser, FileType, Pencil, Smartphone,
   FileSpreadsheet, GitCompare, RotateCw, Scissors, Braces, 
   Palette, Hash, Video, Zap, ArrowLeftRight, FileJson, 
   Square, FileMinus, Binary, Contrast, Type, Copy,
   Grid, Search, Diff, Key, BrainCircuit, Mic, Music, Eye, FileCheck,
-  ImagePlus, Sigma, Globe, Code2, PenTool
+  ImagePlus, Sigma, Globe, Code2, PenTool,
+  Terminal, Clock, Link2, Calendar, Code, AlignLeft, KeyRound, BarChart3,
+  Microscope, EyeOff, PaintBucket, ImagePlay, FastForward, Award, Database
 } from "lucide-react"
 
 // Types to allow easier custom icons
@@ -37,15 +39,21 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "social-resizer", title: "Social Media Resizer", description: "One-click resize for Instagram, Twitter, and LinkedIn.", icon: Smartphone, path: "/tools/image/social-resizer", keywords: ["resize", "crop", "ig", "twitter"] },
   { id: "image-to-sketch", title: "Image to Sketch", description: "Turn any photo into a pencil-sketch style illustration.", icon: Pencil, path: "/tools/image/sketch", keywords: ["draw", "pencil", "art"] },
   { id: "sprite-slicer", title: "Sprite Sheet Slicer", description: "Cut a sprite grid into individual files in a zip.", icon: Grid, path: "/tools/image/sprite-slicer" },
+  { id: "before-after", title: "Before & After Slider", description: "Create an interactive slider to compare two images side-by-side.", icon: SplitSquareHorizontal, path: "/tools/image/slider" },
   { id: "ocr", title: "OCR — Image to Text", description: "Extract text from images using AI-powered OCR.", icon: Languages, path: "/tools/image/ocr" },
   { id: "svg-to-raster", title: "SVG to PNG / JPG", description: "Convert vector SVGs to raster formats at any resolution.", icon: FileType, path: "/tools/image/svg-to-raster" },
+  { id: "format-converter", title: "Format Converter", description: "Convert images between JPG, PNG, WEBP, and more.", icon: ArrowLeftRight, path: "/tools/image/convert" },
   { id: "image-effects", title: "Image Effects", description: "Apply filters, adjust brightness, contrast, and more.", icon: Layers, path: "/tools/image/effects" },
   { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", keywords: ["shrink", "size", "kb"] },
   { id: "crop-resize", title: "Crop & Resize", description: "Easily crop and resize free-hand or to specific dimensions.", icon: Crop, path: "/tools/image/crop" },
   { id: "palette", title: "Color Palette", description: "Extract design palettes from any photograph.", icon: Pipette, path: "/tools/image/palette" },
   { id: "censor", title: "Smart Censor", description: "Pixelate sensitive information and faces.", icon: ShieldAlert, path: "/tools/image/censor" },
   { id: "exif-sanitizer", title: "EXIF Sanitizer", description: "Remove metadata for maximum privacy.", icon: ShieldCheck, path: "/tools/image/exif-sanitizer", keywords: ["metadata", "privacy", "gps"] },
-  { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: Sparkles, path: "/tools/image/meme" },
+  { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
+  { id: "image-diff", title: "Image Difference tool", description: "Compute exact pixel deviations via XOR overlays.", icon: Microscope, path: "/tools/image/diff", keywords: ["compare", "xor", "overlay"] },
+  { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
+  { id: "icc-stripper", title: "ICC Profile Stripper", description: "Normalize images to sRGB spaces stripping embedded data.", icon: PaintBucket, path: "/tools/image/icc-stripper", keywords: ["color", "srgb", "profile"] },
+  { id: "bulk-resize", title: "Bulk Image Resizer", description: "Resize entire batches locally via memory-safe sequential queues.", icon: Layers, path: "/tools/image/bulk-resize", keywords: ["batch", "scale", "dimensions"] },
 ]
 
 export const PDF_TOOLS: Tool[] = [
@@ -65,6 +73,7 @@ export const PDF_TOOLS: Tool[] = [
   { id: "compress-pdf", title: "Compress PDF", description: "Reduce file size while optimizing for quality.", icon: Minimize2, path: "/tools/pdf/compress" },
   { id: "pdf-password", title: "PDF Passwords", description: "Add or remove password protection from PDFs.", icon: Lock, path: "/tools/pdf/password" },
   { id: "reorder-pdf", title: "Reorder PDF", description: "Drag and drop to rearrange pages in your PDF.", icon: ListOrdered, path: "/tools/pdf/reorder" },
+  { id: "pdf-fonts", title: "PDF Font Extractor", description: "Extract subsets and map embedded binary typography layers.", icon: Type, path: "/tools/pdf/fonts", keywords: ["ttf", "typography", "embedded"] },
 ]
 
 export const AI_TOOLS: Tool[] = [
@@ -72,29 +81,49 @@ export const AI_TOOLS: Tool[] = [
   { id: "ai-alt-text", title: "AI Alt-Text Writer", description: "Generate accessibility alt text for any image automatically.", icon: BrainCircuit, path: "/tools/ai/alt-text", keywords: ["seo", "accessibility", "description"] },
   { id: "ai-summarizer", title: "AI PDF Summarizer", description: "Extract and summarize PDF content using Claude.", icon: Sigma, path: "/tools/ai/summarizer", keywords: ["tl;dr", "reading", "study"] },
   { id: "ai-bg-replacer", title: "AI Background Replacer", description: "Remove BG and describe a new scene to Claude.", icon: ImagePlus, path: "/tools/ai/bg-replacer", keywords: ["generative", "creative", "edit"] },
+  { id: "ai-resume-reviewer", title: "AI Resume Reviewer", description: "Elite recruiter JSON evaluations and visual scorecards.", icon: Award, path: "/tools/ai/resume", isPopular: true, keywords: ["job", "audit", "cv"] },
+  { id: "vision-font-detector", title: "Font Matcher (Vision)", description: "Heuristically determine typography via image layers.", icon: Type, path: "/tools/ai/font-match", keywords: ["font", "type", "scan"] },
+  { id: "explain-ui", title: "Explain UI", description: "Deconstruct interface screenshots into hierarchy trees.", icon: Monitor, path: "/tools/ai/explain-ui", keywords: ["design", "ux", "layout"] },
+  { id: "alt-text-batch", title: "Batch Alt Text", description: "Mass-generate SEO descriptions queued sequentially.", icon: Images, path: "/tools/ai/alt-text-batch", keywords: ["bulk", "seo", "vision"] },
+  { id: "caption-generator", title: "Caption Generator", description: "Generate contextual social captions securely.", icon: MessageSquare, path: "/tools/ai/caption", keywords: ["social", "instagram", "post"] },
+  { id: "mock-api-generator", title: "Mock JSON Generator", description: "Synthesize strict deterministic schema arrays seamlessly.", icon: Database, path: "/tools/ai/mock-api", keywords: ["dummy", "data", "scaffold"] },
 ]
 
 export const DEV_TOOLS: Tool[] = [
-  { id: "json-formatter", title: "JSON formatter", description: "Prettify, minify, and validate JSON data.", icon: Braces, path: "/tools/dev/json", keywords: ["pretty", "minify", "validate"] },
-  { id: "color-picker", title: "Color converter", description: "Pick any color, convert between HEX, RGB, HSL, CMYK.", icon: Palette, path: "/tools/dev/color" },
-  { id: "favicon", title: "Favicon generator", description: "Convert an image to a multi-size .zip of icons.", icon: FileCode, path: "/tools/dev/favicon" },
-  { id: "uuid-hash", title: "UUID & hash generator", description: "Generate UUIDs, MD5, and SHA-256 hashes.", icon: Key, path: "/tools/dev/uuid-hash" },
-  { id: "css-gradient", title: "CSS gradient builder", description: "Build linear or radial gradients visually.", icon: Zap, path: "/tools/dev/gradient" },
+  { id: "json-formatter", title: "JSON Formatter", description: "Prettify, minify, and validate JSON data.", icon: Braces, path: "/tools/dev/json", keywords: ["pretty", "minify", "validate"] },
+  { id: "color-picker", title: "Color Converter", description: "Pick any color, convert between HEX, RGB, HSL, CMYK.", icon: Palette, path: "/tools/dev/color" },
+  { id: "favicon", title: "Favicon Generator", description: "Convert an image to a multi-size .zip of icons.", icon: FileCode, path: "/tools/dev/favicon" },
+  { id: "uuid-hash", title: "UUID & Hash Generator", description: "Generate UUIDs, MD5, and SHA-256 hashes.", icon: Key, path: "/tools/dev/uuid-hash" },
+  { id: "css-gradient", title: "CSS Gradient Builder", description: "Build linear or radial gradients visually.", icon: Zap, path: "/tools/dev/gradient" },
   { id: "base64-studio", title: "Base64 Studio", description: "Encode/Decode text, images, or files to base64 strings.", icon: Code2, path: "/tools/dev/base64-studio", keywords: ["string", "encode", "embed"] },
+  { id: "regex-tester", title: "Regex Tester", description: "Live regex matching with highlighting, group capture, and flags.", icon: Terminal, path: "/tools/dev/regex", keywords: ["test", "match", "regular"] },
+  { id: "timestamp-converter", title: "Timestamp Converter", description: "Unix epoch to human-readable date and back with timezones.", icon: Clock, path: "/tools/dev/timestamp", keywords: ["time", "unix", "date"] },
+  { id: "jwt-decoder", title: "JWT Decoder", description: "Decode JSON Web Tokens visually locally without validation.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["token", "auth", "base64"] },
+  { id: "url-encoder", title: "URL Encoder / Decoder", description: "Encode or decode query strings and full URLs safely.", icon: Link2, path: "/tools/dev/url" },
+  { id: "cron-builder", title: "CRON Expression Tester", description: "Validate CRON strings and preview immediate run times.", icon: Calendar, path: "/tools/dev/cron", keywords: ["schedule", "time", "job"] },
+  { id: "html-formatter", title: "HTML Formatter", description: "Prettify or minify raw HTML structures instantly.", icon: Code, path: "/tools/dev/html", keywords: ["minify", "prettify", "indent"] },
+  { id: "css-unit-converter", title: "CSS Unit Converter", description: "Convert px to rem, em, vw, vh instantly based on rules.", icon: Scissors, path: "/tools/dev/css-units", keywords: ["size", "font", "rem"] },
 ]
 
 export const VIDEO_TOOLS: Tool[] = [
-  { id: "video-compressor", title: "Video compressor", description: "Compress MP4/WebM files locally with FFMPEG.", icon: Minimize2, path: "/tools/video/compress", isPopular: true },
-  { id: "audio-converter", title: "Audio converter", description: "Convert between MP3, WAV, OGG, M4A via FFMPEG.", icon: Music, path: "/tools/video/audio-convert" },
+  { id: "video-compressor", title: "Video Compressor", description: "Compress MP4/WebM files locally with FFMPEG.", icon: Minimize2, path: "/tools/video/compress", isPopular: true },
+  { id: "audio-converter", title: "Audio Converter", description: "Convert between MP3, WAV, OGG, M4A via FFMPEG.", icon: Music, path: "/tools/video/audio-convert" },
   { id: "video-to-mp3", title: "Video to MP3", description: "Strip audio tracks from any video file instantly.", icon: Mic, path: "/tools/video/video-to-mp3" },
   { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
+  { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
+  { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
 ]
 
 export const TEXT_TOOLS: Tool[] = [
-  { id: "markdown-preview", title: "Markdown preview", description: "Paste markdown, get a live rendered preview.", icon: Eye, path: "/tools/text/md-preview" },
-  { id: "text-analyser", title: "Text analyser", description: "Word count, reading time, and top words analysis.", icon: Search, path: "/tools/text/analyser" },
-  { id: "text-diff", title: "Text diff checker", description: "Compare two texts and see additions/removals.", icon: Diff, path: "/tools/text/diff" },
-  { id: "csv-json", title: "CSV ↔ JSON converter", description: "Convert spreadsheet data to JSON and back.", icon: ArrowLeftRight, path: "/tools/text/csv-json" },
+  { id: "markdown-preview", title: "Markdown Preview", description: "Paste markdown, get a live rendered preview.", icon: Eye, path: "/tools/text/md-preview" },
+  { id: "text-analyser", title: "Text Analyser", description: "Word count, reading time, and top words analysis.", icon: Search, path: "/tools/text/analyser" },
+  { id: "text-diff", title: "Text Diff Checker", description: "Compare two texts and see additions/removals.", icon: Diff, path: "/tools/text/diff" },
+  { id: "csv-json", title: "CSV ↔ JSON Converter", description: "Convert spreadsheet data to JSON and back.", icon: ArrowLeftRight, path: "/tools/text/csv-json" },
+  { id: "lorem-ipsum", title: "Lorem Ipsum Generator", description: "Customizable placeholder text generator natively.", icon: AlignLeft, path: "/tools/text/lorem" },
+  { id: "password-generator", title: "Password Generator", description: "Generate strong passwords with length and symbol configs.", icon: KeyRound, path: "/tools/text/password", isPopular: true, keywords: ["secure", "strong", "random"] },
+  { id: "string-case", title: "String Case Converter", description: "Convert between camelCase, snake_case, PascalCase simultaneously.", icon: Type, path: "/tools/text/string-case" },
+  { id: "word-frequency", title: "Word Frequency Counter", description: "Analyze text and visualize word percentages dynamically.", icon: BarChart3, path: "/tools/text/word-frequency" },
+  { id: "number-base", title: "Number Base Converter", description: "Live conversions between decimal, binary, hex, and octal.", icon: Hash, path: "/tools/text/number-base" },
 ]
 
 export const CATEGORIES = [

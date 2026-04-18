@@ -3,7 +3,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
 import * as pdfjsLib from "pdfjs-dist"
 import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callAnthropic } from "@/lib/anthropic"
+import { callClaude } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -48,8 +48,12 @@ export function PdfSummariser() {
         const chunk = pageTexts.slice(i, i + chunkSize).join("\n")
         const prompt = `Summarise the following text from a PDF document (Pages ${i + 1} to ${Math.min(i + chunkSize, pageTexts.length)}). Focus on key takeaways and data points. \n\n[TEXT START]\n${chunk}\n[TEXT END]`
         
-        const response = await callAnthropic([{ role: "user", content: prompt }], "You are a professional research assistant.")
-        summaries.push(response.content[0].text)
+        const responseText = await callClaude({
+           messages: [{ role: "user", content: prompt }],
+           systemPrompt: "You are a professional research assistant.",
+           maxTokens: 1000
+        })
+        summaries.push(responseText)
         
         const currentCompletion = Math.min(100, 30 + Math.round(((i + chunkSize) / pageTexts.length) * 70))
         setProgress(currentCompletion)

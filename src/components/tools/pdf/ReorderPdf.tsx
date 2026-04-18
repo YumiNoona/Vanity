@@ -100,9 +100,14 @@ export function ReorderPdf() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
       <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Editor</h1>
-          <p className="text-muted-foreground text-sm">Drag to reorder. Click X to remove pages.</p>
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-accent/10 rounded-lg text-accent border border-accent/20">
+             <ListOrdered className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold font-syne text-foreground">Reorder PDF</h1>
+            <p className="text-muted-foreground text-sm">{file?.name}</p>
+          </div>
         </div>
         <button onClick={() => { setFile(null); setResultBlob(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Over

@@ -1,0 +1,200 @@
+import React, { useState } from "react"
+import { DropZone } from "@/components/shared/DropZone"
+import { ArrowLeft, Monitor, Loader2, Glasses, ListTree, MousePointer2 } from "lucide-react"
+import { toast } from "sonner"
+import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
+import { callClaudeVision, ClaudeError } from "@/lib/anthropic"
+
+interface UiBreakdown {
+  summary: string
+  hierarchy: string[]
+  interactivity: string[]
+}
+
+export function ExplainUi() {
+  const { key } = useAnthropicKey()
+  const [file, setFile] = useState<File | null>(null)
+  const [imgUrl, setImgUrl] = useState<string | null>(null)
+  
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [breakdown, setBreakdown] = useState<UiBreakdown | null>(null)
+
+  const handleDrop = (files: File[]) => {
+    if (files[0]) {
+      setFile(files[0])
+      setImgUrl(URL.createObjectURL(files[0]))
+      setBreakdown(null)
+    }
+  }
+
+  const analyzeInterface = async () => {
+    if (!file || !key) return
+    setIsProcessing(true)
+    setBreakdown(null)
+
+    try {
+      const prompt = `Analyze this user interface screenshot meticulously as an expert UX/UI engineer.
+Provide a structural breakdown of the layout.
+Return ONLY a valid JSON object with NO markdown blocks and NO explanatory text before or after.
+JSON Structure requirement:
+{
+  "summary": "<A 2-3 sentence overview of the interfaces primary goal>",
+  "hierarchy": ["<Component 1: Purpose>", "<Component 2: Purpose>"],
+  "interactivity": ["<Interactive Element 1: Expected behavior>", "<Element 2: Expected behavior>"]
+}`
+
+      const systemPrompt = "You are a master product designer and UX engineer. Strictly adhere to returning JSON only."
+
+      const responseText = await callClaudeVision({
+         file,
+         prompt,
+         systemPrompt,
+         maxTokens: 1500
+      })
+
+      const cleaned = responseText.replace(/```json/gi, "").replace(/```/gi, "").trim()
+      const parsed = JSON.parse(cleaned) as UiBreakdown
+
+      if (!parsed.summary || !Array.isArray(parsed.hierarchy)) {
+         throw new Error("Invalid structure returned.")
+      }
+
+      setBreakdown(parsed)
+      toast.success("UX breakdown complete!")
+
+    } catch (err: any) {
+      if (err instanceof ClaudeError) {
+         toast.error(err.message)
+      } else if (err instanceof SyntaxError) {
+         toast.error("Failed to parse the AI's response properly. Please try again.")
+      } else {
+         toast.error("An unknown error occurred during analysis.")
+      }
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  if (!key) {
+    return (
+      <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
+         <div className="text-center">
+             <div className="inline-flex items-center justify-center p-3 bg-teal-500/10 rounded-full mb-6 text-teal-500">
+                <Monitor className="w-8 h-8" />
+             </div>
+             <h1 className="text-3xl font-bold font-syne mb-2 text-white">UX Interface Analyzer</h1>
+             <p className="text-muted-foreground text-sm">Secure, direct browser integration with Anthropic Claude Vision.</p>
+         </div>
+         <AnthropicKeyManager />
+      </div>
+    )
+  }
+
+  if (!file || !imgUrl) {
+    return (
+       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
+         <div className="inline-flex items-center justify-center p-3 bg-teal-500/10 rounded-full mb-6 text-teal-500">
+            <Monitor className="w-8 h-8" />
+         </div>
+         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Explain UI</h1>
+         <p className="text-muted-foreground text-lg mb-8">
+           Upload a screenshot of any application and let Claude reverse-engineer its UX hierarchy.
+         </p>
+         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop UI Screenshot" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+           <div className="p-2 bg-teal-500/10 rounded-lg text-teal-500">
+             <Monitor className="w-6 h-6" />
+           </div>
+           <div>
+             <h1 className="text-2xl font-bold font-syne text-white">UX Architecture</h1>
+             <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
+           </div>
+        </div>
+        <button onClick={() => {setFile(null); setImgUrl(null); setBreakdown(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" /> Load Different
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         <div className="space-y-6">
+            <div className="glass-panel p-4 rounded-3xl border-white/5 relative overflow-hidden bg-black/40 flex items-center justify-center min-h-[400px]">
+               <img src={imgUrl} className="max-w-full max-h-[600px] object-contain rounded-2xl" alt="Target UI" />
+            </div>
+
+            {!isProcessing && !breakdown && (
+               <button 
+                 onClick={analyzeInterface}
+                 className="w-full py-4 bg-teal-500 text-black font-bold rounded-xl shadow-[0_0_25px_rgba(20,184,166,0.3)] hover:bg-teal-400 transition-all flex items-center justify-center gap-2"
+               >
+                 <Glasses className="w-5 h-5" /> Deconstruct Layout & Interactions
+               </button>
+            )}
+
+            {isProcessing && (
+               <div className="w-full py-4 bg-teal-500/10 text-teal-400 font-bold rounded-xl border border-teal-500/20 flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" /> Reverse-engineering UX...
+               </div>
+            )}
+         </div>
+
+         <div className="space-y-6">
+            {breakdown && (
+               <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-700">
+                  <div className="glass-panel p-8 rounded-3xl border-teal-500/20 bg-teal-500/5">
+                     <h3 className="text-xl font-bold font-syne text-teal-400 mb-4">Core Objective</h3>
+                     <p className="text-white/90 leading-relaxed text-sm bg-black/40 p-4 rounded-xl border border-white/5">
+                        {breakdown.summary}
+                     </p>
+                  </div>
+
+                  <div className="glass-panel p-8 rounded-3xl border-white/5">
+                     <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2 mb-6">
+                        <ListTree className="w-4 h-4" /> Structural Hierarchy
+                     </h4>
+                     <ul className="space-y-3">
+                        {breakdown.hierarchy.map((item, i) => {
+                           const [title, desc] = item.split(":").map(s => s.trim())
+                           return (
+                              <li key={i} className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                 {desc ? (
+                                    <>
+                                       <span className="font-bold text-white text-sm">{title}</span>
+                                       <span className="text-xs text-muted-foreground">{desc}</span>
+                                    </>
+                                 ) : (
+                                    <span className="text-sm text-white/90">{item}</span>
+                                 )}
+                              </li>
+                           )
+                        })}
+                     </ul>
+                  </div>
+
+                  <div className="glass-panel p-8 rounded-3xl border-white/5">
+                     <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-6">
+                        <MousePointer2 className="w-4 h-4" /> Expected Interactivity
+                     </h4>
+                     <ul className="space-y-3 relative">
+                        <div className="absolute left-2.5 top-2 bottom-2 w-px bg-amber-500/20" />
+                        {breakdown.interactivity.map((item, i) => (
+                           <li key={i} className="relative flex items-start gap-4 pl-8">
+                              <div className="absolute left-1.5 top-1.5 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+                              <span className="text-sm text-white/90 leading-relaxed">{item}</span>
+                           </li>
+                        ))}
+                     </ul>
+                  </div>
+               </div>
+            )}
+         </div>
+      </div>
+    </div>
+  )
+}

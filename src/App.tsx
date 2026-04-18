@@ -18,14 +18,20 @@ export const preloadTool = async (loader: () => Promise<any>) => {
 }
 
 // Only Home loads eagerly — everything else is lazy with chunk names
-const Home = lazy(() => import(/* viteChunkName: "home" */ "./pages/Home").then(m => ({ default: m.Home })))
-const PrivacyPolicy = lazy(() => import(/* viteChunkName: "legal" */ "./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicy })))
+const Home = lazy(() => import("./pages/Home").then(m => ({ default: m.Home })))
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ default: m.PrivacyPolicy })))
 
 // AI Tools
 const ScreenshotToCode = lazy(() => import("./components/tools/ai/ScreenshotToCode").then(m => ({ default: m.ScreenshotToCode })))
 const AiAltTextWriter = lazy(() => import("./components/tools/ai/AiAltTextWriter").then(m => ({ default: m.AiAltTextWriter })))
 const PdfSummariser = lazy(() => import("./components/tools/ai/PdfSummariser").then(m => ({ default: m.PdfSummariser })))
 const BgReplacer = lazy(() => import("./components/tools/ai/BgReplacer").then(m => ({ default: m.BgReplacer })))
+const AiResumeReviewer = lazy(() => import("./components/tools/ai/AiResumeReviewer").then(m => ({ default: m.AiResumeReviewer })))
+const FontDetectorVision = lazy(() => import("./components/tools/ai/FontDetectorVision").then(m => ({ default: m.FontDetectorVision })))
+const ExplainUi = lazy(() => import("./components/tools/ai/ExplainUi").then(m => ({ default: m.ExplainUi })))
+const AltTextBatch = lazy(() => import("./components/tools/ai/AltTextBatch").then(m => ({ default: m.AltTextBatch })))
+const ImageCaptionGenerator = lazy(() => import("./components/tools/ai/ImageCaptionGenerator").then(m => ({ default: m.ImageCaptionGenerator })))
+const MockApiGenerator = lazy(() => import("./components/tools/ai/MockApiGenerator").then(m => ({ default: m.MockApiGenerator })))
 
 // Image Tools
 const ImageEffects = lazy(() => import("./components/tools/image/ImageEffects").then(m => ({ default: m.ImageEffects })))
@@ -51,6 +57,10 @@ const AsciiArt = lazy(() => import("./components/tools/image/AsciiArt").then(m =
 const BeforeAfterSlider = lazy(() => import("./components/tools/image/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })))
 const GifMaker = lazy(() => import("./components/tools/image/GifMaker").then(m => ({ default: m.GifMaker })))
 const SpriteSlicer = lazy(() => import("./components/tools/image/SpriteSlicer").then(m => ({ default: m.SpriteSlicer })))
+const ImageDiff = lazy(() => import("./components/tools/image/ImageDiff").then(m => ({ default: m.ImageDiff })))
+const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
+const IccStripper = lazy(() => import("./components/tools/image/IccStripper").then(m => ({ default: m.IccStripper })))
+const ImageResizerBulk = lazy(() => import("./components/tools/image/ImageResizerBulk").then(m => ({ default: m.ImageResizerBulk })))
 
 // PDF Tools
 const MergePdf = lazy(() => import("./components/tools/pdf/MergePdf").then(m => ({ default: m.MergePdf })))
@@ -69,6 +79,7 @@ const PdfFlatten = lazy(() => import("./components/tools/pdf/PdfFlatten").then(m
 const PdfCrop = lazy(() => import("./components/tools/pdf/PdfCrop").then(m => ({ default: m.PdfCrop })))
 const PdfNup = lazy(() => import("./components/tools/pdf/PdfNup").then(m => ({ default: m.PdfNup })))
 const RemoveBlankPages = lazy(() => import("./components/tools/pdf/RemoveBlankPages").then(m => ({ default: m.RemoveBlankPages })))
+const PdfFontExtractor = lazy(() => import("./components/tools/pdf/PdfFontExtractor").then(m => ({ default: m.PdfFontExtractor })))
 
 // Developer Tools
 const JsonFormatter = lazy(() => import("./components/tools/dev/JsonFormatter").then(m => ({ default: m.JsonFormatter })))
@@ -77,19 +88,32 @@ const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then
 const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
 const FaviconGenerator = lazy(() => import("./components/tools/dev/FaviconGenerator").then(m => ({ default: m.FaviconGenerator })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
+const RegexTester = lazy(() => import("./components/tools/dev/RegexTester").then(m => ({ default: m.RegexTester })))
+const TimestampConverter = lazy(() => import("./components/tools/dev/TimestampConverter").then(m => ({ default: m.TimestampConverter })))
+const JwtDecoder = lazy(() => import("./components/tools/dev/JwtDecoder").then(m => ({ default: m.JwtDecoder })))
+const UrlEncoder = lazy(() => import("./components/tools/dev/UrlEncoder").then(m => ({ default: m.UrlEncoder })))
+const CronBuilder = lazy(() => import("./components/tools/dev/CronBuilder").then(m => ({ default: m.CronBuilder })))
+const HtmlFormatter = lazy(() => import("./components/tools/dev/HtmlFormatter").then(m => ({ default: m.HtmlFormatter })))
+const CssUnitConverter = lazy(() => import("./components/tools/dev/CssUnitConverter").then(m => ({ default: m.CssUnitConverter })))
 
 // Video Tools
 const VideoCompressor = lazy(() => import("./components/tools/video/VideoCompressor").then(m => ({ default: m.VideoCompressor })))
 const AudioConverter = lazy(() => import("./components/tools/video/AudioConverter").then(m => ({ default: m.AudioConverter })))
 const VideoToMp3 = lazy(() => import("./components/tools/video/VideoToMp3").then(m => ({ default: m.VideoToMp3 })))
 const VideoToGif = lazy(() => import("./components/tools/video/VideoToGif").then(m => ({ default: m.VideoToGif })))
-// const VideoToGif = lazy(() => import("./components/tools/video/VideoToGif").then(m => ({ default: m.VideoToGif })))
+const AudioWaveform = lazy(() => import("./components/tools/video/AudioWaveform").then(m => ({ default: m.AudioWaveform })))
+const VideoThumbnails = lazy(() => import("./components/tools/video/VideoThumbnails").then(m => ({ default: m.VideoThumbnails })))
 
 // Text Tools
 const MarkdownPreview = lazy(() => import("./components/tools/text/MarkdownPreview").then(m => ({ default: m.MarkdownPreview })))
 const TextAnalyser = lazy(() => import("./components/tools/text/TextAnalyser").then(m => ({ default: m.TextAnalyser })))
 const TextDiff = lazy(() => import("./components/tools/text/TextDiff").then(m => ({ default: m.TextDiff })))
 const CsvJsonConverter = lazy(() => import("./components/tools/text/CsvJsonConverter").then(m => ({ default: m.CsvJsonConverter })))
+const LoremIpsumGenerator = lazy(() => import("./components/tools/text/LoremIpsumGenerator").then(m => ({ default: m.LoremIpsumGenerator })))
+const PasswordGenerator = lazy(() => import("./components/tools/text/PasswordGenerator").then(m => ({ default: m.PasswordGenerator })))
+const StringCaseConverter = lazy(() => import("./components/tools/text/StringCaseConverter").then(m => ({ default: m.StringCaseConverter })))
+const WordFrequency = lazy(() => import("./components/tools/text/WordFrequency").then(m => ({ default: m.WordFrequency })))
+const NumberBaseConverter = lazy(() => import("./components/tools/text/NumberBaseConverter").then(m => ({ default: m.NumberBaseConverter })))
 
 // Export loaders for prefetching popular tools
 export const loaders = {
@@ -142,6 +166,12 @@ function App() {
             <Route path="/tools/ai/alt-text" element={<AiAltTextWriter />} />
             <Route path="/tools/ai/summarizer" element={<PdfSummariser />} />
             <Route path="/tools/ai/bg-replacer" element={<BgReplacer />} />
+            <Route path="/tools/ai/resume" element={<AiResumeReviewer />} />
+            <Route path="/tools/ai/font-match" element={<FontDetectorVision />} />
+            <Route path="/tools/ai/explain-ui" element={<ExplainUi />} />
+            <Route path="/tools/ai/alt-text-batch" element={<AltTextBatch />} />
+            <Route path="/tools/ai/caption" element={<ImageCaptionGenerator />} />
+            <Route path="/tools/ai/mock-api" element={<MockApiGenerator />} />
 
             {/* Image Tools */}
             <Route path="/tools/image/effects" element={<ImageEffects />} />
@@ -167,6 +197,10 @@ function App() {
             <Route path="/tools/image/slider" element={<BeforeAfterSlider />} />
             <Route path="/tools/image/gif-maker" element={<GifMaker />} />
             <Route path="/tools/image/sprite-slicer" element={<SpriteSlicer />} />
+            <Route path="/tools/image/diff" element={<ImageDiff />} />
+            <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
+            <Route path="/tools/image/icc-stripper" element={<IccStripper />} />
+            <Route path="/tools/image/bulk-resize" element={<ImageResizerBulk />} />
 
             {/* PDF Tools */}
             <Route path="/tools/pdf/merge" element={<MergePdf />} />
@@ -185,6 +219,7 @@ function App() {
             <Route path="/tools/pdf/crop" element={<PdfCrop />} />
             <Route path="/tools/pdf/n-up" element={<PdfNup />} />
             <Route path="/tools/pdf/remove-blank" element={<RemoveBlankPages />} />
+            <Route path="/tools/pdf/fonts" element={<PdfFontExtractor />} />
             
             {/* PDF Placeholders */}
             <Route path="/tools/pdf/compare" element={<ToolFallback />} />
@@ -196,12 +231,21 @@ function App() {
             <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
             <Route path="/tools/dev/favicon" element={<FaviconGenerator />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
+            <Route path="/tools/dev/regex" element={<RegexTester />} />
+            <Route path="/tools/dev/timestamp" element={<TimestampConverter />} />
+            <Route path="/tools/dev/jwt" element={<JwtDecoder />} />
+            <Route path="/tools/dev/url" element={<UrlEncoder />} />
+            <Route path="/tools/dev/cron" element={<CronBuilder />} />
+            <Route path="/tools/dev/html" element={<HtmlFormatter />} />
+            <Route path="/tools/dev/css-units" element={<CssUnitConverter />} />
 
             {/* Video Tools */}
             <Route path="/tools/video/compress" element={<VideoCompressor />} />
             <Route path="/tools/video/audio-convert" element={<AudioConverter />} />
             <Route path="/tools/video/video-to-mp3" element={<VideoToMp3 />} />
             <Route path="/tools/video/to-gif" element={<VideoToGif />} />
+            <Route path="/tools/video/waveform" element={<AudioWaveform />} />
+            <Route path="/tools/video/thumbnails" element={<VideoThumbnails />} />
             <Route path="/tools/video/*" element={<ToolFallback />} />
 
             {/* Text Tools */}
@@ -209,6 +253,11 @@ function App() {
             <Route path="/tools/text/analyser" element={<TextAnalyser />} />
             <Route path="/tools/text/diff" element={<TextDiff />} />
             <Route path="/tools/text/csv-json" element={<CsvJsonConverter />} />
+            <Route path="/tools/text/lorem" element={<LoremIpsumGenerator />} />
+            <Route path="/tools/text/password" element={<PasswordGenerator />} />
+            <Route path="/tools/text/string-case" element={<StringCaseConverter />} />
+            <Route path="/tools/text/word-frequency" element={<WordFrequency />} />
+            <Route path="/tools/text/number-base" element={<NumberBaseConverter />} />
             <Route path="/tools/text/md-to-pdf" element={<ToolFallback />} />
             
             {/* Fallback */}
