@@ -69,7 +69,11 @@ export function MemeGenerator() {
   const handleDownload = () => {
     if (!fabricCanvas.current) return
     setIsProcessing(true)
-    const dataUrl = fabricCanvas.current.toDataURL({ format: "png", quality: 1 })
+    const dataUrl = fabricCanvas.current.toDataURL({ 
+      format: "png", 
+      quality: 1,
+      multiplier: 1 
+    })
     const a = document.createElement("a")
     a.href = dataUrl
     a.download = `vanity-meme-${Date.now()}.png`

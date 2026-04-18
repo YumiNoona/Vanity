@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Stamp, Type } from "lucide-react"
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
@@ -37,7 +37,7 @@ export function PdfWatermark() {
           font: font,
           color: rgb(0.5, 0.5, 0.5),
           opacity: 0.3,
-          rotate: { type: 'degrees', angle: 45 }
+          rotate: degrees(45)
         })
       })
       

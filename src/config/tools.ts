@@ -1,4 +1,4 @@
-import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images, Eraser, FileCode, Pipette, ShieldAlert, ShieldCheck, QrCode, Barcode, Sparkles, ListOrdered, Stamp } from "lucide-react"
+import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images, Eraser, FileCode, Pipette, ShieldAlert, ShieldCheck, QrCode, Barcode, Sparkles, ListOrdered, Stamp, Maximize2 } from "lucide-react"
 
 export const IMAGE_TOOLS = [
   { id: "remove-bg", title: "Remove Background", description: "AI-powered background removal running locally in your browser.", icon: Image, path: "/tools/image/remove-bg", isPopular: true },
