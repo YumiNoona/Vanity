@@ -3,7 +3,6 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, SplitSquareHorizontal, FileText } from "lucide-react"
 import { PDFDocument } from "pdf-lib"
 import JSZip from "jszip"
-import confetti from "canvas-confetti"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
@@ -47,12 +46,6 @@ export function SplitPdf() {
       const url = URL.createObjectURL(content)
       setResultZipUrl(url)
       
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
       toast.success("PDF split successfully!")
 
     } catch (error: any) {

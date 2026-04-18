@@ -1,48 +1,83 @@
-# 🛠️ Vanity
-**The All-In-One Private Image & PDF Utility Suite**
+<p align="center">
+  <img src="https://img.shields.io/badge/Vanity-Image%20%26%20PDF%20Suite-F59E0B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMNiA3IDEyIDEyIDE4IDd6Ii8+PC9zdmc+" alt="Vanity" />
+</p>
 
-Edit images, merge PDFs, remove backgrounds, and optimize assets directly from your browser. 100% free, blazingly fast, and completely secure.
+<h1 align="center">✦ Vanity</h1>
+<p align="center"><strong>The All-In-One Private Image & PDF Utility Suite</strong></p>
 
-**[Live Demo](#) | [GitHub](#)**
+<p align="center">
+  <a href="https://vanity.venusapp.in"><img src="https://img.shields.io/badge/🌐_Live_Site-vanity.venusapp.in-F59E0B?style=for-the-badge" alt="Live Site" /></a>
+</p>
 
-`React 18` ✦ `TypeScript` ✦ `Vite` ✦ `Tailwind CSS` ✦ `WebAssembly` ✦ `shadcn/ui`
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-8.0-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Fabric.js-7.2-orange?style=flat-square" alt="Fabric.js" />
+  <img src="https://img.shields.io/badge/pdf--lib-1.17-red?style=flat-square" alt="pdf-lib" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square" alt="Build" />
+  <img src="https://img.shields.io/badge/Client--Side-100%25-blueviolet?style=flat-square" alt="Client-Side" />
+  <img src="https://img.shields.io/badge/Privacy-Zero%20Upload-success?style=flat-square" alt="Privacy" />
+  <img src="https://img.shields.io/badge/Bundle-Code%20Split-informational?style=flat-square" alt="Code Split" />
+</p>
 
 ---
 
-## 📖 Summary
+## 📖 About
 
-**Vanity** is a modern, premium-grade web application designed to replace clunky desktop software and subscription-heavy utility sites. It bundles dozens of powerful Image, PDF, and AI tools into a completely client-side application. 
+**Vanity** is a modern, premium-grade web application that replaces clunky desktop software and subscription-heavy utility sites. It bundles dozens of powerful Image, PDF, and AI tools into a completely **client-side** application.
 
-**Privacy by Design**: Rather than relying on expensive backends, Vanity leverages modern Web APIs — including `Canvas`, `WASM`, and browser-based file streams (`pdf-lib`) — to process all user data locally. Your files never leave your machine!
+> **🔒 Privacy by Design** — Vanity leverages modern Web APIs including `Canvas`, `WebAssembly`, `Fabric.js`, and browser-native file streams to process all user data locally. **Your files never leave your machine.**
 
-A local monetization state is structured seamlessly with simulated premium tokens unlocking high-end functionalities without a forced refresh. 
+### 🏗️ Architecture Highlights
+
+- **Hybrid Processing** — 95% client-side; high-security PDF encryption via a local qpdf-powered micro-server
+- **Job-Tracked Processing** — Race-condition-safe async pipeline with automatic cancellation
+- **Time-Budgeted Yielding** — 16ms yield loops maintain 60fps during heavy pixel operations
+- **Lazy-Loaded Modules** — Heavy libraries (`pdf-lib`, `pdfjs-dist`) load on-demand with idle pre-warming
+- **GPU Memory Management** — Aggressive canvas release (0×0 reset) prevents mobile browser crashes
+- **Throttled UI Feedback** — Progress updates capped at 100ms intervals to prevent React re-render spam
 
 ---
 
 ## ✨ Features
 
-### 🖼️ Core Image Tools
-| Feature | Description |
+### 🖼️ Image Tools
+| Tool | Description |
 |---|---|
-| **Remove Background (AI)** | ML-powered background carving running locally in-browser via WebAssembly (`@imgly/background-removal`). |
-| **Image Effects** | Native Canvas modifications for Brightness, Contrast, Saturation, Sepia, Grayscale, and Blur filtering. |
-| **Asset Compressor** | Resize and compress heavy assets to smaller WebP/JPEG footprints using lossless or lossy degradation. |
-| **Crop & Resize** | Flexible crop parameters directly tied to a reactive Fabric/Canvas viewport. |
+| **Remove Background (AI)** | ML-powered background removal running locally via WebAssembly (`@imgly/background-removal`) |
+| **Image Effects** | Native Canvas filters — Brightness, Contrast, Saturation, Sepia, Grayscale, Blur |
+| **Asset Compressor** | Resize and compress to WebP/JPEG using lossy or lossless degradation |
+| **Crop & Resize** | Interactive crop region with real-time preview and full-resolution export |
+| **Format Converter** | Convert between WebP, PNG, JPEG, and GIF instantly |
+| **AI Upscaler** | 2× / 4× super-resolution upscaling with simulated deep refinement |
+| **Watermark Remover** | Brush-based in-painting with yielded pixel reconstruction |
+| **Meme Generator** | Fabric.js canvas editor with draggable text layers and layer deletion |
+| **Image Watermark** | Overlay text or image watermarks with opacity and positioning control |
 
-### 📄 PDF Utilities
-| Feature | Description |
+### 📄 PDF Tools
+| Tool | Description |
 |---|---|
-| **Merge PDFs** | Drag, arrange, and seamlessly bind multiple PDFs using `pdf-lib` direct stream interactions. |
-| **Split PDFs** | Extract pages directly into new blobs or individualized download bundles. |
-| **Security Passwords** | Inject or strip 128-bit file passwords for standard compliance checking. |
-| **PDF Compression** | Client-side metadata stripping to heavily decrease raw PDF footprints. |
+| **Merge PDFs** | Drag, arrange, and seamlessly combine multiple PDF files |
+| **Split PDFs** | Extract page ranges into new documents or individual downloads |
+| **PDF to Images** | Convert each page to high-quality PNG with per-page progress |
+| **PDF Compression** | Client-side metadata stripping to reduce file sizes |
+| **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend |
+| **PDF Watermark** | Stamp text across all pages of a PDF document |
+| **Reorder Pages** | Drag-and-drop page reordering with live preview |
 
-### 💳 Monetization & Security
-| Feature | Description |
+### 🧰 Utility Tools
+| Tool | Description |
 |---|---|
-| **Ad-Free Toggle** | Simulated Google AdSense slotting disabled via local storage key-checking hook models (`usePremium`). |
-| **Batch Processing** | 5 files at a time on Free limits, instantly expanded to 50 via Premium token. |
-| **Local Toggles** | Upgrade paths don’t require a centralized database. The `PremiumUtils` unlocks tools entirely on the DOM. |
+| **QR Code Generator** | Generate QR codes from any text or URL |
+| **Barcode Generator** | Create standard barcodes with JsBarcode |
+| **OCR Text Extraction** | Extract text from images using Tesseract.js |
+| **GIF Maker** | Combine multiple images into animated GIFs |
 
 ---
 
@@ -50,105 +85,133 @@ A local monetization state is structured seamlessly with simulated premium token
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend Setup** | Vite, React 18, TypeScript | Instant server starts, heavy typing, lightning fast HMR. |
-| **Styling** | Tailwind CSS v3, CSS variables | Absolute control over dark mode tokens and utility generation. |
-| **Component UI** | shadcn/ui, Radix Primitives | Beautiful, accessible, headless DOM wrappers. |
-| **Animations** | Framer Motion, Canvas Confetti | Complex staggered entrance delays, success sparks. |
-| **Icons** | Lucide React | Highly consistent icon typography across 20+ applications. |
-| **PDF Core** | `pdf-lib` | Standardized reading and writing of PDF binary layouts. |
-| **AI ML Core** | `@imgly/background-removal` | Client-side neural models parsing via WASM. |
+| **Runtime** | React 19, TypeScript 6 | Type-safe component architecture |
+| **Build** | Vite 8 | Sub-second HMR, optimized code splitting |
+| **Styling** | Tailwind CSS 3.4, CSS Variables | Dark-mode design tokens, utility-first |
+| **Components** | shadcn/ui, Radix Primitives | Accessible headless UI primitives |
+| **Canvas** | Fabric.js 7 | Rich interactive canvas editing (memes, watermarks) |
+| **Animations** | Framer Motion, Canvas Confetti | Staggered entrances, success celebrations |
+| **PDF Engine** | `pdf-lib`, `pdfjs-dist` | Read/write/render PDF binaries |
+| **AI / ML** | `@imgly/background-removal` | Client-side WASM neural network inference |
+| **OCR** | `tesseract.js` | In-browser optical character recognition |
+| **Icons** | Lucide React | Consistent icon system across all tools |
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-Vanity/
-│
-├── public/                             # Static Assets
-├── src/                                # ─── Application Root ───
-│   │
-│   ├── components/                     # Core React Domains
-│   │   ├── layout/                     #   App Layouts
-│   │   │   ├── AppLayout.tsx           #     Main shell encapsulating nav/side
-│   │   │   ├── Navbar.tsx              #     Ad/Premium-aware top navigation
-│   │   │   └── Sidebar.tsx             #     Collapsible side array for active tools
-│   │   ├── shared/                     #   Globally referenced elements
-│   │   │   ├── AdSlot.tsx              #     Simulated Adsense injection wrapper
-│   │   │   └── DropZone.tsx            #     React-dropzone drag & drop wrapper
-│   │   ├── tools/                      #   Functional Utility Apps
-│   │   │   ├── image/                  #     Image-scoped functionality
-│   │   │   │   ├── ImageEffects.tsx    #       Canvas-based filter controls
-│   │   │   │   └── RemoveBg.tsx        #       WASM-powered background ML logic
-│   │   │   └── pdf/                    #     PDF-scoped functionality
-│   │   │       └── MergePdf.tsx        #       Multi-file `pdf-lib` merge generator
-│   │   └── ui/                         #   Shadcn & Headless primitives
-│   │
-│   ├── config/                         # Standardized App Memory
-│   │   └── tools.ts                    #   Object array mapping icons, routes, tools
-│   │
-│   ├── hooks/                          # Custom Hooks
-│   │   └── usePremium.ts               #   Local-storage monetization checks
-│   │
-│   ├── lib/                            # Helper utilities
-│   │   └── utils.ts                    #   Tailwind merge classes
-│   │
-│   ├── pages/                          # Core Route Targets
-│   │   └── Home.tsx                    #   Animated grid displaying available tools
-│   │
-│   ├── App.tsx                         # BrowserRouter Setup
-│   ├── index.css                       # Dark global tokens + CSS blobs/noise vars
-│   └── main.tsx                        # Initial React DOM Mount
-│
-├── tailwind.config.js                  # Deep styling extension map
-├── postcss.config.js                   # Pre-processor instructions
-├── package.json                        # Root dependencies and Vite targets
-└── tsconfig.app.json                   # Strict TS mappings
+├── server/                          # Local PDF encryption backend
+│   ├── uploads/                     # Temporary processing buffer
+│   ├── server.js                    # Express + qpdf bridge
+│   └── package.json                 # Backend dependencies
+├── src/
+│   ├── components/
+│   │   ├── layout/                  # AppLayout, Navbar, Sidebar
+│   │   ├── shared/                  # DropZone, AdSlot
+│   │   ├── tools/
+│   │   │   ├── image/               # All image tool components
+│   │   │   └── pdf/                 # All PDF tool components
+│   │   └── ui/                      # shadcn/ui primitives
+│   ├── config/
+│   │   └── tools.ts                 # Tool registry (icons, routes, metadata)
+│   ├── hooks/
+│   │   ├── useImageProcessor.ts     # Job-tracked processing hub
+│   │   └── usePremium.ts            # Local monetization state
+│   ├── lib/
+│   │   ├── canvas/
+│   │   │   ├── index.ts             # loadImage, drawToCanvas, exportCanvas
+│   │   │   └── guards.ts            # runYieldedTask, releaseCanvas, dimension guards
+│   │   └── utils.ts                 # Tailwind merge helpers
+│   ├── pages/
+│   │   └── Home.tsx                 # Animated tool grid
+│   ├── App.tsx                      # Router setup
+│   ├── index.css                    # Global dark tokens + glass effects
+│   └── main.tsx                     # React DOM mount
+├── tailwind.config.js
+├── vite.config.ts
+├── tsconfig.app.json
+├── package.json
 ```
-
----
-
-## 💰 Subscription Plans
-
-| Capability | FREE | PRO ($4.99/mo) |
-|---|---|---|
-| **Max Files Per Batch** | 5 | 50 |
-| **File Limit Maximum** | 10 MB | 100 MB |
-| **Ad Experience** | Active AdSense units | None (Zero Ads) |
-| **AI Processing Model** | Local Standard | Dedicated Output Paths |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone & Install
-Ensure you have Node.js installed on your OS.
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **npm** ≥ 9
+- **qpdf** (installed and added to PATH or absolute path configured in `server/server.js`)
+
+### Installation
 
 ```bash
-git clone https://github.com/YourName/Vanity.git
+git clone https://github.com/YumiNoona/Vanity.git
 cd Vanity
 npm install
 ```
 
-### 2. Run the Platform
-
+#### 🌐 Frontend
 ```bash
 npm run dev
 ```
+Open [http://localhost:5173](http://localhost:5173).
 
-Point your browser to `http://localhost:5173`. You'll immediately launch into the interface.
+#### 🛡️ PDF Backend (Required for Password Management)
+```bash
+cd server
+npm install
+node server.js
+```
+The backend serves on `http://localhost:3000`.
+
+### Production Build
+
+```bash
+npm run build
+npm run preview
+```
 
 ---
 
-## 🎨 UI Conventions
+## 🎨 Design System
 
-- **Typography**: Heavily relies on **Syne** for bold visual structure (`h1`, `h2`), and **DM Sans** for paragraph readability.
-- **Colors**: Hex locks into `#0A0A0A` for pure aesthetic dark background and relies upon `#F59E0B` (Amber) for interactive glowing focal points.
-- **Micro-interactions**: A continuous use of shadow spreads bounding the interactive elements: `shadow-[0_0_20px_rgba(245,158,11,0.2)]` combined with Framer hover scales.
-- **Components**: Employs `.glass-panel` utilities with extremely light semi-transparent whites (`bg-white/[0.03]`) against hard backdrops for physical depth without borders.
+| Token | Value | Usage |
+|---|---|---|
+| **Background** | `#0A0A0A` | Pure dark aesthetic base |
+| **Primary** | `#F59E0B` (Amber) | Interactive elements, CTAs, glows |
+| **Font (Display)** | Syne | Headlines, branding, tool titles |
+| **Font (Body)** | DM Sans | Paragraphs, labels, descriptions |
+| **Glass Panels** | `bg-white/[0.03]` | Depth without hard borders |
+| **Glow Effects** | `shadow-[0_0_20px_rgba(245,158,11,0.2)]` | Interactive element highlights |
 
 ---
 
-📝 **License**
+## 💰 Plans
 
-This project is licensed under the MIT License — see the LICENSE file for details.
+| Capability | Free | Pro |
+|---|---|---|
+| Max Files Per Batch | 5 | 50 |
+| File Size Limit | 10 MB | 100 MB |
+| Ad Experience | Active | None |
+| AI Processing | Standard | Priority |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+
+---
+
+## 📝 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  <sub>Built with ☕ and obsessive attention to detail</sub><br/>
+  <a href="https://vanity.venusapp.in"><strong>vanity.venusapp.in</strong></a>
+</p>

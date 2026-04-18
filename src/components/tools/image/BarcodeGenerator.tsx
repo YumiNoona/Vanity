@@ -3,9 +3,12 @@ import { Download, ArrowLeft, Barcode as BarcodeIcon } from "lucide-react"
 import JsBarcode from "jsbarcode"
 import { toast } from "sonner"
 
+import { downloadBlob, exportCanvas } from "@/lib/canvas"
+
 export function BarcodeGenerator() {
   const [text, setText] = useState("123456789")
   const svgRef = useRef<SVGSVGElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const generateBarcode = () => {
     if (!text || !svgRef.current) return
@@ -27,27 +30,34 @@ export function BarcodeGenerator() {
     generateBarcode()
   }, [text])
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!svgRef.current) return
-    const svgData = new XMLSerializer().serializeToString(svgRef.current)
-    const canvas = document.createElement("canvas")
-    const svgSize = svgRef.current.getBBox()
-    canvas.width = svgSize.width + 40
-    canvas.height = svgSize.height + 40
-    const ctx = canvas.getContext("2d")!
-    ctx.fillStyle = "white"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
     
-    const img = new Image()
-    img.onload = () => {
-      ctx.drawImage(img, 20, 20)
-      const url = canvas.toDataURL("image/png")
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "vanity-barcode.png"
-      a.click()
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgRef.current)
+      const canvas = document.createElement("canvas")
+      const svgSize = svgRef.current.getBBox()
+      canvas.width = svgSize.width + 40
+      canvas.height = svgSize.height + 40
+      const ctx = canvas.getContext("2d")!
+      
+      ctx.fillStyle = "white"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      
+      const img = new Image()
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" })
+      const url = URL.createObjectURL(svgBlob)
+      
+      img.onload = async () => {
+        ctx.drawImage(img, 20, 20)
+        const blob = await exportCanvas(canvas, "image/png", 1.0)
+        downloadBlob(blob, "vanity-barcode.png")
+        URL.revokeObjectURL(url)
+      }
+      img.src = url
+    } catch (error) {
+      toast.error("Failed to export barcode")
     }
-    img.src = "data:image/svg+xml;base64," + btoa(svgData)
   }
 
   return (

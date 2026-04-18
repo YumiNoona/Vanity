@@ -3,11 +3,14 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Maximize2, Sparkles } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob, getAdaptiveDimensions } from "@/lib/canvas"
 
 export function AiUpscaler() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { isProcessing, progress, processImage, updateProgress, getJobId } = useImageProcessor()
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   const [scale, setScale] = useState(2)
 
@@ -16,45 +19,78 @@ export function AiUpscaler() {
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
-    setIsProcessing(true)
-
+    const jobId = getJobId()
+    
     try {
-      const img = new Image()
-      img.src = URL.createObjectURL(uploadedFile)
-      await img.decode()
+      const result = await processImage(uploadedFile)
+      if (!result || jobId !== getJobId()) return
+
+      const sourceW = result.dimensions.width
+      const sourceH = result.dimensions.height
       
-      // Local Upscaling Simulation: Using high-quality canvas scaling + sharpening
+      let targetWidth = sourceW * scale
+      let targetHeight = sourceH * scale
+
+      const finalGuards = getAdaptiveDimensions(targetWidth, targetHeight)
+      targetWidth = finalGuards.width
+      targetHeight = finalGuards.height
+
       const canvas = document.createElement("canvas")
-      const targetWidth = img.width * scale
-      const targetHeight = img.height * scale
       canvas.width = targetWidth
       canvas.height = targetHeight
       
-      const ctx = canvas.getContext("2d", { alpha: false })!
-      // Use standard bicubic-like interpolation from browser
+      const ctx = canvas.getContext("2d")!
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = "high"
-      ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
       
-      // Simulate Deep Learning refinement time
-      await new Promise(r => setTimeout(r, 2000))
+      // Simulate Deep Learning refinement with yielded chunks
+      let refinementProgress = 0
+      updateProgress(0)
       
-      const url = canvas.toDataURL("image/png")
-      setResultUrl(url)
+      const { runYieldedTask } = await import("@/lib/canvas/guards")
+      await runYieldedTask(
+        () => {
+          refinementProgress += 5
+          updateProgress(refinementProgress)
+        },
+        () => refinementProgress < 100 && jobId === getJobId()
+      )
+
+      if (jobId !== getJobId()) {
+        canvas.width = 0
+        canvas.height = 0
+        return
+      }
+      
+      ctx.drawImage(result.source, 0, 0, targetWidth, targetHeight)
+      
+      const blob = await exportCanvas(canvas, "image/png", 1.0)
+      setResultBlob(blob)
+      setResultUrl(URL.createObjectURL(blob))
       toast.success(`Image upscaled to ${targetWidth}x${targetHeight}!`)
+      
+      result.cleanup()
+      // Cleanup GPU memory
+      canvas.width = 0
+      canvas.height = 0
     } catch (error) {
       toast.error("Failed to upscale image")
     } finally {
-      setIsProcessing(false)
+      if (jobId === getJobId()) {
+        updateProgress(100)
+      }
     }
   }
 
   const handleDownload = () => {
-    if (!resultUrl) return
-    const a = document.createElement("a")
-    a.href = resultUrl
-    a.download = `vanity-upscaled-${file?.name}`
-    a.click()
+    if (!resultBlob) return
+    downloadBlob(resultBlob, `vanity-upscaled-${file?.name || "image.png"}`)
+  }
+
+  const handleStartNew = () => {
+    setFile(null)
+    setResultUrl(null)
+    updateProgress(0)
   }
 
   if (!file) {
@@ -79,24 +115,32 @@ export function AiUpscaler() {
           <h1 className="text-3xl font-bold font-syne mb-2">AI Upscaler</h1>
           <p className="text-muted-foreground text-sm">Target: {file.name}</p>
         </div>
-        <button onClick={() => { setFile(null); setResultUrl(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={handleStartNew} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
 
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
-        {isProcessing && (
+        {(isProcessing || (progress > 0 && progress < 100)) && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur z-10 flex flex-col items-center justify-center animate-in fade-in">
              <div className="relative">
                 <Loader2 className="w-16 h-16 text-primary animate-spin" />
                 <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-yellow-500 animate-pulse" />
              </div>
-             <h3 className="text-2xl font-bold font-syne mt-6 animate-pulse">Deep Refinement...</h3>
-             <p className="text-sm text-muted-foreground mt-2">Reconstructing pixels locally</p>
+             <h3 className="text-2xl font-bold font-syne mt-6 animate-pulse">
+               {progress > 0 ? `Refining Details: ${progress}%` : "Deep Refinement..."}
+             </h3>
+             <div className="w-64 h-1.5 bg-white/10 rounded-full mt-6 overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                />
+             </div>
+             <p className="text-sm text-muted-foreground mt-4">Reconstructing pixels locally using super-resolution</p>
           </div>
         )}
 
-        {!resultUrl && !isProcessing && (
+        {!resultUrl && !isProcessing && progress === 0 && (
           <div className="space-y-8 text-center">
              <div className="flex justify-center gap-4">
                {[2, 4].map(s => (
@@ -115,7 +159,7 @@ export function AiUpscaler() {
           </div>
         )}
 
-        {resultUrl && !isProcessing && (
+        {resultUrl && (progress === 100 || !isProcessing) && (
           <div className="text-center space-y-6 animate-in zoom-in-95">
             <div className="relative inline-block">
                <img src={resultUrl} alt="Result" className="max-h-[300px] rounded shadow-2xl border border-white/10" />

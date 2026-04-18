@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Minimize2, Sparkles } from "lucide-react"
 import imageCompression from "browser-image-compression"
-import confetti from "canvas-confetti"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { downloadBlob } from "@/lib/canvas/export"
 
 export function ImageCompressor() {
   const { validateFiles } = usePremium()
@@ -29,7 +29,7 @@ export function ImageCompressor() {
     
     try {
       const options = {
-        maxSizeMB: quality > 0.8 ? 5 : quality > 0.5 ? 2 : 1, // Simple mapping
+        maxSizeMB: quality > 0.8 ? 5 : quality > 0.5 ? 2 : 1,
         maxWidthOrHeight: 4096,
         useWebWorker: true,
         initialQuality: quality
@@ -40,13 +40,6 @@ export function ImageCompressor() {
       
       setResultBlob(compressedFile)
       setResultUrl(url)
-      
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
       toast.success("Image compressed!")
       
     } catch (error: any) {
@@ -58,11 +51,8 @@ export function ImageCompressor() {
   }
 
   const handleDownload = () => {
-    if (!resultUrl) return
-    const a = document.createElement("a")
-    a.href = resultUrl
-    a.download = `vanity-compressed-${file?.name || "image.png"}`
-    a.click()
+    if (!resultBlob) return
+    downloadBlob(resultBlob, `vanity-compressed-${file?.name || "image.png"}`)
   }
 
   if (!file) {

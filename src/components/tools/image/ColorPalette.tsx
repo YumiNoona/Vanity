@@ -2,43 +2,65 @@ import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Pipette, Copy, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas } from "@/lib/canvas"
 
 export function ColorPalette() {
   const [file, setFile] = useState<File | null>(null)
   const [palette, setPalette] = useState<string[]>([])
+  const { isProcessing, processImage } = useImageProcessor()
   const [preview, setPreview] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  useEffect(() => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setPreview(url)
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile) return
     
-    const img = new Image()
-    img.src = url
-    img.onload = () => {
-      const canvas = canvasRef.current!
-      const ctx = canvas.getContext("2d")!
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx.drawImage(img, 0, 0)
+    setFile(uploadedFile)
+    setPalette([])
+    
+    // Preview URL for UI
+    const url = URL.createObjectURL(uploadedFile)
+    setPreview(url)
+
+    try {
+      const result = await processImage(uploadedFile)
+      if (!result) return
+
+      const canvas = document.createElement("canvas")
+      const ctx = await drawToCanvas(result.source, canvas, { clear: true })
       
       const colors = extractPalette(ctx, canvas.width, canvas.height)
       setPalette(colors)
       toast.success("Color palette extracted!")
+      
+      result.cleanup()
+    } catch (e) {
+      toast.error("Failed to process image")
     }
-    return () => URL.revokeObjectURL(url)
-  }, [file])
+  }
+
+  // Effect to revoke preview URL
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const extractPalette = (ctx: CanvasRenderingContext2D, width: number, height: number): string[] => {
-    const imageData = ctx.getImageData(0, 0, width, height).data
-    const colorCount: { [key: string]: number } = {}
-    const step = 20 // Jump pixels for speed
+    const imageData = ctx.getImageData(0, 0, width, height)
+    const data = imageData.data
     
-    for (let i = 0; i < imageData.length; i += 4 * step) {
-      const r = imageData[i]
-      const g = imageData[i + 1]
-      const b = imageData[i + 2]
+    // Safety check: verify pixels exist
+    if (!data.length) return []
+    
+    const colorCount: { [key: string]: number } = {}
+    const step = 16 // Jump 16 pixels for performance as per "Golden Pattern"
+    
+    for (let i = 0; i < data.length; i += 4 * step) {
+      const r = data[i]
+      const g = data[i + 1]
+      const b = data[i + 2]
       const hex = rgbToHex(r, g, b)
       colorCount[hex] = (colorCount[hex] || 0) + 1
     }
@@ -67,7 +89,7 @@ export function ColorPalette() {
         <p className="text-muted-foreground text-lg mb-8">
           Extract the core color story from any image for your design projects.
         </p>
-        <DropZone onDrop={(f) => setFile(f[0])} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </div>
     )
   }

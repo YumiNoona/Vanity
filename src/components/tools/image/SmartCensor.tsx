@@ -3,36 +3,43 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, ShieldAlert, Square, Circle } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 
 export function SmartCensor() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
+  const { isProcessing, processImage } = useImageProcessor()
+  const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [rects, setRects] = useState<{x: number, y: number, w: number, h: number}[]>([])
   const [currentRect, setCurrentRect] = useState<{x: number, y: number, w: number, h: number} | null>(null)
 
-  useEffect(() => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setPreview(url)
-    const img = new Image()
-    img.src = url
-    img.onload = () => {
-      const canvas = canvasRef.current!
-      canvas.width = img.width
-      canvas.height = img.height
-      draw(img)
-    }
-    return () => URL.revokeObjectURL(url)
-  }, [file, rects, currentRect])
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
+    
+    setFile(uploadedFile)
+    const result = await processImage(uploadedFile)
+    if (!result) return
 
-  const draw = (img: HTMLImageElement) => {
+    setSourceImage(result.source)
     const canvas = canvasRef.current!
-    const ctx = canvas.getContext("2d")!
-    ctx.drawImage(img, 0, 0)
+    await drawToCanvas(result.source, canvas, { clear: true })
+  }
+
+  useEffect(() => {
+    if (sourceImage) {
+      draw()
+    }
+  }, [sourceImage, rects, currentRect])
+
+  const draw = async () => {
+    const canvas = canvasRef.current
+    if (!canvas || !sourceImage) return
+    
+    const ctx = await drawToCanvas(sourceImage, canvas, { clear: true })
     
     // Draw blurred rects
     rects.forEach(r => censorArea(ctx, r))
@@ -92,18 +99,17 @@ export function SmartCensor() {
     setIsDrawing(false)
   }
 
-  const handleDownload = () => {
-    const canvas = canvasRef.current!
-    canvas.toBlob((blob) => {
-      if (!blob) return
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `vanity-censored-${file?.name}`
-      a.click()
-      URL.revokeObjectURL(url)
+  const handleDownload = async () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    
+    try {
+      const blob = await exportCanvas(canvas, file?.type || 'image/png', 1.0)
+      downloadBlob(blob, `vanity-censored-${file?.name || 'image.png'}`)
       toast.success("Censored image saved!")
-    })
+    } catch (error) {
+      toast.error("Failed to export image")
+    }
   }
 
   if (!file) {
@@ -116,7 +122,7 @@ export function SmartCensor() {
         <p className="text-muted-foreground text-lg mb-8">
           Protect privacy by pixelating sensitive areas in your photos.
         </p>
-        <DropZone onDrop={(f) => { if (validateFiles(f)) setFile(f[0]); }} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </div>
     )
   }

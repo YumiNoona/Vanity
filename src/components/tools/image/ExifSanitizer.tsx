@@ -2,12 +2,14 @@ import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, ShieldCheck, Info } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
 
 export function ExifSanitizer() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { isProcessing, processImage } = useImageProcessor()
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
 
   const handleProcess = async (files: File[]) => {
@@ -15,43 +17,27 @@ export function ExifSanitizer() {
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
-    setIsProcessing(true)
-
+    
     try {
-      // Modern way to strip EXIF is to draw it to a canvas and export to blob
-      // This effectively "sanitizes" it as canvas.toBlob creates a new image bitstream without metadata
-      const img = new Image()
-      img.src = URL.createObjectURL(uploadedFile)
-      await img.decode()
-      
+      const result = await processImage(uploadedFile)
+      if (!result) return
+
       const canvas = document.createElement("canvas")
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext("2d")!
-      ctx.drawImage(img, 0, 0)
+      await drawToCanvas(result.source, canvas, { clear: true })
       
-      canvas.toBlob((blob) => {
-        if (!blob) throw new Error("Processing failed")
-        setResultBlob(blob)
-        setIsProcessing(false)
-        toast.success("Metadata sanitized successfully!")
-      }, uploadedFile.type, 1.0)
+      const blob = await exportCanvas(canvas, uploadedFile.type, 1.0)
+      setResultBlob(blob)
+      toast.success("Metadata sanitized successfully!")
       
-      URL.revokeObjectURL(img.src)
+      result.cleanup()
     } catch (error) {
       toast.error("Failed to sanitize metadata")
-      setIsProcessing(false)
     }
   }
 
   const handleDownload = () => {
     if (!resultBlob) return
-    const url = URL.createObjectURL(resultBlob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `vanity-sanitized-${file?.name}`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadBlob(resultBlob, `vanity-sanitized-${file?.name}`)
   }
 
   if (!file) {

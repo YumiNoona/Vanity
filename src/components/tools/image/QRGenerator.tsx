@@ -3,8 +3,11 @@ import { Download, ArrowLeft, QrCode, Copy, CheckCircle } from "lucide-react"
 import QRCode from "qrcode"
 import { toast } from "sonner"
 
+import { downloadBlob } from "@/lib/canvas"
+
 export function QRGenerator() {
   const [text, setText] = useState("https://vanity.tools")
+  const [qrBlob, setQrBlob] = useState<Blob | null>(null)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   
@@ -12,7 +15,7 @@ export function QRGenerator() {
     if (!text) return
     setIsProcessing(true)
     try {
-      const url = await QRCode.toDataURL(text, {
+      const dataUrl = await QRCode.toDataURL(text, {
         width: 1024,
         margin: 2,
         color: {
@@ -20,13 +23,22 @@ export function QRGenerator() {
           light: "#ffffff"
         }
       })
-      setQrUrl(url)
+      
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
+      setQrBlob(blob)
+      setQrUrl(URL.createObjectURL(blob))
       toast.success("QR Code generated!")
     } catch (err) {
       toast.error("Failed to generate QR")
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleDownload = () => {
+    if (!qrBlob) return
+    downloadBlob(qrBlob, "vanity-qr.png")
   }
 
   // Generate initial QR
@@ -72,12 +84,7 @@ export function QRGenerator() {
              <>
                <img src={qrUrl} alt="QR Code" className="w-64 h-64 shadow-xl mb-8" />
                <button 
-                 onClick={() => {
-                   const a = document.createElement("a")
-                   a.href = qrUrl
-                   a.download = "vanity-qr.png"
-                   a.click()
-                 }}
+                 onClick={handleDownload}
                  className="px-8 py-3 bg-black text-white font-bold rounded-full flex items-center gap-2 hover:scale-105 transition-all"
                >
                  <Download className="w-4 h-4" /> Download PNG

@@ -4,6 +4,7 @@ import { Download, ArrowLeft, Loader2, Sparkles, Type, Plus } from "lucide-react
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
+import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
 
 export function MemeGenerator() {
   const { validateFiles } = usePremium()
@@ -12,15 +13,29 @@ export function MemeGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fabricCanvas = useRef<fabric.Canvas | null>(null)
 
-  useEffect(() => {
-    if (!file) return
-    const objectUrl = URL.createObjectURL(file)
+  const [sourceData, setSourceData] = useState<{source: any, width: number, height: number} | null>(null)
+  const [hasSelection, setHasSelection] = useState(false)
+
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
     
-    const img = new Image()
-    img.src = objectUrl
-    img.onload = () => {
-      if (!canvasRef.current) return
+    setFile(uploadedFile)
+    try {
+      const result = await loadImage(uploadedFile)
+      setSourceData({ source: result.source, width: result.width, height: result.height })
       
+      if (fabricCanvas.current) {
+        fabricCanvas.current.dispose()
+        fabricCanvas.current = null
+      }
+    } catch (e) {
+      toast.error("Failed to load image")
+    }
+  }
+
+  useEffect(() => {
+    if (sourceData && canvasRef.current) {
       const canvas = new fabric.Canvas(canvasRef.current, {
         width: 600,
         height: 600,
@@ -28,25 +43,22 @@ export function MemeGenerator() {
       })
       fabricCanvas.current = canvas
 
-      fabric.FabricImage.fromURL(objectUrl).then((fbImg) => {
-        const scale = Math.min(600 / fbImg.width!, 600 / fbImg.height!)
-        fbImg.scale(scale)
-        fbImg.set({ selectable: false, evented: false })
-        canvas.add(fbImg)
-        canvas.centerObject(fbImg)
-        canvas.renderAll()
-        
-        // Add default top/bottom texts
-        addMemeText("TOP TEXT", "top")
-        addMemeText("BOTTOM TEXT", "bottom")
-      })
-    }
+      canvas.on("selection:created", () => setHasSelection(true))
+      canvas.on("selection:updated", () => setHasSelection(true))
+      canvas.on("selection:cleared", () => setHasSelection(false))
 
-    return () => {
-      URL.revokeObjectURL(objectUrl)
-      fabricCanvas.current?.dispose()
+      const fbImg = new fabric.FabricImage(sourceData.source as HTMLImageElement)
+      const scale = Math.min(600 / sourceData.width, 600 / sourceData.height)
+      fbImg.scale(scale)
+      fbImg.set({ selectable: false, evented: false })
+      canvas.add(fbImg)
+      canvas.centerObject(fbImg)
+      canvas.requestRenderAll()
+      
+      addMemeText("TOP TEXT", "top")
+      addMemeText("BOTTOM TEXT", "bottom")
     }
-  }, [file])
+  }, [sourceData])
 
   const addMemeText = (content: string, pos: 'top' | 'bottom' | 'free' = 'free') => {
     if (!fabricCanvas.current) return
@@ -64,22 +76,37 @@ export function MemeGenerator() {
     })
     fabricCanvas.current.add(text)
     fabricCanvas.current.setActiveObject(text)
+    fabricCanvas.current.requestRenderAll()
   }
 
-  const handleDownload = () => {
+  const deleteSelected = () => {
+    const canvas = fabricCanvas.current
+    if (!canvas) return
+    const activeObjects = canvas.getActiveObjects()
+    if (activeObjects.length) {
+      activeObjects.forEach(obj => canvas.remove(obj))
+      canvas.discardActiveObject()
+      canvas.requestRenderAll()
+      setHasSelection(false)
+      toast.success("Layer removed")
+    }
+  }
+
+  const handleDownload = async () => {
     if (!fabricCanvas.current) return
     setIsProcessing(true)
-    const dataUrl = fabricCanvas.current.toDataURL({ 
-      format: "png", 
-      quality: 1,
-      multiplier: 1 
-    })
-    const a = document.createElement("a")
-    a.href = dataUrl
-    a.download = `vanity-meme-${Date.now()}.png`
-    a.click()
-    setIsProcessing(false)
-    toast.success("Meme exported!")
+    
+    try {
+      const fabricElement = fabricCanvas.current.toCanvasElement(1)
+      
+      const blob = await exportCanvas(fabricElement, "image/png", 1.0)
+      downloadBlob(blob, `vanity-meme-${Date.now()}.png`)
+      toast.success("Meme exported!")
+    } catch (error) {
+      toast.error("Export failed")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   if (!file) {
@@ -92,7 +119,7 @@ export function MemeGenerator() {
         <p className="text-muted-foreground text-lg mb-8">
           Upload a template and create viral memes instantly in your browser.
         </p>
-        <DropZone onDrop={(f) => { if (validateFiles(f)) setFile(f[0]); }} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </div>
     )
   }
@@ -120,6 +147,15 @@ export function MemeGenerator() {
                 <Plus className="w-6 h-6 mb-2 text-primary group-hover:scale-110 transition-transform" />
                 <span className="text-sm font-bold">Add Text Layer</span>
               </button>
+
+              {hasSelection && (
+                <button 
+                  onClick={deleteSelected}
+                  className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-bold transition-all border border-red-500/20"
+                >
+                  Delete Selected Layer
+                </button>
+              )}
               
               <button 
                 onClick={handleDownload}

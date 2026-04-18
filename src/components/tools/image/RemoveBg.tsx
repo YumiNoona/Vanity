@@ -2,15 +2,16 @@ import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import { removeBackground } from "@imgly/background-removal"
-import confetti from "canvas-confetti"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { downloadBlob } from "@/lib/canvas"
 
 export function RemoveBg() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   
   useEffect(() => {
@@ -20,6 +21,7 @@ export function RemoveBg() {
   }, [resultUrl])
 
   const handleProcess = async (uploadedFiles: File[]) => {
+    if (isProcessing) return
     const uploadedFile = uploadedFiles[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
 
@@ -36,32 +38,22 @@ export function RemoveBg() {
       
       setProgress(100)
       const url = URL.createObjectURL(blob)
+      setResultBlob(blob)
       setResultUrl(url)
       
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
       toast.success("Background removed!")
       
     } catch (error: any) {
       console.error(error)
-      toast.error("Failed to remove background", {
-        description: error?.message || "Ensure you are using a valid image file."
-      })
+      toast.error("Failed to remove background")
     } finally {
       setIsProcessing(false)
     }
   }
 
   const handleDownload = () => {
-    if (!resultUrl) return
-    const a = document.createElement("a")
-    a.href = resultUrl
-    a.download = `vanity-nobg-${file?.name || "image.png"}`
-    a.click()
+    if (!resultBlob) return
+    downloadBlob(resultBlob, `vanity-nobg-${file?.name || "image.png"}`)
   }
 
   if (!file) {

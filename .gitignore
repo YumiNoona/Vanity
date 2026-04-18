@@ -51,3 +51,7 @@ out
 vanity-*.pdf
 vanity-*.png
 vanity-*.jpg
+
+# Backend Server
+server/node_modules
+server/uploads

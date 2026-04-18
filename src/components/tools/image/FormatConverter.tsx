@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, FileText, Sparkles } from "lucide-react"
-import confetti from "canvas-confetti"
+import { Download, ArrowLeft, Loader2, FileText } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas } from "@/lib/canvas"
 import { toast } from "sonner"
 
 const FORMATS = ["webp", "png", "jpeg", "gif"]
@@ -11,62 +12,39 @@ export function FormatConverter() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [targetFormat, setTargetFormat] = useState("webp")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { isProcessing, processImage } = useImageProcessor()
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
 
   const handleConvert = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
 
     setFile(uploadedFile)
-    setIsProcessing(true)
+    setResultUrl(null)
     
     try {
-      const img = new Image()
-      const objectUrl = URL.createObjectURL(uploadedFile)
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = reject
-        img.src = objectUrl
-      })
+      const result = await processImage(uploadedFile)
+      if (!result) return
 
-      const canvas = canvasRef.current!
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext("2d")!
-      ctx.drawImage(img, 0, 0)
-      
+      const canvas = canvasRef.current || document.createElement("canvas")
       const mimeType = `image/${targetFormat === "jpg" ? "jpeg" : targetFormat}`
       
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), mimeType, 0.9)
+      // Draw with adaptive dimensions and background fill if JPEG
+      await drawToCanvas(result.source, canvas, {
+        fillBackground: targetFormat === "jpeg" ? "#ffffff" : undefined,
+        clear: true
       })
-
+      
+      const blob = await exportCanvas(canvas, mimeType, 0.95)
       const url = URL.createObjectURL(blob)
       setResultUrl(url)
-      URL.revokeObjectURL(objectUrl)
-      
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
       toast.success(`Converted to ${targetFormat.toUpperCase()}!`)
       
+      result.cleanup()
     } catch (error: any) {
       console.error(error)
       toast.error("Conversion failed")
-    } finally {
-      setIsProcessing(false)
     }
   }
 

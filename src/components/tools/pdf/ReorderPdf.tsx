@@ -5,6 +5,7 @@ import { PDFDocument } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { Reorder, AnimatePresence } from "framer-motion"
+import { downloadBlob } from "@/lib/canvas"
 
 interface PageItem {
   index: number
@@ -16,14 +17,15 @@ export function ReorderPdf() {
   const [file, setFile] = useState<File | null>(null)
   const [pages, setPages] = useState<PageItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
 
-  const handleProcess = async (files: File[]) => {
+  const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
     setIsProcessing(true)
+    setResultBlob(null)
 
     try {
       const arrayBuffer = await uploadedFile.arrayBuffer()
@@ -61,15 +63,19 @@ export function ReorderPdf() {
       
       const pdfBytes = await newDoc.save()
       const blob = new Blob([pdfBytes as any], { type: "application/pdf" })
-      const url = URL.createObjectURL(blob)
       
-      setResultUrl(url)
+      setResultBlob(blob)
       toast.success("PDF reordered successfully!")
     } catch (error) {
       toast.error("Failed to generate reordered PDF")
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleDownload = () => {
+    if (!resultBlob) return
+    downloadBlob(resultBlob, `vanity-reordered-${file?.name || "document.pdf"}`)
   }
 
   const removePage = (id: string) => {
@@ -79,14 +85,7 @@ export function ReorderPdf() {
   if (!file) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <ListOrdered className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Reorder PDF Pages</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Drag and drop to rearrange or delete pages within a single PDF.
-        </p>
-        <DropZone onDrop={handleProcess} accept={{ "application/pdf": [".pdf"] }} />
+        <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} />
       </div>
     )
   }
@@ -98,7 +97,7 @@ export function ReorderPdf() {
           <h1 className="text-3xl font-bold font-syne mb-2">Editor</h1>
           <p className="text-muted-foreground text-sm">Drag to reorder. Click X to remove pages.</p>
         </div>
-        <button onClick={() => { setFile(null); setResultUrl(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); setResultBlob(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Over
         </button>
       </div>
@@ -141,7 +140,7 @@ export function ReorderPdf() {
       </div>
 
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4">
-        {!resultUrl ? (
+        {!resultBlob ? (
           <button 
             onClick={handleApply}
             disabled={isProcessing || pages.length === 0}
@@ -152,12 +151,7 @@ export function ReorderPdf() {
           </button>
         ) : (
           <button 
-            onClick={() => {
-              const a = document.createElement("a");
-              a.href = resultUrl;
-              a.download = "vanity-reordered.pdf";
-              a.click();
-            }}
+            onClick={handleDownload}
             className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
           >
             <Download className="w-5 h-5" /> Download Result

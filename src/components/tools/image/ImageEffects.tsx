@@ -3,14 +3,15 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 
 export function ImageEffects() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { isProcessing, processImage } = useImageProcessor()
+  const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const origImageRef = useRef<HTMLImageElement | null>(null)
 
   const [settings, setSettings] = useState({
     brightness: 100,
@@ -21,36 +22,24 @@ export function ImageEffects() {
     blur: 0,
   })
 
-  useEffect(() => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setPreview(url)
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
     
-    const img = new Image()
-    img.onload = () => {
-      origImageRef.current = img
-      applyFilters()
-    }
-    img.src = url
-    return () => {
-      URL.revokeObjectURL(url)
-      origImageRef.current = null
-    }
-  }, [file])
+    setFile(uploadedFile)
+    const result = await processImage(uploadedFile)
+    if (!result) return
 
-  const applyFilters = () => {
-    const canvas = canvasRef.current
-    const img = origImageRef.current
-    if (!canvas || !img) return
+    setSourceImage(result.source)
+    const canvas = canvasRef.current!
+    applyFilters(result.source, canvas)
+  }
 
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    canvas.width = img.width
-    canvas.height = img.height
+  const applyFilters = async (source = sourceImage, canvas = canvasRef.current) => {
+    if (!canvas || !source) return
 
     const { brightness, contrast, saturation, grayscale, sepia, blur } = settings
-    ctx.filter = `
+    const filter = `
       brightness(${brightness}%) 
       contrast(${contrast}%) 
       saturate(${saturation}%) 
@@ -58,42 +47,33 @@ export function ImageEffects() {
       sepia(${sepia}%) 
       blur(${blur}px)
     `
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    await drawToCanvas(source, canvas, { filter, clear: true })
   }
 
   useEffect(() => {
-    applyFilters()
-  }, [settings])
+    if (sourceImage && canvasRef.current) {
+      applyFilters()
+    }
+  }, [settings, sourceImage])
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const canvas = canvasRef.current
     if (!canvas) return
     
-    setIsProcessing(true)
     try {
-      canvas.toBlob((blob) => {
-        if (!blob) throw new Error("Export failed")
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = `vanity-effects-${file?.name || "image.png"}`
-        a.click()
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-        setIsProcessing(false)
-        toast.success("Image exported!")
-      }, "image/png", 1.0)
+      const blob = await exportCanvas(canvas, "image/png", 1.0)
+      downloadBlob(blob, `vanity-effects-${file?.name || "image.png"}`)
+      toast.success("Image exported!")
     } catch (err) {
       toast.error("Export failed")
-      setIsProcessing(false)
     }
   }
-
   if (!file) {
     return (
       <div className="max-w-2xl mx-auto py-12">
         <h1 className="text-3xl font-bold font-syne mb-2">Image Effects</h1>
         <p className="text-muted-foreground mb-8">Apply beautiful filters and adjust colors directly in your browser.</p>
-        <DropZone onDrop={(f) => { if (validateFiles(f)) setFile(f[0]); }} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </div>
     )
   }

@@ -71,12 +71,7 @@ export function MergePdf() {
       const url = URL.createObjectURL(blob)
       
       setResultUrl(url)
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
+      
       toast.success("PDFs merged successfully!")
       
     } catch (error: any) {

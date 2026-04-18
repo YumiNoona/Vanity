@@ -4,31 +4,43 @@ import { Download, ArrowLeft, Loader2, Crop, RefreshCcw } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { exportCanvas, downloadBlob } from "@/lib/canvas"
 
 export function ImageCrop() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { isProcessing, processImage, getJobId } = useImageProcessor()
   const [preview, setPreview] = useState<string | null>(null)
+  const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const imgRef = useRef<HTMLImageElement | null>(null)
   
   const [crop, setCrop] = useState({ x: 10, y: 10, width: 80, height: 80 }) 
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState<string | null>(null)
   const [startPos, setStartPos] = useState({ x: 0, y: 0, cropX: 0, cropY: 0, cropW: 0, cropH: 0 })
 
-  useEffect(() => {
-    if (!file) return
-    const url = URL.createObjectURL(file)
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
+    
+    setFile(uploadedFile)
+    const result = await processImage(uploadedFile)
+    if (!result) return
+
+    setSourceImage(result.source)
+    const url = URL.createObjectURL(uploadedFile)
     setPreview(url)
-    const img = new Image()
-    img.src = url
-    img.onload = () => { imgRef.current = img }
-    return () => URL.revokeObjectURL(url)
-  }, [file])
+  }
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const handleMouseDown = (e: React.MouseEvent, type: string) => {
+    e.stopPropagation()
     e.preventDefault()
     if (type === 'move') setIsDragging(true)
     else setIsResizing(type)
@@ -98,41 +110,39 @@ export function ImageCrop() {
     }
   }, [isDragging, isResizing, startPos, crop])
 
-  const handleDownload = () => {
-    const img = imgRef.current
-    if (!img) return
-    setIsProcessing(true)
+  const handleDownload = async () => {
+    if (!sourceImage) return
 
     const canvas = document.createElement("canvas")
     const ctx = canvas.getContext("2d")!
     
-    const realX = Math.floor((crop.x / 100) * img.width)
-    const realY = Math.floor((crop.y / 100) * img.height)
-    const realW = Math.floor((crop.width / 100) * img.width)
-    const realH = Math.floor((crop.height / 100) * img.height)
+    const w = (sourceImage as HTMLImageElement).naturalWidth || (sourceImage as ImageBitmap).width || (sourceImage as any).width;
+    const h = (sourceImage as HTMLImageElement).naturalHeight || (sourceImage as ImageBitmap).height || (sourceImage as any).height;
+
+    const realX = Math.floor((crop.x / 100) * w)
+    const realY = Math.floor((crop.y / 100) * h)
+    const realW = Math.floor((crop.width / 100) * w)
+    const realH = Math.floor((crop.height / 100) * h)
     
     if (realW <= 0 || realH <= 0) return
 
     canvas.width = realW
     canvas.height = realH
     
-    ctx.drawImage(img, realX, realY, realW, realH, 0, 0, realW, realH)
+    // RAF sync for safety
+    await new Promise(requestAnimationFrame)
+    ctx.drawImage(sourceImage, realX, realY, realW, realH, 0, 0, realW, realH)
     
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        toast.error("Failed to generate image")
-        setIsProcessing(false)
-        return
-      }
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `vanity-cropped-${file?.name || "image.png"}`
-      a.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setIsProcessing(false)
+    try {
+      const blob = await exportCanvas(canvas, 'image/png', 1.0)
+      downloadBlob(blob, `vanity-cropped-${file?.name || "image.png"}`)
       toast.success("Image cropped successfully!")
-    }, 'image/png', 1.0)
+      
+      const { releaseCanvas } = await import("@/lib/canvas/guards")
+      releaseCanvas(canvas)
+    } catch (error) {
+      toast.error("Failed to generate image")
+    }
   }
 
   if (!file) {
@@ -143,7 +153,7 @@ export function ImageCrop() {
          </div>
         <h1 className="text-4xl font-bold font-syne mb-1">Crop & Resize</h1>
         <p className="text-muted-foreground text-lg mb-8">Precisely crop your images entirely in your browser.</p>
-        <DropZone onDrop={(f) => { if (validateFiles(f)) setFile(f[0]); }} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </div>
     )
   }
@@ -187,15 +197,15 @@ export function ImageCrop() {
             onMouseDown={(e) => handleMouseDown(e, 'move')}
           >
             {/* Resizing handles */}
-            <div onMouseDown={(e) => handleMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 -translate-y-1/2 cursor-nw-resize rounded-full border-2 border-white" />
-            <div onMouseDown={(e) => handleMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 bg-primary translate-x-1/2 -translate-y-1/2 cursor-ne-resize rounded-full border-2 border-white" />
-            <div onMouseDown={(e) => handleMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 translate-y-1/2 cursor-sw-resize rounded-full border-2 border-white" />
-            <div onMouseDown={(e) => handleMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 bg-primary translate-x-1/2 translate-y-1/2 cursor-se-resize rounded-full border-2 border-white" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 -translate-y-1/2 cursor-nw-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 bg-primary translate-x-1/2 -translate-y-1/2 cursor-ne-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 translate-y-1/2 cursor-sw-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 bg-primary translate-x-1/2 translate-y-1/2 cursor-se-resize rounded-full border-2 border-white z-20" />
             
-            <div onMouseDown={(e) => handleMouseDown(e, 'n')} className="absolute top-0 left-1/2 w-8 h-1 bg-primary/50 -translate-x-1/2 -translate-y-1/2 cursor-n-resize hover:bg-primary" />
-            <div onMouseDown={(e) => handleMouseDown(e, 's')} className="absolute bottom-0 left-1/2 w-8 h-1 bg-primary/50 -translate-x-1/2 translate-y-1/2 cursor-s-resize hover:bg-primary" />
-            <div onMouseDown={(e) => handleMouseDown(e, 'w')} className="absolute top-1/2 left-0 w-1 h-8 bg-primary/50 -translate-x-1/2 -translate-y-1/2 cursor-w-resize hover:bg-primary" />
-            <div onMouseDown={(e) => handleMouseDown(e, 'e')} className="absolute top-1/2 right-0 w-1 h-8 bg-primary/50 translate-x-1/2 -translate-y-1/2 cursor-e-resize hover:bg-primary" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'n')} className="absolute top-0 left-1/2 w-8 h-1 bg-primary/50 -translate-x-1/2 -translate-y-1/2 cursor-n-resize hover:bg-primary z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 's')} className="absolute bottom-0 left-1/2 w-8 h-1 bg-primary/50 -translate-x-1/2 translate-y-1/2 cursor-s-resize hover:bg-primary z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'w')} className="absolute top-1/2 left-0 w-1 h-8 bg-primary/50 -translate-x-1/2 -translate-y-1/2 cursor-w-resize hover:bg-primary z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'e')} className="absolute top-1/2 right-0 w-1 h-8 bg-primary/50 translate-x-1/2 -translate-y-1/2 cursor-e-resize hover:bg-primary z-20" />
 
             {/* Grid overlay */}
             <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-20">
