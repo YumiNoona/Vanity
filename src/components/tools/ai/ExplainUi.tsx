@@ -11,10 +11,12 @@ interface UiBreakdown {
   interactivity: string[]
 }
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function ExplainUi() {
   const { key } = useAnthropicKey()
   const [file, setFile] = useState<File | null>(null)
-  const [imgUrl, setImgUrl] = useState<string | null>(null)
+  const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [breakdown, setBreakdown] = useState<UiBreakdown | null>(null)
@@ -22,7 +24,7 @@ export function ExplainUi() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setImgUrl(URL.createObjectURL(files[0]))
+      setImgUrl(files[0])
       setBreakdown(null)
     }
   }
@@ -117,7 +119,7 @@ JSON Structure requirement:
              <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
            </div>
         </div>
-        <button onClick={() => {setFile(null); setImgUrl(null); setBreakdown(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearImgUrl(); setBreakdown(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Load Different
         </button>
       </div>

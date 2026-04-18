@@ -7,6 +7,8 @@ import { motion, Reorder } from "framer-motion"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 interface PdfFile {
   id: string
   file: File
@@ -18,14 +20,7 @@ export function MergePdf() {
   const { limits, validateFiles } = usePremium()
   const [pdfs, setPdfs] = useState<PdfFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
-  
-  // Cleanup object URL
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = (files: File[]) => {
     if (!validateFiles(files, pdfs.length)) return
@@ -68,9 +63,7 @@ export function MergePdf() {
       
       const mergedPdfBytes = await mergedPdf.save()
       const blob = new Blob([mergedPdfBytes as any], { type: "application/pdf" })
-      const url = URL.createObjectURL(blob)
-      
-      setResultUrl(url)
+      setResultUrl(blob)
       
       toast.success("PDFs merged successfully!")
       
@@ -117,7 +110,7 @@ export function MergePdf() {
           </button>
           
           <button 
-            onClick={() => { setPdfs([]); setResultUrl(null); }}
+            onClick={() => { setPdfs([]); clearResultUrl(); }}
             className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all flex items-center gap-3"
           >
             Start New Merge

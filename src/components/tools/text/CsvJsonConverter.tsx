@@ -2,12 +2,14 @@ import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, ArrowLeftRight, Trash2, FileSpreadsheet, Download, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function CsvJsonConverter() {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"csv-to-json" | "json-to-csv">("csv-to-json")
   const [copied, setCopied] = useState(false)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const csvToJson = (csv: string) => {
     const lines = csv.trim().split("\n")
@@ -52,10 +54,14 @@ export function CsvJsonConverter() {
     }
 
     if (mode === "csv-to-json") {
-      setOutput(csvToJson(input))
+      const result = csvToJson(input)
+      setOutput(result)
+      setResultUrl(new Blob([result], { type: "application/json" }))
       toast.success("Converted to JSON!")
     } else {
-      setOutput(jsonToCsv(input))
+      const result = jsonToCsv(input)
+      setOutput(result)
+      setResultUrl(new Blob([result], { type: "text/csv" }))
       toast.success("Converted to CSV!")
     }
   }, [input, mode])
@@ -69,16 +75,11 @@ export function CsvJsonConverter() {
   }
 
   const handleDownload = () => {
-    if (!output) return
-    const blob = new Blob([output], { type: mode === "csv-to-json" ? "application/json" : "text/csv" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `converted-${Date.now()}.${mode === "csv-to-json" ? "json" : "csv"}`
-    document.body.appendChild(a)
     a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
   }
 
   const toggleMode = () => {
@@ -86,6 +87,7 @@ export function CsvJsonConverter() {
     if (output && !output.startsWith("Error")) {
         setInput(output)
         setOutput("")
+        clearResultUrl()
     }
   }
 

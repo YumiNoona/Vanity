@@ -1,48 +1,131 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, PaintBucket, Info, Loader2 } from "lucide-react"
+import { Download, ArrowLeft, PaintBucket, Info, Loader2, FileArchive } from "lucide-react"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { toast } from "sonner"
+import { ModeToggle } from "@/components/shared/ModeToggle"
+import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
+import type { QueueItem } from "@/types/bulk"
+import { downloadBlob } from "@/lib/canvas/export"
+import JSZip from "jszip"
 
 export function IccStripper() {
   const [file, setFile] = useState<File | null>(null)
-  const [imgUrl, setImgUrl] = useState<string | null>(null)
-  const [strippedUrl, setStrippedUrl] = useState<string | null>(null)
+  const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
+  const { url: strippedUrl, setUrl: setStrippedUrl, clear: clearStrippedUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [isDone, setIsDone] = useState(false)
 
-  const handleDrop = (files: File[]) => {
-    if (files[0]) {
-       setFile(files[0])
-       setImgUrl(URL.createObjectURL(files[0]))
-       setIsDone(false)
-       setStrippedUrl(null)
+  // Bulk State
+  const [processMode, setProcessMode] = useState<'single' | 'batch'>('single')
+  const [queue, setQueue] = useState<QueueItem[]>([])
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+
+  const runStrip = (inputFile: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(inputFile)
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        canvas.width = img.width
+        canvas.height = img.height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) { reject(new Error("No canvas context")); return }
+        ctx.drawImage(img, 0, 0)
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(objectUrl)
+          if (blob) resolve(blob)
+          else reject(new Error("Blob creation failed"))
+        }, inputFile.type || "image/png", 1.0)
+      }
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Image load failed")) }
+      img.src = objectUrl
+    })
+  }
+
+  const handleDrop = async (files: File[]) => {
+    if (files.length === 0) return
+
+    if (processMode === 'single') {
+      const f = files[0]
+      setFile(f)
+      setImgUrl(f)
+      setIsDone(false)
+      clearStrippedUrl()
+    } else {
+      const newItems: QueueItem[] = files.map(f => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file: f,
+        status: 'pending',
+        originalSize: f.size
+      }))
+      setQueue(prev => [...prev, ...newItems])
     }
   }
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     if (!imgUrl) return
     setIsProcessing(true)
-
-    const img = new Image()
-    img.onload = () => {
-       const canvas = document.createElement("canvas")
-       canvas.width = img.width
-       canvas.height = img.height
-       
-       const ctx = canvas.getContext("2d")
-       if (!ctx) return
-       
-       // Drawing to a canvas natively normalizes the color space to sRGB and completely unhooks the original ICC metadata payload attached to the raw file buffer.
-       ctx.drawImage(img, 0, 0)
-       
-       canvas.toBlob((blob) => {
-          if (blob) {
-             setStrippedUrl(URL.createObjectURL(blob))
-             setIsDone(true)
-          }
-          setIsProcessing(false)
-       }, file?.type || "image/png", 1.0)
+    try {
+      const blob = await runStrip(file!)
+      setStrippedUrl(blob)
+      setIsDone(true)
+      toast.success("ICC profile stripped!")
+    } catch {
+      toast.error("Failed to strip ICC profile")
+    } finally {
+      setIsProcessing(false)
     }
-    img.src = imgUrl
+  }
+
+  const processBatch = async () => {
+    if (isBatchProcessing || queue.filter(i => i.status === 'pending').length === 0) return
+    
+    setIsBatchProcessing(true)
+    const pendingItems = queue.filter(i => i.status === 'pending')
+
+    for (const item of pendingItems) {
+      setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'processing' } : q))
+      
+      try {
+        const result = await runStrip(item.file)
+        setQueue(prev => prev.map(q => q.id === item.id ? { 
+          ...q, 
+          status: 'done', 
+          resultBlob: result, 
+          resultSize: result.size 
+        } : q))
+      } catch (err) {
+        setQueue(prev => prev.map(q => q.id === item.id ? { 
+          ...q, 
+          status: 'failed', 
+          errorMessage: "Failed to strip" 
+        } : q))
+      }
+    }
+    
+    setIsBatchProcessing(false)
+    toast.success("Batch stripping complete!")
+  }
+
+  useEffect(() => {
+    if (processMode === 'batch' && !isBatchProcessing && queue.some(i => i.status === 'pending')) {
+      processBatch()
+    }
+  }, [queue, processMode, isBatchProcessing])
+
+  const handleDownloadZip = async () => {
+    const doneItems = queue.filter(i => i.status === 'done' && i.resultBlob)
+    if (doneItems.length === 0) return
+
+    const zip = new JSZip()
+    doneItems.forEach(item => {
+      zip.file(`srgb-${item.file.name}`, item.resultBlob!)
+    })
+
+    const content = await zip.generateAsync({ type: "blob" })
+    downloadBlob(content, `vanity-icc-stripped-${Date.now()}.zip`)
+    toast.success(`Downloaded ${doneItems.length} images`)
   }
 
   const handleDownload = () => {
@@ -53,29 +136,95 @@ export function IccStripper() {
     a.click()
   }
 
-  if (!file || !imgUrl) {
+  // Landing state
+  if (!file && !(processMode === 'batch' && queue.length > 0)) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
          <div className="inline-flex items-center justify-center p-3 bg-fuchsia-500/10 rounded-full mb-6 text-fuchsia-500">
             <PaintBucket className="w-8 h-8" />
          </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">ICC Profile Stripper</h1>
+         <h1 className="text-3xl font-bold font-syne mb-1 text-white">ICC Profile Stripper</h1>
          <p className="text-muted-foreground text-lg mb-8">
            Remove embedded color profiles from images to guarantee consistent rendering across devices.
          </p>
-         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+
+         <ModeToggle mode={processMode} onChange={(m) => {
+           setProcessMode(m)
+           setFile(null)
+           setQueue([])
+           clearImgUrl()
+           clearStrippedUrl()
+           setIsDone(false)
+         }} />
+
+         <DropZone 
+           onDrop={handleDrop} 
+           accept={{ "image/*": [] }} 
+           multiple={processMode === 'batch'}
+           label={processMode === 'batch' ? "Drop multiple images to strip ICC profiles" : "Drop image to strip"}
+         />
       </div>
     )
   }
 
+  // Batch queue view
+  if (processMode === 'batch' && queue.length > 0) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-fuchsia-500/10 rounded-lg text-fuchsia-500">
+               <PaintBucket className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold font-syne text-white">Batch ICC Strip</h1>
+              <p className="text-muted-foreground text-sm font-mono">{queue.length} images queued</p>
+            </div>
+          </div>
+          <button onClick={() => { setQueue([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> Start Fresh
+          </button>
+        </div>
+
+        <ProcessingQueue 
+          items={queue} 
+          onRemove={(id) => setQueue(prev => prev.filter(i => i.id !== id))}
+          disabled={isBatchProcessing}
+        />
+        
+        <div className="flex justify-center gap-4">
+           <button 
+             onClick={handleDownloadZip}
+             disabled={queue.filter(i => i.status === 'done').length === 0}
+             className="px-8 py-4 text-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3 hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
+           >
+             <FileArchive className="w-6 h-6" /> 
+             Download ZIP ({queue.filter(i => i.status === 'done').length})
+           </button>
+           <div className="relative overflow-hidden inline-flex items-center justify-center">
+              <input 
+                 type="file" multiple accept="image/*" 
+                 onChange={(e) => e.target.files && handleDrop(Array.from(e.target.files))}
+                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <button className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all flex items-center gap-3">
+                 Add More Files
+              </button>
+           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Single result view
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-syne text-white mb-2">Color Space Normalizer</h1>
-          <p className="text-muted-foreground text-sm">Target File: <span className="text-white font-mono">{file.name}</span></p>
+          <p className="text-muted-foreground text-sm">Target File: <span className="text-white font-mono">{file?.name}</span></p>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearImgUrl(); clearStrippedUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Try Another
         </button>
       </div>
@@ -88,7 +237,7 @@ export function IccStripper() {
                  <Loader2 className="w-8 h-8 animate-spin text-fuchsia-400 z-10" />
                </div>
             ) : (
-               <img src={isDone && strippedUrl ? strippedUrl : imgUrl} className="w-full h-full object-contain" alt="Target" />
+               <img src={isDone && strippedUrl ? strippedUrl : imgUrl!} className="w-full h-full object-contain" alt="Target" />
             )}
             {isDone && (
               <div className="absolute top-4 left-4 px-3 py-1 bg-green-500/20 text-green-400 font-bold text-[10px] tracking-widest uppercase rounded">

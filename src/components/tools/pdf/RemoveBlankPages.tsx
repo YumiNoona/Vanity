@@ -10,16 +10,19 @@ import { cn } from "@/lib/utils"
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function RemoveBlankPages() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [resultPdf, setResultPdf] = useState<Uint8Array | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [removedCount, setRemovedCount] = useState(0)
 
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
+      setResultUrl(null)
       processPdf(files[0])
     }
   }
@@ -80,8 +83,9 @@ export function RemoveBlankPages() {
         setProgress(50 + Math.round(((blankPages.length - i) / blankPages.length) * 50))
       }
 
-      const savedPdf = await pdfDoc.save()
-      setResultPdf(savedPdf)
+      const savedPdfArr = await pdfDoc.save()
+      const blob = new Blob([savedPdfArr], { type: "application/pdf" })
+      setResultUrl(blob)
       setRemovedCount(blankPages.length)
       
       if (blankPages.length > 0) {
@@ -99,14 +103,11 @@ export function RemoveBlankPages() {
   }, [])
 
   const handleDownload = () => {
-    if (!resultPdf) return
-    const blob = new Blob([new Uint8Array(resultPdf) as any], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-stripped-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -136,7 +137,7 @@ export function RemoveBlankPages() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
@@ -157,7 +158,7 @@ export function RemoveBlankPages() {
                       <p className="text-xs text-muted-foreground uppercase tracking-widest">Scanning all pages in browser memory</p>
                    </div>
                 </div>
-              ) : (
+              ) : resultUrl ? (
                 <div className="space-y-8 text-center z-10 animate-in zoom-in-95 duration-500">
                    <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
                       <ShieldCheck className="w-12 h-12" />
@@ -176,7 +177,7 @@ export function RemoveBlankPages() {
                      Download Sanitized PDF
                    </button>
                 </div>
-              )}
+              ) : null}
            </div>
         </div>
 

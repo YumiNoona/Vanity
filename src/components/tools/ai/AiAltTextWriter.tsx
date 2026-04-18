@@ -6,9 +6,11 @@ import { callClaudeVision } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function AiAltTextWriter() {
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [altText, setAltText] = useState("")
   const [copied, setCopied] = useState(false)
@@ -17,7 +19,7 @@ export function AiAltTextWriter() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setPreviewUrl(URL.createObjectURL(files[0]))
+      setPreviewUrl(files[0])
       setAltText("")
     }
   }
@@ -96,7 +98,7 @@ export function AiAltTextWriter() {
             <p className="text-muted-foreground text-sm">Powered by Claude 3 Vision</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); setAltText(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Image
         </button>
       </div>

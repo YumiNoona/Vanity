@@ -7,31 +7,20 @@ import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { getFFmpeg } from "@/lib/ffmpeg"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function VideoCompressor() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [crf, setCrf] = useState(28) // Compression level
-  const ffmpegRef = useRef(new FFmpeg())
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultBlob(null)
+      clearResultUrl()
     }
-  }
-
-  const loadFfmpeg = async () => {
-    const ffmpeg = ffmpegRef.current
-    if (ffmpeg.loaded) return
-    
-    // Using v0.12.x multi-threaded WASM with progress
-    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
-    })
   }
 
   const compressVideo = async () => {
@@ -39,8 +28,7 @@ export function VideoCompressor() {
     startProcessing()
     
     try {
-      const ffmpeg = ffmpegRef.current
-      await loadFfmpeg()
+      const ffmpeg = await getFFmpeg()
       
       ffmpeg.on("progress", ({ progress }) => {
         updateProgress(Math.round(progress * 100))
@@ -63,7 +51,7 @@ export function VideoCompressor() {
 
       const data = await ffmpeg.readFile(outputName)
       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "video/mp4" })
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("Video compressed successfully!")
     } catch (error) {
       console.error(error)
@@ -74,13 +62,11 @@ export function VideoCompressor() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    const url = URL.createObjectURL(resultBlob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-compressed-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -110,7 +96,7 @@ export function VideoCompressor() {
             <p className="text-muted-foreground text-sm">{file.name} ({Math.round(file.size / 1024 / 1024)} MB)</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Video
         </button>
       </div>
@@ -131,7 +117,7 @@ export function VideoCompressor() {
                       <p className="text-xs text-muted-foreground uppercase tracking-widest">{progress}% - FFMPEG Multi-threaded</p>
                    </div>
                 </div>
-              ) : resultBlob ? (
+              ) : resultUrl ? (
                 <div className="space-y-8 text-center animate-in zoom-in-95 duration-500">
                     <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
                       <ShieldCheck className="w-12 h-12" />

@@ -61,7 +61,7 @@ export async function callClaude({
         "anthropic-dangerously-allow-browser": "true"
       },
       body: JSON.stringify({
-        model: PRIMARY_MODEL || FALLBACK_MODEL,
+        model: PRIMARY_MODEL,
         max_tokens: maxTokens,
         temperature,
         system: systemPrompt,

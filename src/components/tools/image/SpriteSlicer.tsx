@@ -3,8 +3,9 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Grid3X3, Download, RefreshCw, Scissors, AlertCircle, FileArchive } from "lucide-react"
 import { toast } from "sonner"
 import JSZip from "jszip"
-import { guardDimensions, maybeYield, safeRevoke } from "@/lib/utils"
+import { guardDimensions, maybeYield } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 const MAX_PIXELS = 20_000_000 // Handled via guardDimensions
 
@@ -14,17 +15,12 @@ export function SpriteSlicer() {
   const [rows, setRows] = useState(4)
   const [cols, setCols] = useState(4)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [tilePreview, setTilePreview] = useState<string | null>(null)
+  const { url: tilePreview, setUrl: setTilePreview, clear: clearTilePreview } = useObjectUrl()
+  const { url: zipUrl, setUrl: setZipUrl, clear: clearZipUrl } = useObjectUrl()
   const [hasRemainder, setHasRemainder] = useState(false)
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
-  const activeUrlRef = useRef<string[]>([])
-
-  // Cleanup
-  useEffect(() => {
-    return () => safeRevoke(activeUrlRef.current)
-  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -87,11 +83,12 @@ export function SpriteSlicer() {
       ctx.imageSmoothingEnabled = false
       ctx.drawImage(imgData, 0, 0, tileW, tileH, 0, 0, tileW, tileH)
     }
-    const previewUrl = canvas.toDataURL()
-    setTilePreview(previewUrl)
-    canvas.width = 0
-    canvas.height = 0
-  }, [imgData, rows, cols])
+    canvas.toBlob((blob) => {
+      if (blob) setTilePreview(blob)
+      canvas.width = 0
+      canvas.height = 0
+    }, "image/png")
+  }, [imgData, rows, cols, setTilePreview])
 
   useEffect(() => {
     updatePreview()
@@ -178,13 +175,8 @@ export function SpriteSlicer() {
         compression: "DEFLATE",
         compressionOptions: { level: 6 }
       })
-      const url = URL.createObjectURL(content)
-      activeUrlRef.current.push(url)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `vanity-spritesheet-${Date.now()}.zip`
-      a.click()
-      toast.success("Sprite archive exported!")
+      setZipUrl(content)
+      toast.success("Sprite archive rendered!")
     } catch (err: any) {
       toast.error(err.message || "Failed to generate zip archive")
     } finally {
@@ -219,7 +211,7 @@ export function SpriteSlicer() {
             <p className="text-muted-foreground text-sm">Define row/col grid and export all tiles.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearTilePreview(); clearZipUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
@@ -275,14 +267,33 @@ export function SpriteSlicer() {
                 </div>
               )}
 
-              <button 
-                onClick={exportZip}
-                disabled={isProcessing}
-                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
-              >
-                {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <FileArchive className="w-5 h-5" />}
-                Export ZIP Archive
-              </button>
+               {zipUrl ? (
+                 <div className="space-y-4">
+                    <a 
+                      href={zipUrl} 
+                      download={`vanity-spritesheet-${Date.now()}.zip`}
+                      className="w-full py-4 bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      <Download className="w-5 h-5" /> Download ZIP Archive
+                    </a>
+                    <button 
+                      onClick={exportZip}
+                      disabled={isProcessing}
+                      className="w-full text-xs font-bold text-muted-foreground hover:text-white transition-colors"
+                    >
+                      Re-generate with current grid
+                    </button>
+                 </div>
+               ) : (
+                 <button 
+                   onClick={exportZip}
+                   disabled={isProcessing}
+                   className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
+                 >
+                   {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Scissors className="w-5 h-5" />}
+                   Slice & Export ZIP
+                 </button>
+               )}
            </div>
            
            <div className="p-4 bg-white/5 rounded-xl border border-white/5 space-y-2">

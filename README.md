@@ -1,5 +1,5 @@
 <h1 align="center">✦ Vanity</h1>
-<p align="center"><strong>The All-In-One Private Image & PDF Utility Suite</strong></p>
+<p align="center"><strong>The All-In-One Private Image & PDF Utility Suite — 100% Free</strong></p>
 
 <p align="center">
   <a href="https://vanity.venusapp.in"><img src="https://img.shields.io/badge/🌐_Live_Site-vanity.venusapp.in-F59E0B?style=for-the-badge" alt="Live Site" /></a>
@@ -88,8 +88,8 @@
 | **Video Engine** | `ffmpeg.wasm` v0.12 | Multi-threaded browser video processing |
 | **GIF Engine** | `gifshot` | High-performance GIF encoding & palette optimization |
 | **Archiver** | `jszip` | Chunked client-side ZIP generation |
-| **AI / ML** | `Claude 3` | LLM Vision reasoning & code generation |
 | **Icons** | Lucide React | Consistent icon system across all tools |
+| **Monetization** | None | Donor-supported model |
 
 ---
 
@@ -112,7 +112,7 @@
 │   │   └── tools.ts                 # Tool registry (icons, routes, metadata)
 │   ├── hooks/
 │   │   ├── useImageProcessor.ts     # Job-tracked processing hub
-│   │   └── usePremium.ts            # Local monetization state
+│   │   └── usePremium.ts            # Legacy state (all features unlocked)
 │   ├── lib/
 │   │   ├── canvas/
 │   │   │   ├── index.ts             # loadImage, drawToCanvas, exportCanvas
@@ -184,14 +184,18 @@ npm run preview
 
 ---
 
-## 💰 Plans
+## 💖 Support the Project
 
-| Capability | Free | Pro |
-|---|---|---|
-| Max Files Per Batch | 5 | 50 |
-| File Size Limit | 10 MB | 100 MB |
-| Ad Experience | Active | None |
-| AI Processing | Standard | Priority |
+Vanity is and will always be **100% free** and open. We don't show ads, we don't track you, and we don't sell your data. To keep this project alive and cover the costs of hosting and AI processing, we rely entirely on community donations.
+
+If you find these tools useful, please consider supporting us:
+
+- **UPI ID**: `rushikeshingale2001@okicici`
+- **Goal**: Keep Vanity forever free for everyone.
+
+Every donation, no matter how small, makes a huge difference!
+
+---
 
 ---
 

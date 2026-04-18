@@ -14,18 +14,15 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 }
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfFlatten() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRendering, setIsRendering] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [resultPdf, setResultPdf] = useState<Uint8Array | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
 
   const renderPreview = async (file: File) => {
     setIsRendering(true)
@@ -43,8 +40,7 @@ export function PdfFlatten() {
       await (page.render({ canvasContext: context, viewport } as any)).promise
       
       const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"))
-      const url = URL.createObjectURL(blob)
-      setPreviewUrl(url)
+      setPreviewUrl(blob)
       
       canvas.width = 0
       canvas.height = 0
@@ -59,7 +55,7 @@ export function PdfFlatten() {
     if (files[0]) {
       const uploadedFile = files[0]
       setFile(uploadedFile)
-      setResultPdf(null)
+      setResultUrl(null)
       renderPreview(uploadedFile)
     }
   }
@@ -81,8 +77,9 @@ export function PdfFlatten() {
 
       form.flatten()
 
-      const savedPdf = await pdfDoc.save()
-      setResultPdf(savedPdf)
+      const savedPdfArr = await pdfDoc.save()
+      const blob = toBlob(savedPdfArr, "application/pdf")
+      setResultUrl(blob)
       toast.success("PDF flattened successfully!")
     } catch (error) {
       console.error(error)
@@ -93,14 +90,11 @@ export function PdfFlatten() {
   }, [file])
 
   const handleDownload = () => {
-    if (!resultPdf) return
-    const blob = toBlob(resultPdf, "application/pdf")
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-flat-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -130,7 +124,7 @@ export function PdfFlatten() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change File
         </button>
       </div>
@@ -144,7 +138,7 @@ export function PdfFlatten() {
               </div>
            )}
 
-           {resultPdf ? (
+           {resultUrl ? (
               <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
                  <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
                     <CheckCircle className="w-12 h-12" />

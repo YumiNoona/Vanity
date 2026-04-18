@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Crop, RefreshCcw } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
@@ -12,7 +13,7 @@ export function ImageCrop() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, getJobId } = useImageProcessor()
-  const [preview, setPreview] = useState<string | null>(null)
+  const { url: preview, setUrl: setPreview, clear: clearPreview } = useObjectUrl()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   
@@ -30,15 +31,8 @@ export function ImageCrop() {
     if (!result) return
 
     setSourceImage(result.source)
-    const url = URL.createObjectURL(uploadedFile)
-    setPreview(url)
+    setPreview(uploadedFile)
   }
-
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
-    }
-  }, [preview])
 
   const handleMouseDown = (e: React.MouseEvent, type: string) => {
     e.stopPropagation()
@@ -169,7 +163,7 @@ export function ImageCrop() {
           <button onClick={() => setCrop({ x: 10, y: 10, width: 80, height: 80 })} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
             <RefreshCcw className="w-4 h-4" /> Reset
           </button>
-          <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+          <button onClick={() => { setFile(null); clearPreview(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" /> New Image
           </button>
         </div>

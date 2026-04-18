@@ -8,6 +8,8 @@ import { downloadBlob } from "@/lib/canvas"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { Reorder } from "framer-motion"
 
+import { useObjectUrls } from "@/hooks/useObjectUrl"
+
 interface ImageFile {
   id: string
   file: File
@@ -17,16 +19,10 @@ interface ImageFile {
 
 export function ImagesToPdf() {
   const { limits, validateFiles } = usePremium()
+  const { addUrl, removeUrl, clear: clearUrls } = useObjectUrls()
   const [images, setImages] = useState<ImageFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-
-  // Cleanup preview URLs on unmount
-  useEffect(() => {
-    return () => {
-      images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
-    }
-  }, [])
 
   const handleDrop = (files: File[]) => {
     if (!validateFiles(files, images.length)) return
@@ -37,7 +33,7 @@ export function ImagesToPdf() {
         id: Math.random().toString(36).substring(7),
         file,
         name: file.name,
-        previewUrl: URL.createObjectURL(file),
+        previewUrl: addUrl(file),
       }))
 
     if (newImages.length === 0) {
@@ -50,7 +46,7 @@ export function ImagesToPdf() {
 
   const removeImage = (id: string) => {
     const img = images.find((i) => i.id === id)
-    if (img) URL.revokeObjectURL(img.previewUrl)
+    if (img) removeUrl(img.previewUrl)
     setImages((prev) => prev.filter((i) => i.id !== id))
   }
 
@@ -121,7 +117,7 @@ export function ImagesToPdf() {
       description={`${images.length} images ready to convert`}
       icon={FileText}
       onBack={() => {
-        images.forEach((img) => URL.revokeObjectURL(img.previewUrl))
+        clearUrls()
         setImages([])
         setResultBlob(null)
       }}

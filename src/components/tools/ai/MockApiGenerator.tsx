@@ -3,6 +3,7 @@ import { ArrowLeft, Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Tra
 import { toast } from "sonner"
 import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
 import { callClaude, ClaudeError } from "@/lib/anthropic"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function MockApiGenerator() {
   const { key } = useAnthropicKey()
@@ -14,11 +15,13 @@ export function MockApiGenerator() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultJson, setResultJson] = useState<string>("")
   const [copied, setCopied] = useState(false)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const generateMockData = async () => {
     if (!key || !schema.trim()) return
     setIsProcessing(true)
     setResultJson("")
+    setResultUrl(null)
 
     try {
       // Extremely strict system prompt based on user specs to avoid Markdown pollution
@@ -48,6 +51,7 @@ ${schema}`
          // Validate JSON syntax directly
          const parsed = JSON.parse(cleaned)
          setResultJson(JSON.stringify(parsed, null, 2))
+         setResultUrl(new Blob([JSON.stringify(parsed, null, 2)], { type: "application/json" }))
          toast.success("Mock dataset created!")
       } catch (parseError) {
          console.error("Claude returned invalid JSON:", cleaned)
@@ -73,13 +77,11 @@ ${schema}`
   }
 
   const handleDownload = () => {
-     const blob = new Blob([resultJson], { type: "application/json" })
-     const url = URL.createObjectURL(blob)
+     if (!resultUrl) return
      const a = document.createElement("a")
-     a.href = url
+     a.href = resultUrl
      a.download = `mock_${modelName.toLowerCase()}_data.json`
      a.click()
-     URL.revokeObjectURL(url)
   }
 
   if (!key) {

@@ -6,9 +6,11 @@ import { callClaudeVision } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function ScreenshotToCode() {
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [code, setCode] = useState("")
   const [copied, setCopied] = useState(false)
@@ -18,7 +20,7 @@ export function ScreenshotToCode() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setPreviewUrl(URL.createObjectURL(files[0]))
+      setPreviewUrl(files[0])
       setCode("")
     }
   }
@@ -102,7 +104,7 @@ export function ScreenshotToCode() {
             <p className="text-muted-foreground text-sm">Translating pixels to responsive HTML</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); setCode(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> New Screenshot
         </button>
       </div>

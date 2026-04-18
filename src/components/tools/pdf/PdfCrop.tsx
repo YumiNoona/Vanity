@@ -14,18 +14,20 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 }
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfCrop() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRendering, setIsRendering] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [pageSize, setPageSize] = useState<{ width: number; height: number } | null>(null)
-  const [resultPdf, setResultPdf] = useState<Uint8Array | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
   // Interaction State
   const containerRef = useRef<HTMLDivElement>(null)
   const [activeInteraction, setActiveInteraction] = useState<string | null>(null)
-  const [startData, setStartData] = useState<{ x: number, y: number, margins: typeof margins } | null>(null)
+  const [startData, setStartData] = useState<{ x: number, y: number, margins: any } | null>(null)
 
   // Margins in points (1/72 inch)
   const [margins, setMargins] = useState({
@@ -34,12 +36,6 @@ export function PdfCrop() {
     left: 50,
     right: 50
   })
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
 
   // Mouse Interaction Handlers
   const handleInteractionStart = (e: React.MouseEvent, type: string) => {
@@ -124,8 +120,7 @@ export function PdfCrop() {
       await (page.render({ canvasContext: context, viewport } as any)).promise
       
       const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"))
-      const url = URL.createObjectURL(blob)
-      setPreviewUrl(url)
+      setPreviewUrl(blob)
       
       canvas.width = 0
       canvas.height = 0
@@ -140,7 +135,7 @@ export function PdfCrop() {
     if (files[0]) {
       const uploadedFile = files[0]
       setFile(uploadedFile)
-      setResultPdf(null)
+      setResultUrl(null)
       renderPreview(uploadedFile)
     }
   }
@@ -171,7 +166,7 @@ export function PdfCrop() {
       }
 
       const savedPdf = await pdfDoc.save()
-      setResultPdf(savedPdf)
+      setResultUrl(toBlob(savedPdf, "application/pdf"))
       toast.success("Crop margins applied all pages!")
     } catch (error: any) {
       console.error(error)
@@ -182,14 +177,11 @@ export function PdfCrop() {
   }, [file, margins])
 
   const handleDownload = () => {
-    if (!resultPdf) return
-    const blob = toBlob(resultPdf, "application/pdf")
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-cropped-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -234,7 +226,7 @@ export function PdfCrop() {
           >
             <RefreshCw className="w-4 h-4" /> Reset
           </button>
-          <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+          <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" /> New File
           </button>
         </div>
@@ -286,7 +278,7 @@ export function PdfCrop() {
                   </div>
                )}
 
-               {resultPdf ? (
+               {resultUrl ? (
                   <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
                      <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
                         <CheckCircle className="w-12 h-12" />

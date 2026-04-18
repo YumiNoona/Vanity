@@ -7,31 +7,22 @@ import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { getFFmpeg } from "@/lib/ffmpeg"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 const FORMATS = ["mp3", "wav", "ogg", "aac", "m4a"]
 
 export function AudioConverter() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [targetFormat, setTargetFormat] = useState("mp3")
-  const ffmpegRef = useRef(new FFmpeg())
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultBlob(null)
+      clearResultUrl()
     }
-  }
-
-  const loadFfmpeg = async () => {
-    const ffmpeg = ffmpegRef.current
-    if (ffmpeg.loaded) return
-    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
-    })
   }
 
   const convertAudio = async () => {
@@ -39,8 +30,7 @@ export function AudioConverter() {
     startProcessing()
     
     try {
-      const ffmpeg = ffmpegRef.current
-      await loadFfmpeg()
+      const ffmpeg = await getFFmpeg()
       
       ffmpeg.on("progress", ({ progress }) => {
         updateProgress(Math.round(progress * 100))
@@ -54,7 +44,7 @@ export function AudioConverter() {
 
       const data = await ffmpeg.readFile(outputName)
       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: `audio/${targetFormat}` })
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("Audio converted!")
     } catch (error) {
       console.error(error)
@@ -65,13 +55,11 @@ export function AudioConverter() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    const url = URL.createObjectURL(resultBlob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-audio.${targetFormat}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -101,7 +89,7 @@ export function AudioConverter() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change File
         </button>
       </div>
@@ -119,7 +107,7 @@ export function AudioConverter() {
                    </div>
                    <p className="text-lg font-bold text-white font-syne tracking-tight">Transcoding... {progress}%</p>
                 </div>
-              ) : resultBlob ? (
+              ) : resultUrl ? (
                 <div className="space-y-8 text-center animate-in zoom-in-95 duration-500">
                    <h2 className="text-4xl font-bold font-syne text-white">Audio Ready</h2>
                    <button 

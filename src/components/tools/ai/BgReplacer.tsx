@@ -6,9 +6,12 @@ import { callClaude } from "@/lib/anthropic"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function BgReplacer() {
   const [file, setFile] = useState<File | null>(null)
-  const [noBgUrl, setNoBgUrl] = useState<string | null>(null)
+  const { url: sourceImageUrl, setUrl: setSourceImageUrl, clear: clearSourceImageUrl } = useObjectUrl()
+  const { url: noBgUrl, setUrl: setNoBgUrl, clear: clearNoBgUrl } = useObjectUrl()
   const [prompt, setPrompt] = useState("A professional studio with soft rim lighting and a minimalist aesthetic")
   const [isProcessing, setIsProcessing] = useState(false)
   const [generatedBg, setGeneratedBg] = useState("")
@@ -17,7 +20,8 @@ export function BgReplacer() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setNoBgUrl(null)
+      setSourceImageUrl(files[0])
+      clearNoBgUrl()
       setGeneratedBg("")
     }
   }
@@ -28,7 +32,7 @@ export function BgReplacer() {
     try {
       const { removeBackground } = await import("@imgly/background-removal")
       const blob = await removeBackground(file)
-      setNoBgUrl(URL.createObjectURL(blob))
+      setNoBgUrl(blob)
     } catch (e) {
       console.error(e)
       toast.error("Background removal failed.")
@@ -103,7 +107,14 @@ export function BgReplacer() {
             <p className="text-muted-foreground text-sm">Hybrid local-AI scene generation</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button 
+          onClick={() => { 
+            setFile(null); 
+            clearSourceImageUrl(); 
+            clearNoBgUrl(); 
+          }} 
+          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
+        >
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
@@ -122,7 +133,7 @@ export function BgReplacer() {
                    <img src={noBgUrl} className="max-w-full max-h-full object-contain drop-shadow-2xl animate-in fade-in zoom-in-95 duration-700" alt="Subject" />
                 ) : (
                    <div className="text-center space-y-4">
-                      <img src={URL.createObjectURL(file)} className="max-w-64 max-h-64 rounded-3xl opacity-20 grayscale" alt="Original" />
+                      <img src={sourceImageUrl || ""} className="max-w-64 max-h-64 rounded-3xl opacity-20 grayscale" alt="Original" />
                       {!isProcessing && (
                          <button onClick={removeBackground} className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">
                             First, Extract Subject

@@ -9,18 +9,22 @@ import { cn } from "@/lib/utils"
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfToText() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [extractedText, setExtractedText] = useState<string>("")
   const [copied, setCopied] = useState(false)
   const [progress, setProgress] = useState(0)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
     setExtractedText("")
+    setResultUrl(null)
     processPdf(uploadedFile)
   }
 
@@ -44,6 +48,7 @@ export function PdfToText() {
       }
 
       setExtractedText(fullText)
+      setResultUrl(new Blob([fullText], { type: "text/plain" }))
       toast.success("Text extraction complete!")
     } catch (error) {
       console.error(error)
@@ -61,13 +66,11 @@ export function PdfToText() {
   }
 
   const handleDownload = () => {
-    const blob = new Blob([extractedText], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `${file?.name.replace(".pdf", "")}-text.txt`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -97,7 +100,7 @@ export function PdfToText() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> New File
         </button>
       </div>

@@ -2,22 +2,15 @@ import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Download, ArrowLeft, QrCode, Copy, CheckCircle } from "lucide-react"
 import QRCode from "qrcode"
 import { toast } from "sonner"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 import { downloadBlob } from "@/lib/canvas"
 
 export function QRGenerator() {
   const [text, setText] = useState("https://vanity.tools")
   const [qrBlob, setQrBlob] = useState<Blob | null>(null)
-  const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const { url: qrUrl, setUrl: setQrUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
-  
-  // Cleanup Object URLs on unmount or when URL changes
-  const prevUrlRef = useRef<string | null>(null)
-  useEffect(() => {
-    return () => {
-      if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
-    }
-  }, [])
   
   const generateQR = async () => {
     if (!text) return
@@ -34,12 +27,9 @@ export function QRGenerator() {
       
       const response = await fetch(dataUrl)
       const blob = await response.blob()
-      // Revoke previous URL before creating new one
-      if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current)
-      const newUrl = URL.createObjectURL(blob)
-      prevUrlRef.current = newUrl
+      
       setQrBlob(blob)
-      setQrUrl(newUrl)
+      setQrUrl(blob)
       toast.success("QR Code generated!")
     } catch (err) {
       toast.error("Failed to generate QR")

@@ -9,11 +9,7 @@ import { PDFDocument, rgb } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { toBlob } from "@/lib/utils/blob"
-
-type NupResult = {
-  blob: Blob;
-  name: string;
-}
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 const SHEET_SIZES = {
   A4: { width: 595, height: 842 },
@@ -66,7 +62,7 @@ export function PdfNup() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState({ current: 0, total: 0, status: "" })
-  const [result, setResult] = useState<NupResult | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   // Configuration
   const [nup, setNup] = useState(4)
@@ -80,7 +76,7 @@ export function PdfNup() {
   const handleDrop = useCallback(async (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResult(null)
+      setResultUrl(null)
     }
   }, [])
 
@@ -186,10 +182,8 @@ export function PdfNup() {
       }
 
       const outBytes = await outDoc.save()
-      setResult({
-        blob: toBlob(outBytes, "application/pdf"),
-        name: `vanity-nup-${nup}-${file.name}`
-      })
+      const blob = toBlob(outBytes, "application/pdf")
+      setResultUrl(blob)
       toast.success("PDF Imposition complete!")
     } catch (err: any) {
       console.error(err)
@@ -200,13 +194,11 @@ export function PdfNup() {
   }
 
   const handleDownload = () => {
-    if (!result) return
-    const url = URL.createObjectURL(result.blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
-    a.download = result.name
+    a.href = resultUrl
+    a.download = `vanity-nup-${nup}-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   // Visual Grid Preview (SVG-based)
@@ -265,7 +257,7 @@ export function PdfNup() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change File
         </button>
       </div>
@@ -412,7 +404,7 @@ export function PdfNup() {
                      />
                   </div>
                </div>
-            ) : result ? (
+            ) : resultUrl ? (
                <div className="w-full glass-panel p-20 rounded-[2.5rem] bg-black/40 flex flex-col items-center justify-center text-center space-y-6 min-h-[500px] animate-in zoom-in-95 duration-700">
                   <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                      <CheckCircle className="w-12 h-12" />

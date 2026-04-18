@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { guardDimensions } from "@/lib/canvas/guards"
 import * as fabric from "fabric"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 const PRESETS = [
   { id: "ig-post", name: "Instagram Post", ratio: 1, icon: Share2, dims: "1080 x 1080" },
@@ -23,11 +24,10 @@ const PRESETS = [
   { id: "fb-cover", name: "FB Cover", ratio: 2.63/1, icon: Maximize, dims: "820 x 312" },
 ]
 
-
-
 export function SocialResizer() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
+  const { url: imgPreviewUrl, setUrl: setImgPreviewUrl, clear: clearImgPreviewUrl } = useObjectUrl()
   const [activePreset, setActivePreset] = useState(PRESETS[0])
   const [isProcessing, setIsProcessing] = useState(false)
   const [showSafeAreas, setShowSafeAreas] = useState(false)
@@ -41,43 +41,40 @@ export function SocialResizer() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
+    setImgPreviewUrl(uploadedFile)
   }
 
   useEffect(() => {
-    if (!file || !canvasRef.current) return
+    if (!file || !imgPreviewUrl || !canvasRef.current) return
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const img = new Image()
-      img.onload = () => {
-        if (fabricCanvas.current) fabricCanvas.current.dispose()
-        
-        const canvas = new fabric.Canvas(canvasRef.current!, {
-          width: 600,
-          height: 600,
-          backgroundColor: "#000"
-        })
-        fabricCanvas.current = canvas
+    const img = new Image()
+    img.onload = () => {
+      if (fabricCanvas.current) fabricCanvas.current.dispose()
+      
+      const canvas = new fabric.Canvas(canvasRef.current!, {
+        width: 600,
+        height: 600,
+        backgroundColor: "#000"
+      })
+      fabricCanvas.current = canvas
 
-        if (!img.width) return
-        const { width, height } = guardDimensions(img.width, img.height)
-        const fabricImg = new fabric.FabricImage(img)
-        fabricImgRef.current = fabricImg
-        
-        // Fit image initially
-        const scale = Math.min(canvas.width / width, canvas.height / height)
-        fabricImg.scale(scale)
-        
-        canvas.add(fabricImg)
-        canvas.centerObject(fabricImg)
-        canvas.renderAll()
-        
-        // Ensure preset matches
-        handlePresetChange(activePreset)
-      }
-      img.src = e.target?.result as string
+      if (!img.width) return
+      const { width, height } = guardDimensions(img.width, img.height)
+      const fabricImg = new fabric.FabricImage(img)
+      fabricImgRef.current = fabricImg
+      
+      // Fit image initially
+      const scale = Math.min(canvas.width / width, canvas.height / height)
+      fabricImg.scale(scale)
+      
+      canvas.add(fabricImg)
+      canvas.centerObject(fabricImg)
+      canvas.renderAll()
+      
+      // Ensure preset matches
+      handlePresetChange(activePreset)
     }
-    reader.readAsDataURL(file)
+    img.src = imgPreviewUrl
 
     return () => {
         if (fabricCanvas.current) {
@@ -85,7 +82,7 @@ export function SocialResizer() {
           fabricCanvas.current = null
         }
     }
-  }, [file])
+  }, [file, imgPreviewUrl])
 
   const handlePresetChange = (preset: typeof PRESETS[0]) => {
     setActivePreset(preset)
@@ -171,7 +168,7 @@ export function SocialResizer() {
             <p className="text-muted-foreground text-sm">Drag to reposition. Export at target resolution.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearImgPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>

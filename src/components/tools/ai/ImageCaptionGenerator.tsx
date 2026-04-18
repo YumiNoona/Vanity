@@ -5,10 +5,12 @@ import { toast } from "sonner"
 import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
 import { callClaudeVision, ClaudeError } from "@/lib/anthropic"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function ImageCaptionGenerator() {
   const { key } = useAnthropicKey()
   const [file, setFile] = useState<File | null>(null)
-  const [imgUrl, setImgUrl] = useState<string | null>(null)
+  const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
   
   const [tone, setTone] = useState<"professional" | "casual" | "humorous" | "academic">("casual")
   const [platform, setPlatform] = useState<"twitter" | "instagram" | "linkedin" | "blog">("instagram")
@@ -20,7 +22,7 @@ export function ImageCaptionGenerator() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setImgUrl(URL.createObjectURL(files[0]))
+      setImgUrl(files[0])
       setCaptions([])
     }
   }
@@ -118,7 +120,7 @@ JSON Structure requirement:
              <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
            </div>
         </div>
-        <button onClick={() => {setFile(null); setImgUrl(null); setCaptions([])}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearImgUrl(); setCaptions([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Try Another
         </button>
       </div>

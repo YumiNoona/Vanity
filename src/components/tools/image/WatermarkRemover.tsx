@@ -7,12 +7,14 @@ import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { runYieldedTask, releaseCanvas } from "@/lib/canvas/guards"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function WatermarkRemover() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, processImage, updateProgress, getJobId } = useImageProcessor()
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -41,11 +43,6 @@ export function WatermarkRemover() {
     mCtx.clearRect(0, 0, mask.width, mask.height)
   }
 
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true)
@@ -128,7 +125,7 @@ export function WatermarkRemover() {
       
       const blob = await exportCanvas(canvas, "image/png", 1.0)
       setResultBlob(blob)
-      setResultUrl(URL.createObjectURL(blob))
+      setResultUrl(blob)
       toast.success("AI Removal Complete!")
     } catch (e) {
       toast.error("Process interrupted or failed")
@@ -143,7 +140,7 @@ export function WatermarkRemover() {
     releaseCanvas(canvasRef.current)
     releaseCanvas(maskCanvasRef.current)
     setFile(null)
-    setResultUrl(null)
+    clearResultUrl()
     updateProgress(0)
   }
 
@@ -268,7 +265,7 @@ export function WatermarkRemover() {
                     <Download className="w-4 h-4" /> Download Cleaned
                   </button>
                   <button 
-                     onClick={() => setResultUrl(null)}
+                     onClick={() => clearResultUrl()}
                      className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full font-bold"
                   >
                     Back to Editor

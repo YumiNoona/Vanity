@@ -9,6 +9,8 @@ type Mode = "add" | "remove"
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfPassword() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
@@ -16,7 +18,7 @@ export function PdfPassword() {
   const [mode, setMode] = useState<Mode>("add")
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [isDone, setIsDone] = useState(false)
   const [serverOnline, setServerOnline] = useState<boolean | null>(null)
 
@@ -39,7 +41,7 @@ export function PdfPassword() {
     }
 
     setFile(uploadedFile)
-    setResultBlob(null)
+    setResultUrl(null)
     setIsDone(false)
     setProgress(0)
   }
@@ -69,7 +71,7 @@ export function PdfPassword() {
       }
 
       const blob = await res.blob()
-      setResultBlob(blob)
+      setResultUrl(blob)
       setProgress(100)
       setIsDone(true)
       setPassword("")
@@ -108,7 +110,7 @@ export function PdfPassword() {
       }
 
       const blob = await res.blob()
-      setResultBlob(blob)
+      setResultUrl(blob)
       setProgress(100)
       setIsDone(true)
       setPassword("")
@@ -127,15 +129,18 @@ export function PdfPassword() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
+    if (!resultUrl) return
     const suffix = mode === "add" ? "protected" : "unlocked"
     const baseName = file?.name.replace(/\.pdf$/i, "") || "document"
-    downloadBlob(resultBlob, `vanity-${suffix}-${baseName}.pdf`)
+    const a = document.createElement("a")
+    a.href = resultUrl
+    a.download = `vanity-${suffix}-${baseName}.pdf`
+    a.click()
   }
 
   const handleStartNew = () => {
     setFile(null)
-    setResultBlob(null)
+    clearResultUrl()
     setIsDone(false)
     setProgress(0)
     setPassword("")
@@ -271,7 +276,7 @@ export function PdfPassword() {
         )}
 
         {/* Success state */}
-        {isDone && resultBlob && (
+        {isDone && resultUrl && (
           <div className="text-center space-y-8 py-12 animate-in zoom-in-95">
             <div className="p-8 bg-green-500/10 border border-green-500/20 rounded-2xl inline-block">
               <FileText className="w-16 h-16 text-green-500 mx-auto mb-4" />

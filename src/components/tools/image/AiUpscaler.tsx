@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Maximize2, Sparkles } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
@@ -12,7 +13,7 @@ export function AiUpscaler() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, processImage, updateProgress, getJobId } = useImageProcessor()
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [scale, setScale] = useState(2)
 
   const handleProcess = async (files: File[]) => {
@@ -67,7 +68,7 @@ export function AiUpscaler() {
       
       const blob = await exportCanvas(canvas, "image/png", 1.0)
       setResultBlob(blob)
-      setResultUrl(URL.createObjectURL(blob))
+      setResultUrl(blob)
       toast.success(`Image upscaled to ${targetWidth}x${targetHeight}!`)
       
       result.cleanup()
@@ -90,7 +91,7 @@ export function AiUpscaler() {
 
   const handleStartNew = () => {
     setFile(null)
-    setResultUrl(null)
+    clearResultUrl()
     updateProgress(0)
   }
 

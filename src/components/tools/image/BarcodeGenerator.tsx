@@ -3,12 +3,13 @@ import { Download, ArrowLeft, Barcode as BarcodeIcon } from "lucide-react"
 import JsBarcode from "jsbarcode"
 import { toast } from "sonner"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { downloadBlob, exportCanvas } from "@/lib/canvas"
 
 export function BarcodeGenerator() {
-  const [text, setText] = useState("123456789")
   const svgRef = useRef<SVGSVGElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const generateBarcode = () => {
     if (!text || !svgRef.current) return
@@ -28,12 +29,21 @@ export function BarcodeGenerator() {
 
   useEffect(() => {
     generateBarcode()
-  }, [text])
+    setResultUrl(null)
+  }, [text, setResultUrl])
 
   const handleDownload = async () => {
     if (!svgRef.current) return
     
     try {
+      if (resultUrl) {
+         const a = document.createElement("a")
+         a.href = resultUrl
+         a.download = "vanity-barcode.png"
+         a.click()
+         return
+      }
+
       const svgData = new XMLSerializer().serializeToString(svgRef.current)
       const canvas = document.createElement("canvas")
       const svgSize = svgRef.current.getBBox()
@@ -51,8 +61,15 @@ export function BarcodeGenerator() {
       img.onload = async () => {
         ctx.drawImage(img, 20, 20)
         const blob = await exportCanvas(canvas, "image/png", 1.0)
-        downloadBlob(blob, "vanity-barcode.png")
+        setResultUrl(blob)
         URL.revokeObjectURL(url)
+        
+        // Trigger download immediately for first time
+        const a = document.createElement("a")
+        a.href = URL.createObjectURL(blob) // Transient for this specific click
+        a.download = "vanity-barcode.png"
+        a.click()
+        URL.revokeObjectURL(a.href)
       }
       img.src = url
     } catch (error) {

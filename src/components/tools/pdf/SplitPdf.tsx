@@ -6,18 +6,14 @@ import JSZip from "jszip"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function SplitPdf() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [resultZipUrl, setResultZipUrl] = useState<string | null>(null)
+  const { url: resultZipUrl, setUrl: setResultZipUrl, clear: clearResultZipUrl } = useObjectUrl()
   const [pageCount, setPageCount] = useState(0)
-
-  useEffect(() => {
-    return () => {
-      if (resultZipUrl) URL.revokeObjectURL(resultZipUrl)
-    }
-  }, [resultZipUrl])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -43,8 +39,7 @@ export function SplitPdf() {
       }
       
       const content = await zip.generateAsync({ type: "blob" })
-      const url = URL.createObjectURL(content)
-      setResultZipUrl(url)
+      setResultZipUrl(content)
       
       toast.success("PDF split successfully!")
 
@@ -90,7 +85,7 @@ export function SplitPdf() {
           <p className="text-muted-foreground text-sm">File: {file.name}</p>
         </div>
         <button 
-          onClick={() => { setFile(null); setResultZipUrl(null); }} 
+          onClick={() => { setFile(null); clearResultZipUrl(); }} 
           className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Start New

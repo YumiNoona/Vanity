@@ -1,20 +1,21 @@
 import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Settings2, ArrowLeft, Download, Layers, Loader2, Image as ImageIcon, Trash2, CheckCircle } from "lucide-react"
+import { useObjectUrls } from "@/hooks/useObjectUrl"
 
 interface ProcessedImage {
   originalFile: File
-  originalUrl: string
   originalWidth: number
   originalHeight: number
   resizedBlob: Blob
-  resizedUrl: string
   newWidth: number
   newHeight: number
 }
 
 export function ImageResizerBulk() {
   const [files, setFiles] = useState<File[]>([])
+  const { urls: originalUrls, addUrl: addOriginalUrl, clear: clearOriginalUrls } = useObjectUrls()
+  const { urls: resizedUrls, addUrl: addResizedUrl, clear: clearResizedUrls } = useObjectUrls()
   
   // Settings
   const [scaleMode, setScaleMode] = useState<"percentage" | "width" | "height">("width")
@@ -32,6 +33,8 @@ export function ImageResizerBulk() {
       const unique = newFiles.filter(nf => !files.some(existing => existing.name === nf.name))
       setFiles(prev => [...prev, ...unique])
       setProcessed([]) // reset output on new load
+      clearOriginalUrls()
+      clearResizedUrls()
       setProgress(0)
     }
   }
@@ -42,7 +45,7 @@ export function ImageResizerBulk() {
 
   const loadOriginal = async (file: File): Promise<{img: HTMLImageElement, url: string}> => {
     return new Promise((resolve, reject) => {
-       const url = URL.createObjectURL(file)
+       const url = addOriginalUrl(file)
        const img = new Image()
        img.onload = () => resolve({ img, url })
        img.onerror = reject
@@ -55,6 +58,7 @@ export function ImageResizerBulk() {
     setIsProcessing(true)
     setProgress(0)
     setProcessed([])
+    clearResizedUrls()
     
     const results: ProcessedImage[] = []
 
@@ -106,14 +110,13 @@ export function ImageResizerBulk() {
 
          results.push({
             originalFile: file,
-            originalUrl: url,
             originalWidth: img.width,
             originalHeight: img.height,
             resizedBlob: blob,
-            resizedUrl: URL.createObjectURL(blob),
             newWidth: w,
             newHeight: h
          })
+         addResizedUrl(blob)
 
          // Update intermediate state safely so UI visibly ticks
          setProcessed([...results])
@@ -133,7 +136,7 @@ export function ImageResizerBulk() {
        // Stagger anchor clicks massively to avoid chrome dropping frames entirely
        setTimeout(() => {
           const a = document.createElement("a")
-          a.href = item.resizedUrl
+          a.href = resizedUrls[i]
           // prepend resized-
           a.download = `resized-${item.originalFile.name}`
           a.click()
@@ -168,7 +171,7 @@ export function ImageResizerBulk() {
             <p className="text-muted-foreground text-sm font-mono">{files.length} items loaded</p>
           </div>
         </div>
-        <button onClick={() => { setFiles([]); setProcessed([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFiles([]); setProcessed([]); clearOriginalUrls(); clearResizedUrls(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Fresh
         </button>
       </div>
@@ -292,7 +295,7 @@ export function ImageResizerBulk() {
                         {result && (
                            <div className="flex items-center gap-4 shrink-0">
                               <a 
-                                href={result.resizedUrl}
+                                href={resizedUrls[processed.indexOf(result)]}
                                 download={`resized-${result.originalFile.name}`}
                                 className="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black font-bold text-xs rounded-lg transition-all"
                               >

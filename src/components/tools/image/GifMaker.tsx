@@ -3,7 +3,8 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Images, Download, RefreshCw, Trash2, SlidersHorizontal, AlertCircle, XCircle } from "lucide-react"
 import { toast } from "sonner"
 import gifshot from "gifshot"
-import { guardDimensions, maybeYield, safeRevoke } from "@/lib/utils"
+import { guardDimensions, maybeYield } from "@/lib/utils"
+import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
 const MAX_FRAMES = 20
 const MAX_TOTAL_PX = 50_000_000
@@ -16,35 +17,19 @@ export function GifMaker() {
   const [delay, setDelay] = useState(200) // ms
   const [isProcessing, setIsProcessing] = useState(false)
   const [progressStage, setProgressStage] = useState<ProgressStage>("idle")
-  const [resultGif, setResultGif] = useState<string | null>(null)
   
-  const [previewUrls, setPreviewUrls] = useState<string[]>([])
-  const prevPreviewsRef = useRef<string[]>([])
+  const { url: resultGif, setUrl: setResultGif, clear: clearResultGif } = useObjectUrl()
+  const { urls: previewUrls, setUrls: setPreviewUrls, clear: clearPreviewUrls } = useObjectUrls()
   
   const isCancelledRef = useRef(false)
-  const activeUrlsRef = useRef<string[]>([])
-
-  const updateActiveUrls = (newUrls: string[]) => {
-    safeRevoke(activeUrlsRef.current)
-    activeUrlsRef.current = newUrls
-  }
-
-  const updatePreviews = (newFiles: File[]) => {
-    prevPreviewsRef.current.forEach(u => URL.revokeObjectURL(u))
-    const urls = newFiles.map(f => URL.createObjectURL(f))
-    prevPreviewsRef.current = urls
-    setPreviewUrls(urls)
-  }
 
   useEffect(() => {
-    updatePreviews(files)
-  }, [files])
+    setPreviewUrls(files)
+  }, [files, setPreviewUrls])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      safeRevoke(activeUrlsRef.current)
-      prevPreviewsRef.current.forEach(u => URL.revokeObjectURL(u))
       isCancelledRef.current = true
     }
   }, [])
@@ -58,12 +43,12 @@ export function GifMaker() {
     } else {
       setFiles(prev => [...prev, ...newFiles])
     }
-    setResultGif(null)
-  }, [files])
+    clearResultGif()
+  }, [files, clearResultGif])
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index))
-    setResultGif(null)
+    clearResultGif()
   }
 
   const cancelTask = () => {
@@ -96,7 +81,7 @@ export function GifMaker() {
           const reader = new FileReader()
           reader.onload = (e) => {
             const img = new Image()
-            img.onload = () => {
+            img.onload = async () => {
               const { width, height } = guardDimensions(img.width, img.height)
               aggregatePixels += width * height
               
@@ -113,12 +98,13 @@ export function GifMaker() {
                 ctx.imageSmoothingEnabled = true
                 ctx.drawImage(img, 0, 0, width, height)
               }
-              const dataUrl = canvas.toDataURL("image/jpeg", 0.75)
+              const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.75))
+              const url = blob ? URL.createObjectURL(blob) : ""
               
               // Memory cleanup
               canvas.width = 0
               canvas.height = 0
-              resolve(dataUrl)
+              resolve(url)
             }
             img.src = e.target?.result as string
           }
@@ -149,16 +135,25 @@ export function GifMaker() {
         numWorkers: 2,
         sampleInterval: 10, // Palette quality vs speed
       }, (obj: any) => {
-        if (isCancelledRef.current) return
+        if (isCancelledRef.current) {
+          frameUrls.forEach(u => URL.revokeObjectURL(u))
+          return
+        }
 
         if (!obj.error) {
            if (performance.now() - startTime > ENCODE_TIMEOUT) {
               toast.error("Processing timeout—try fewer frames")
-              setIsProcessing(false)
+              // Cleanup frame URLs
+         frameUrls.forEach(u => URL.revokeObjectURL(u))
+         
+         setIsProcessing(false)
               return
            }
            setProgressStage("finalizing")
-           setResultGif(obj.image)
+           // Convert base64 result to Blob for managed lifecycle
+           fetch(obj.image)
+             .then(res => res.blob())
+             .then(blob => setResultGif(blob))
            toast.success("GIF generated!")
         } else {
            toast.error(obj.errorMsg || "GIF encoding failed")

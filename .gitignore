@@ -1,62 +1,43 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
+# --- Core ---
+node_modules/
+dist/
+dist-ssr/
 *.local
+.env*
+!.env.example
 
-# Editor directories and files
+# --- Editor & OS ---
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.eslintcache
+*.tsbuildinfo
 
-# Vite specifics
+# --- Logs & Debug ---
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.eslintcache
-*.tsbuildinfo
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Build output
-dist
-build
-out
-
-# AI generated assets (just in case)
-*.webp
-*.crdownload
-
-# Vanity specific generated outputs
+# --- Project Specific Outputs ---
 vanity-*.pdf
 vanity-*.png
 vanity-*.jpg
+*.crdownload
 
-# Backend Server
-server/node_modules
-server/uploads
+# --- Backend Server ---
+server/node_modules/
+server/uploads/*
 
-# Antigravity / Gemini Artifacts
+# --- AI & Assistant Artifacts ---
 .gemini/
 artifacts/
 brain/
@@ -64,16 +45,8 @@ scratch/
 implementation_plan*.md
 task.md
 walkthrough.md
-*.log
 
-# Lockfiles
+# --- Lockfiles & Misc ---
 yarn.lock
 pnpm-lock.yaml
-
-# Misc
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+package-lock.json

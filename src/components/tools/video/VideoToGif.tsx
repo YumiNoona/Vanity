@@ -8,39 +8,28 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { toBlob } from "@/lib/utils/blob"
 
+import { getFFmpeg } from "@/lib/ffmpeg"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function VideoToGif() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [fps, setFps] = useState(10)
   const [scale, setScale] = useState(480)
-  const ffmpegRef = useRef(new FFmpeg())
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultBlob(null)
+      clearResultUrl()
     }
   }
-
-  const loadFfmpeg = async () => {
-    const ffmpeg = ffmpegRef.current
-    if (ffmpeg.loaded) return
-    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
-    })
-  }
-
   const convertToGif = async () => {
     if (!file) return
     startProcessing()
     
     try {
-      const ffmpeg = ffmpegRef.current
-      await loadFfmpeg()
+      const ffmpeg = await getFFmpeg()
       
       ffmpeg.on("progress", ({ progress }) => {
         updateProgress(Math.round(progress * 100))
@@ -60,7 +49,7 @@ export function VideoToGif() {
 
       const data = await ffmpeg.readFile(outputName)
       const blob = toBlob(data as Uint8Array, "image/gif")
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("GIF generated successfully!")
     } catch (error) {
       console.error(error)
@@ -71,13 +60,11 @@ export function VideoToGif() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    const url = URL.createObjectURL(resultBlob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-capture-${Date.now()}.gif`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -107,7 +94,7 @@ export function VideoToGif() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Video
         </button>
       </div>
@@ -124,15 +111,15 @@ export function VideoToGif() {
                       />
                    </div>
                    <div className="space-y-1">
-                      <p className="text-lg font-bold text-white font-syne tracking-tight">Extracting Frames...</p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest">{progress}% - Local Worker</p>
+                      <p className="text-lg font-bold text-white font-syne tracking-tight">Transcoding frames...</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest">{progress}% - CPU Worker</p>
                    </div>
                 </div>
-              ) : resultBlob ? (
+              ) : resultUrl ? (
                 <div className="space-y-8 animate-in zoom-in-95 duration-500">
                    <div className="relative inline-block group">
                       <img 
-                        src={URL.createObjectURL(resultBlob)} 
+                        src={resultUrl} 
                         className="max-w-xs rounded-xl border border-white/10 shadow-2xl" 
                         alt="Result Preview" 
                       />

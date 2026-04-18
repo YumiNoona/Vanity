@@ -35,7 +35,7 @@ export function DropZone({ onDrop, accept, maxFiles = 1, multiple = false, label
       </div>
       <p className="text-lg font-medium text-foreground mb-1 text-center">{label}</p>
       <p className="text-sm text-muted-foreground mb-4 text-center">
-        {maxFiles > 1 ? `Up to ${maxFiles} files` : "Single file only"}
+        {multiple ? "No limit · processed sequentially" : maxFiles > 1 ? `Up to ${maxFiles} files` : "Single file only"}
       </p>
       
       <div className="absolute bottom-4 left-0 right-0 text-center">

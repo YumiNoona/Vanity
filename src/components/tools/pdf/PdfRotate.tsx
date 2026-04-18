@@ -5,16 +5,18 @@ import { PDFDocument, degrees } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfRotate() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [rotation, setRotation] = useState(90)
-  const [resultPdf, setResultPdf] = useState<Uint8Array | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultPdf(null)
+      setResultUrl(null)
     }
   }
 
@@ -32,8 +34,9 @@ export function PdfRotate() {
         page.setRotation(degrees((currentRotation + rotation) % 360))
       }
 
-      const savedPdf = await pdfDoc.save()
-      setResultPdf(savedPdf)
+      const savedPdfArr = await pdfDoc.save()
+      const blob = new Blob([savedPdfArr], { type: "application/pdf" })
+      setResultUrl(blob)
       toast.success("Rotation applied successfully!")
     } catch (error) {
       console.error(error)
@@ -44,14 +47,11 @@ export function PdfRotate() {
   }, [file, rotation])
 
   const handleDownload = () => {
-    if (!resultPdf) return
-    const blob = new Blob([new Uint8Array(resultPdf) as any], { type: "application/pdf" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-rotated-${file?.name}`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -81,7 +81,7 @@ export function PdfRotate() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change File
         </button>
       </div>
@@ -89,7 +89,7 @@ export function PdfRotate() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
          <div className="md:col-span-12 xl:col-span-12">
             <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center bg-black/40 border-white/5 shadow-2xl space-y-12">
-               {resultPdf ? (
+               {resultUrl ? (
                   <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
                      <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
                         <CheckCircle className="w-12 h-12" />

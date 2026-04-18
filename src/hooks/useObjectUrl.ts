@@ -35,3 +35,47 @@ export function useObjectUrl() {
 
   return { url, setUrl, clear }
 }
+
+/**
+ * Manages Multiple Object URLs with automatic cleanup.
+ */
+export function useObjectUrls() {
+  const [urls, setUrlsState] = useState<string[]>([])
+
+  const setUrls = useCallback((blobs: (Blob | File)[]) => {
+    setUrlsState(prev => {
+      prev.forEach(u => URL.revokeObjectURL(u))
+      return blobs.map(b => URL.createObjectURL(b))
+    })
+  }, [])
+
+  const clear = useCallback(() => {
+    setUrlsState(prev => {
+      prev.forEach(u => URL.revokeObjectURL(u))
+      return []
+    })
+  }, [])
+
+  const addUrl = useCallback((blob: Blob | File) => {
+    const url = URL.createObjectURL(blob)
+    setUrlsState(prev => [...prev, url])
+    return url
+  }, [])
+
+  const removeUrl = useCallback((url: string) => {
+    URL.revokeObjectURL(url)
+    setUrlsState(prev => prev.filter(u => u !== url))
+  }, [])
+
+  // Revoke on unmount
+  useEffect(() => {
+    return () => {
+      setUrlsState(prev => {
+        prev.forEach(u => URL.revokeObjectURL(u))
+        return []
+      })
+    }
+  }, [])
+
+  return { urls, setUrls, addUrl, removeUrl, clear }
+}

@@ -5,6 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { safeImport } from "@/lib/utils/loader"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function CompressPdf() {
   const { validateFiles } = usePremium()
@@ -13,7 +14,7 @@ export function CompressPdf() {
   const [phase, setPhase] = useState("")
   const [progress, setProgress] = useState(0)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
   // Metadata & Heuristics
   const [pageCount, setPageCount] = useState(0)
@@ -24,11 +25,6 @@ export function CompressPdf() {
   const [targetSizeKB, setTargetSizeKB] = useState(100)
   const PRESETS = [10, 50, 100, 200, 500]
 
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
 
   // Intelligence: Dynamic Calculations
   const originalKB = useMemo(() => file ? (file.size / 1024) : 0, [file])
@@ -64,7 +60,7 @@ export function CompressPdf() {
     
     setFile(uploadedFile)
     setResultBlob(null)
-    setResultUrl(null)
+    clearResultUrl()
     setPhase("Analyzing metadata...")
     
     try {
@@ -211,7 +207,7 @@ export function CompressPdf() {
       }
       
       setResultBlob(result)
-      setResultUrl(URL.createObjectURL(result))
+      setResultUrl(result)
       toast.success("Compressed successfully!")
     } catch (error: any) {
       toast.error(error?.message || "Compression failed")
@@ -255,7 +251,7 @@ export function CompressPdf() {
           </div>
         </div>
         <button 
-          onClick={() => { setFile(null); setResultUrl(null); }} 
+          onClick={() => { setFile(null); clearResultUrl(); }} 
           className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium flex items-center gap-2 transition-all"
         >
           <ArrowLeft className="w-4 h-4" /> Start New

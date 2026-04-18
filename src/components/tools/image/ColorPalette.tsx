@@ -3,13 +3,16 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Pipette, Copy, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { drawToCanvas } from "@/lib/canvas"
 
 export function ColorPalette() {
   const [file, setFile] = useState<File | null>(null)
   const [palette, setPalette] = useState<string[]>([])
   const { isProcessing, processImage } = useImageProcessor()
-  const [preview, setPreview] = useState<string | null>(null)
+  const { url: preview, setUrl: setPreview, clear: clearPreview } = useObjectUrl()
+  const { copy } = useCopyToClipboard()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
@@ -18,10 +21,7 @@ export function ColorPalette() {
     
     setFile(uploadedFile)
     setPalette([])
-    
-    // Preview URL for UI
-    const url = URL.createObjectURL(uploadedFile)
-    setPreview(url)
+    setPreview(uploadedFile)
 
     try {
       const result = await processImage(uploadedFile)
@@ -39,13 +39,6 @@ export function ColorPalette() {
       toast.error("Failed to process image")
     }
   }
-
-  // Effect to revoke preview URL
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
-    }
-  }, [preview])
 
   const extractPalette = (ctx: CanvasRenderingContext2D, width: number, height: number): string[] => {
     const imageData = ctx.getImageData(0, 0, width, height)
@@ -74,10 +67,7 @@ export function ColorPalette() {
   const rgbToHex = (r: number, g: number, b: number) => 
     "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
 
-  const copyToClipboard = (hex: string) => {
-    navigator.clipboard.writeText(hex)
-    toast.success(`Copied ${hex}`)
-  }
+
 
   if (!file) {
     return (
@@ -101,7 +91,7 @@ export function ColorPalette() {
           <h1 className="text-3xl font-bold font-syne mb-2">Palette Extracted</h1>
           <p className="text-muted-foreground text-sm">Derived from {file.name}</p>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreview(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> New Image
         </button>
       </div>
@@ -118,7 +108,7 @@ export function ColorPalette() {
               {palette.map(color => (
                 <button 
                   key={color}
-                  onClick={() => copyToClipboard(color)}
+                  onClick={() => copy(color, `Copied ${color}`)}
                   className="group relative h-24 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95 overflow-hidden"
                   style={{ backgroundColor: color }}
                 >

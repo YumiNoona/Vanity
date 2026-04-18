@@ -3,26 +3,27 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function BeforeAfterSlider() {
   const [file1, setFile1] = useState<File | null>(null)
   const [file2, setFile2] = useState<File | null>(null)
-  const [imgUrl1, setImgUrl1] = useState<string | null>(null)
-  const [imgUrl2, setImgUrl2] = useState<string | null>(null)
+  const { url: imgUrl1, setUrl: setImgUrl1, clear: clearImgUrl1 } = useObjectUrl()
+  const { url: imgUrl2, setUrl: setImgUrl2, clear: clearImgUrl2 } = useObjectUrl()
   const [sliderPos, setSliderPos] = useState(50)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleDrop1 = (files: File[]) => {
     if (files[0]) {
       setFile1(files[0])
-      setImgUrl1(URL.createObjectURL(files[0]))
+      setImgUrl1(files[0])
     }
   }
 
   const handleDrop2 = (files: File[]) => {
     if (files[0]) {
       setFile2(files[0])
-      setImgUrl2(URL.createObjectURL(files[0]))
+      setImgUrl2(files[0])
     }
   }
 
@@ -37,8 +38,8 @@ export function BeforeAfterSlider() {
   const reset = () => {
     setFile1(null)
     setFile2(null)
-    setImgUrl1(null)
-    setImgUrl2(null)
+    clearImgUrl1()
+    clearImgUrl2()
     setSliderPos(50)
   }
 
@@ -61,7 +62,7 @@ export function BeforeAfterSlider() {
                {imgUrl1 ? (
                  <div className="relative aspect-video rounded-3xl overflow-hidden group border border-white/10">
                     <img src={imgUrl1} className="w-full h-full object-cover" />
-                    <button onClick={() => setFile1(null)} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setFile1(null); clearImgUrl1(); }} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
                        <Trash2 className="w-4 h-4" />
                     </button>
                  </div>
@@ -74,7 +75,7 @@ export function BeforeAfterSlider() {
                {imgUrl2 ? (
                  <div className="relative aspect-video rounded-3xl overflow-hidden group border border-white/10">
                     <img src={imgUrl2} className="w-full h-full object-cover" />
-                    <button onClick={() => setFile2(null)} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setFile2(null); clearImgUrl2(); }} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
                        <Trash2 className="w-4 h-4" />
                     </button>
                  </div>

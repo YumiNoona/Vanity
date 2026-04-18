@@ -7,15 +7,18 @@ import { cn } from "@/lib/utils"
 
 const SIZES = [16, 32, 48, 64, 96, 128, 144, 180, 192, 256, 384, 512]
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function FaviconGenerator() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setPreviewUrl(URL.createObjectURL(files[0]))
+      setPreviewUrl(files[0])
     }
   }
 
@@ -61,13 +64,8 @@ export function FaviconGenerator() {
       zip.file("apple-touch-icon.png", appleBlob)
 
       const content = await zip.generateAsync({ type: "blob" })
-      const url = URL.createObjectURL(content)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `vanity-favicons-${Date.now()}.zip`
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.success("Favicon pack generated and downloaded!")
+      setResultUrl(content)
+      toast.success("Favicon pack generated!")
     } catch (error) {
       console.error(error)
       toast.error("Failed to generate zip.")
@@ -103,7 +101,7 @@ export function FaviconGenerator() {
             <p className="text-muted-foreground text-sm">Reviewing {SIZES.length} output sizes.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Image
         </button>
       </div>
@@ -131,14 +129,24 @@ export function FaviconGenerator() {
                 </div>
              </div>
 
-             <button 
-               onClick={generateZip}
-               disabled={isProcessing}
-               className="w-full py-5 bg-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
-             >
-               {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-               Generate & Export ZIP
-             </button>
+             {resultUrl ? (
+                <a 
+                  href={resultUrl} 
+                  download={`vanity-favicons-${Date.now()}.zip`}
+                  className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  <Download className="w-5 h-5" /> Download Icon Pack
+                </a>
+             ) : (
+                <button 
+                  onClick={generateZip}
+                  disabled={isProcessing}
+                  className="w-full py-5 bg-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                  Generate & Export ZIP
+                </button>
+             )}
           </div>
         </div>
 

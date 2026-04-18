@@ -17,19 +17,15 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 }
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfToImages() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [resultZipUrl, setResultZipUrl] = useState<string | null>(null)
+  const { url: resultZipUrl, setUrl: setResultZipUrl, clear: clearResultZipUrl } = useObjectUrl()
   const [pageCount, setPageCount] = useState(0)
-
-  useEffect(() => {
-    return () => {
-      if (resultZipUrl) URL.revokeObjectURL(resultZipUrl)
-    }
-  }, [resultZipUrl])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -79,8 +75,7 @@ export function PdfToImages() {
       }
 
       const content = await zip.generateAsync({ type: "blob" })
-      const url = URL.createObjectURL(content)
-      setResultZipUrl(url)
+      setResultZipUrl(content)
       setProgress(100)
 
 
@@ -95,9 +90,8 @@ export function PdfToImages() {
   }
 
   const handleStartNew = () => {
-    if (resultZipUrl) URL.revokeObjectURL(resultZipUrl)
     setFile(null)
-    setResultZipUrl(null)
+    clearResultZipUrl()
     setProgress(0)
     setPageCount(0)
   }

@@ -12,10 +12,20 @@ interface ProcessedAltText {
   status: "pending" | "processing" | "done" | "error"
 }
 
+import { useObjectUrls } from "@/hooks/useObjectUrl"
+
+interface ProcessedAltText {
+  filename: string
+  alt: string
+  status: "pending" | "processing" | "done" | "error"
+}
+
 export function AltTextBatch() {
   const { key } = useAnthropicKey()
   const [queue, setQueue] = useState<File[]>([])
   const [results, setResults] = useState<ProcessedAltText[]>([])
+  const { urls, addUrl, removeUrl, clear: clearUrls } = useObjectUrls()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -27,7 +37,7 @@ export function AltTextBatch() {
       
       const newItems: ProcessedAltText[] = unique.map(f => ({
          filename: f.name,
-         url: URL.createObjectURL(f),
+         url: addUrl(f),
          alt: "",
          status: "pending"
       }))
@@ -36,6 +46,8 @@ export function AltTextBatch() {
   }
 
   const removeFile = (name: string) => {
+    const item = results.find(r => r.filename === name)
+    if (item) removeUrl(item.url)
     setQueue(queue.filter(f => f.name !== name))
     setResults(results.filter(r => r.filename !== name))
   }
@@ -105,6 +117,14 @@ Return ONLY the raw string. No markdown.`
   }
 
   const downloadCsv = () => {
+    if (resultUrl) {
+       const a = document.createElement("a")
+       a.href = resultUrl
+       a.download = "vanity_alt_texts.csv"
+       a.click()
+       return
+    }
+
     const header = ["Filename", "Alt Text"]
     const rows = results
        .filter(r => r.status === "done")
@@ -115,12 +135,14 @@ Return ONLY the raw string. No markdown.`
 
     const csvContent = [header.join(","), ...rows.map(r => r.join(","))].join("\n")
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
+    setResultUrl(blob)
+    
     const a = document.createElement("a")
-    a.href = url
+    const tempUrl = URL.createObjectURL(blob)
+    a.href = tempUrl
     a.download = "vanity_alt_texts.csv"
     a.click()
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(tempUrl)
   }
 
   if (!key) {
@@ -165,7 +187,7 @@ Return ONLY the raw string. No markdown.`
             <p className="text-muted-foreground text-sm font-mono">{queue.length} items loaded</p>
           </div>
         </div>
-        <button onClick={() => { setQueue([]); setResults([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setQueue([]); setResults([]); clearUrls(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Fresh
         </button>
       </div>

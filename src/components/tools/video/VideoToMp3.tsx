@@ -1,34 +1,25 @@
 import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Mic, Download, RefreshCw, Zap, VideoOff } from "lucide-react"
+import { ArrowLeft, Mic, Download, RefreshCw, Zap, VideoOff, CheckCircle } from "lucide-react"
 import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { fetchFile, toBlobURL } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+import { getFFmpeg } from "@/lib/ffmpeg"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function VideoToMp3() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const ffmpegRef = useRef(new FFmpeg())
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultBlob(null)
+      clearResultUrl()
     }
-  }
-
-  const loadFfmpeg = async () => {
-    const ffmpeg = ffmpegRef.current
-    if (ffmpeg.loaded) return
-    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
-    })
   }
 
   const extractAudio = async () => {
@@ -36,8 +27,7 @@ export function VideoToMp3() {
     startProcessing()
     
     try {
-      const ffmpeg = ffmpegRef.current
-      await loadFfmpeg()
+      const ffmpeg = await getFFmpeg()
       
       ffmpeg.on("progress", ({ progress }) => {
         updateProgress(Math.round(progress * 100))
@@ -53,7 +43,7 @@ export function VideoToMp3() {
 
       const data = await ffmpeg.readFile(outputName)
       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "audio/mp3" })
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("Audio extracted successfully!")
     } catch (error) {
       console.error(error)
@@ -64,13 +54,11 @@ export function VideoToMp3() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    const url = URL.createObjectURL(resultBlob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-extracted-${file?.name.split('.')[0]}.mp3`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -100,7 +88,7 @@ export function VideoToMp3() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Video
         </button>
       </div>
@@ -121,24 +109,24 @@ export function VideoToMp3() {
                       <p className="text-xs text-muted-foreground uppercase tracking-widest text-[10px]">Processing Bitstream</p>
                    </div>
                 </div>
-              ) : resultBlob ? (
-                <div className="space-y-8 text-center animate-in zoom-in-95 duration-500">
-                   <div className="p-6 bg-emerald-500/10 rounded-full inline-block text-emerald-500 border border-emerald-500/20">
-                      <Mic className="w-12 h-12" />
-                   </div>
-                   <div className="space-y-2">
-                      <h2 className="text-4xl font-bold font-syne text-white">MP3 Ready</h2>
-                      <p className="text-muted-foreground italic text-sm">Bitrate: 192kbps | Sampling: 44.1kHz</p>
-                   </div>
-                   <button 
-                     onClick={handleDownload}
-                     className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
-                   >
-                     <Download className="w-6 h-6" />
-                     Download Extracted MP3
-                   </button>
-                </div>
-              ) : (
+              ) : resultUrl ? (
+                <div className="space-y-8 animate-in zoom-in-95 duration-500 text-center z-10">
+                    <div className="p-6 bg-purple-500/10 rounded-full inline-block text-purple-500 border border-purple-500/20 mb-4">
+                       <CheckCircle className="w-16 h-16" />
+                    </div>
+                    <div className="space-y-2">
+                       <h2 className="text-4xl font-bold font-syne text-white">MP3 Ready</h2>
+                       <p className="text-muted-foreground italic text-sm">Bitrate: 192kbps | Sampling: 44.1kHz</p>
+                    </div>
+                    <button 
+                      onClick={handleDownload}
+                      className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
+                    >
+                      <Download className="w-6 h-6" />
+                      Download Extracted MP3
+                    </button>
+                 </div>
+               ) : (
                 <button 
                   onClick={extractAudio}
                   className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] transition-all flex items-center gap-4"

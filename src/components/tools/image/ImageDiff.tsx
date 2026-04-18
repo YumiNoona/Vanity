@@ -1,30 +1,34 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2, Microscope, Loader2 } from "lucide-react"
+import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { toast } from "sonner"
 
 export function ImageDiff() {
+  const { validateFiles } = usePremium()
   const [file1, setFile1] = useState<File | null>(null)
   const [file2, setFile2] = useState<File | null>(null)
-  const [imgUrl1, setImgUrl1] = useState<string | null>(null)
-  const [imgUrl2, setImgUrl2] = useState<string | null>(null)
+  const { url: imgUrl1, setUrl: setImgUrl1, clear: clearImgUrl1 } = useObjectUrl()
+  const { url: imgUrl2, setUrl: setImgUrl2, clear: clearImgUrl2 } = useObjectUrl()
+  const { url: diffUrl, setUrl: setDiffUrl, clear: clearDiffUrl } = useObjectUrl()
   
-  const [diffUrl, setDiffUrl] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [sliderPos, setSliderPos] = useState(50)
   
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleDrop1 = (files: File[]) => {
-    if (files[0]) {
+    if (files[0] && validateFiles([files[0]])) {
       setFile1(files[0])
-      setImgUrl1(URL.createObjectURL(files[0]))
+      setImgUrl1(files[0])
     }
   }
 
   const handleDrop2 = (files: File[]) => {
-    if (files[0]) {
+    if (files[0] && validateFiles([files[0]])) {
       setFile2(files[0])
-      setImgUrl2(URL.createObjectURL(files[0]))
+      setImgUrl2(files[0])
     }
   }
 
@@ -103,7 +107,10 @@ export function ImageDiff() {
       }
 
       diffCtx.putImageData(diffData, 0, 0)
-      setDiffUrl(diffCanvas.toDataURL("image/png"))
+      
+      diffCanvas.toBlob((blob) => {
+        if (blob) setDiffUrl(blob)
+      }, "image/png")
 
     } catch (error) {
       console.error(error)
@@ -122,9 +129,9 @@ export function ImageDiff() {
   const reset = () => {
     setFile1(null)
     setFile2(null)
-    setImgUrl1(null)
-    setImgUrl2(null)
-    setDiffUrl(null)
+    clearImgUrl1()
+    clearImgUrl2()
+    clearDiffUrl()
     setSliderPos(50)
   }
 

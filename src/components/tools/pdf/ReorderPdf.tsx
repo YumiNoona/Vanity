@@ -7,6 +7,8 @@ import { toast } from "sonner"
 import { Reorder, AnimatePresence } from "framer-motion"
 import { downloadBlob } from "@/lib/canvas"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 interface PageItem {
   index: number
   id: string
@@ -17,7 +19,7 @@ export function ReorderPdf() {
   const [file, setFile] = useState<File | null>(null)
   const [pages, setPages] = useState<PageItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -25,7 +27,7 @@ export function ReorderPdf() {
     
     setFile(uploadedFile)
     setIsProcessing(true)
-    setResultBlob(null)
+    setResultUrl(null)
 
     try {
       const arrayBuffer = await uploadedFile.arrayBuffer()
@@ -64,7 +66,7 @@ export function ReorderPdf() {
       const pdfBytes = await newDoc.save()
       const blob = new Blob([pdfBytes as any], { type: "application/pdf" })
       
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("PDF reordered successfully!")
     } catch (error) {
       toast.error("Failed to generate reordered PDF")
@@ -74,8 +76,11 @@ export function ReorderPdf() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    downloadBlob(resultBlob, `vanity-reordered-${file?.name || "document.pdf"}`)
+    if (!resultUrl) return
+    const a = document.createElement("a")
+    a.href = resultUrl
+    a.download = `vanity-reordered-${file?.name || "document.pdf"}`
+    a.click()
   }
 
   const removePage = (id: string) => {
@@ -109,7 +114,7 @@ export function ReorderPdf() {
             <p className="text-muted-foreground text-sm">{file?.name}</p>
           </div>
         </div>
-        <button onClick={() => { setFile(null); setResultBlob(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Over
         </button>
       </div>
@@ -152,7 +157,7 @@ export function ReorderPdf() {
       </div>
 
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4">
-        {!resultBlob ? (
+        {!resultUrl ? (
           <button 
             onClick={handleApply}
             disabled={isProcessing || pages.length === 0}

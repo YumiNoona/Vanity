@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { safeImport } from "@/lib/utils/loader"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 // Module-level cache for heavy library
 let tesseractModule: any = null
 
@@ -17,14 +19,8 @@ export function OcrExtractor() {
   const [extractedText, setExtractedText] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [language, setLanguage] = useState("eng")
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
-  // Cleanup preview URL
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -32,12 +28,11 @@ export function OcrExtractor() {
 
     setFile(uploadedFile)
     setExtractedText(null)
+    setResultUrl(null)
     setProgress(0)
 
     // Create preview
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    const url = URL.createObjectURL(uploadedFile)
-    setPreviewUrl(url)
+    setPreviewUrl(uploadedFile)
 
     setIsProcessing(true)
 
@@ -63,6 +58,7 @@ export function OcrExtractor() {
       })
 
       setExtractedText(result.data.text)
+      setResultUrl(new Blob([result.data.text], { type: "text/plain" }))
       setProgress(100)
       toast.success("Text extracted successfully!")
     } catch (error: any) {
@@ -83,16 +79,11 @@ export function OcrExtractor() {
   }
 
   const handleDownloadText = () => {
-    if (!extractedText) return
-    const blob = new Blob([extractedText], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-ocr-${file?.name?.replace(/\.[^/.]+$/, "") || "text"}.txt`
-    document.body.appendChild(a)
     a.click()
-    document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 100)
   }
 
   const LANGUAGES = [
@@ -146,8 +137,8 @@ export function OcrExtractor() {
       onBack={() => {
         setFile(null)
         setExtractedText(null)
-        if (previewUrl) URL.revokeObjectURL(previewUrl)
-        setPreviewUrl(null)
+        clearPreviewUrl()
+        clearResultUrl()
       }}
       maxWidth="max-w-6xl"
     >

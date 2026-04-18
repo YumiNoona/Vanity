@@ -2,19 +2,22 @@ import React, { useState, useEffect } from "react"
 import { ArrowLeft, Eye, Layout, Copy, CheckCircle, Download, FileJson } from "lucide-react"
 import { marked } from "marked"
 import { toast } from "sonner"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function MarkdownPreview() {
   const [input, setInput] = useState("# Welcome to Vanity\n\nStart typing **Markdown** to see the magic happen.\n\n- Local processing\n- Zero tracking\n- Instant preview\n\n```javascript\nconsole.log('Hello World');\n```")
   const [html, setHtml] = useState("")
   const [copied, setCopied] = useState(false)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   useEffect(() => {
     const parse = async () => {
       const result = await marked.parse(input)
       setHtml(result)
+      setResultUrl(new Blob([input], { type: "text/markdown" }))
     }
     parse()
-  }, [input])
+  }, [input, setResultUrl])
 
   const handleCopyHtml = () => {
     navigator.clipboard.writeText(html)
@@ -24,13 +27,11 @@ export function MarkdownPreview() {
   }
 
   const handleDownloadMd = () => {
-    const blob = new Blob([input], { type: "text/markdown" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-export-${Date.now()}.md`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   return (

@@ -4,6 +4,7 @@ import { ArrowLeft, Download, FileType, Maximize2, RefreshCw } from "lucide-reac
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function SvgToRaster() {
   const { validateFiles } = usePremium()
@@ -13,6 +14,9 @@ export function SvgToRaster() {
   const [format, setFormat] = useState<"png" | "jpeg">("png")
   const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+  const [lastConvertedScale, setLastConvertedScale] = useState<number | null>(null)
+  const [lastConvertedFormat, setLastConvertedFormat] = useState<string | null>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -32,7 +36,7 @@ export function SvgToRaster() {
     const svgBlob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" })
     const url = URL.createObjectURL(svgBlob)
 
-    img.onload = () => {
+    img.onload = async () => {
       const canvas = canvasRef.current!
       canvas.width = img.width * scale
       canvas.height = img.height * scale
@@ -45,23 +49,38 @@ export function SvgToRaster() {
       
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
       
-      const dataUrl = canvas.toDataURL(`image/${format}`, 0.92)
-      const a = document.createElement("a")
-      a.href = dataUrl
-      a.download = `vanity-raster-${file?.name.replace(".svg", "")}.${format === "jpeg" ? "jpg" : "png"}`
-      a.click()
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), `image/${format}`, 0.92))
+      setResultUrl(blob)
+      setLastConvertedScale(scale)
+      setLastConvertedFormat(format)
       
       URL.revokeObjectURL(url)
       setIsProcessing(false)
-      toast.success(`Converted to ${format.toUpperCase()}!`)
+      toast.success(`Rendered at ${scale}x!`)
     }
 
     img.onerror = () => {
+      URL.revokeObjectURL(url)
       setIsProcessing(false)
       toast.error("Failed to render SVG. It might be malformed.")
     }
 
     img.src = url
+  }
+
+  const handleDownload = () => {
+    if (!resultUrl) return
+    const a = document.createElement("a")
+    a.href = resultUrl
+    a.download = `vanity-raster-${file?.name.replace(".svg", "")}.${lastConvertedFormat === "jpeg" ? "jpg" : "png"}`
+    a.click()
+  }
+
+  const handleReset = () => {
+     setFile(null)
+     setSvgContent(null)
+     clearResultUrl()
+     setLastConvertedScale(null)
   }
 
   if (!file) {
@@ -91,7 +110,7 @@ export function SvgToRaster() {
             <p className="text-muted-foreground text-sm">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={handleReset} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
@@ -157,14 +176,33 @@ export function SvgToRaster() {
                  </div>
               </div>
 
-              <button 
-                onClick={handleConvert}
-                disabled={isProcessing}
-                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Download {format.toUpperCase()}
-              </button>
+              {resultUrl ? (
+                 <div className="space-y-4">
+                    <button 
+                      onClick={handleDownload}
+                      className="w-full py-4 bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download {lastConvertedFormat?.toUpperCase()} ({lastConvertedScale}x)
+                    </button>
+                    <button 
+                      onClick={handleConvert}
+                      disabled={isProcessing}
+                      className="w-full text-xs font-bold text-muted-foreground hover:text-white transition-colors"
+                    >
+                      Re-render with current settings
+                    </button>
+                 </div>
+               ) : (
+                 <button 
+                   onClick={handleConvert}
+                   disabled={isProcessing}
+                   className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                 >
+                   {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                   Rasterize SVG
+                 </button>
+               )}
            </div>
            
            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">

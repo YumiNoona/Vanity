@@ -3,6 +3,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Type, Download, AlertTriangle, CheckCircle, Search, RefreshCw, XCircle } from "lucide-react"
 import * as pdfjsLib from "pdfjs-dist"
 import { toast } from "sonner"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 // Set up worker
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
@@ -105,17 +106,16 @@ export function PdfFontExtractor() {
        return
     }
 
-    // Attempt to download the raw buffer stream
-    // Note: Due to standard PDF subsetting, this may download a partial or obfuscated font file, but the buffer is exact.
     const blob = new Blob([font.rawBuffer as any], { type: "application/x-font-truetype" })
-    const url = URL.createObjectURL(blob)
+    setResultUrl(blob)
+    
     const a = document.createElement("a")
-    a.href = url
-    // Best-guess extension mapping (often TTF or OTF, generic font extension fallback)
+    const tempUrl = URL.createObjectURL(blob)
+    a.href = tempUrl
     const extension = font.type.toLowerCase().includes("type1") ? "pfb" : "ttf"
     a.download = `${font.name.replace(/\s+/g, "_")}.${extension}`
     a.click()
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(tempUrl)
   }
 
   if (!file) {
@@ -145,7 +145,7 @@ export function PdfFontExtractor() {
             <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Load Different
         </button>
       </div>

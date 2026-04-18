@@ -1,27 +1,32 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Minimize2, CheckCircle, AlertCircle } from "lucide-react"
+import { Download, ArrowLeft, Loader2, Minimize2, CheckCircle, AlertCircle, FileArchive } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
+import { ModeToggle } from "@/components/shared/ModeToggle"
+import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
+import type { QueueItem } from "@/types/bulk"
+import { cn, formatSize } from "@/lib/utils"
 import { downloadBlob } from "@/lib/canvas/export"
-import { cn } from "@/lib/utils"
+import JSZip from "jszip"
 
 export function ImageCompressor() {
   const { validateFiles } = usePremium()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+  
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [phase, setPhase] = useState("")
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  
+  // Bulk State
+  const [processMode, setProcessMode] = useState<'single' | 'batch'>('single')
+  const [queue, setQueue] = useState<QueueItem[]>([])
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   
   // Settings
   const [targetSizeKB, setTargetSizeKB] = useState(100)
-
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
 
   const runIterativeCompress = async (file: File, targetKB: number) => {
     const targetBytes = targetKB * 1024
@@ -80,28 +85,92 @@ export function ImageCompressor() {
   }
 
   const handleCompress = async (files: File[]) => {
-    const uploadedFile = files[0]
-    if (!uploadedFile || !validateFiles([uploadedFile])) return
+    if (files.length === 0) return
+    if (!validateFiles(files)) return
 
-    setFile(uploadedFile)
-    setIsProcessing(true)
-    setPhase("Initializing...")
-    
-    try {
-      const compressedBlob = await runIterativeCompress(uploadedFile, targetSizeKB)
-      const url = URL.createObjectURL(compressedBlob)
+    if (processMode === 'single') {
+      const uploadedFile = files[0]
+      setFile(uploadedFile)
+      setIsProcessing(true)
+      setPhase("Initializing...")
       
-      setResultBlob(compressedBlob)
-      setResultUrl(url)
-      toast.success("Image compressed!")
+      try {
+        const compressedBlob = await runIterativeCompress(uploadedFile, targetSizeKB)
+        setResultBlob(compressedBlob)
+        setResultUrl(compressedBlob)
+        toast.success("Image compressed!")
+      } catch (error: any) {
+        console.error(error)
+        toast.error("Compression failed")
+      } finally {
+        setIsProcessing(false)
+        setPhase("")
+      }
+    } else {
+      // Batch Mode
+      const newItems: QueueItem[] = files.map(f => ({
+        id: Math.random().toString(36).substr(2, 9),
+        file: f,
+        status: 'pending',
+        originalSize: f.size
+      }))
       
-    } catch (error: any) {
-      console.error(error)
-      toast.error("Compression failed")
-    } finally {
-      setIsProcessing(false)
-      setPhase("")
+      setQueue(prev => [...prev, ...newItems])
     }
+  }
+
+  const processBatch = async () => {
+    if (isBatchProcessing || queue.filter(i => i.status === 'pending').length === 0) return
+    
+    setIsBatchProcessing(true)
+    const pendingItems = queue.filter(i => i.status === 'pending')
+
+    for (const item of pendingItems) {
+      // Update status to processing immutably
+      setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'processing' } : q))
+      
+      try {
+        const result = await runIterativeCompress(item.file, targetSizeKB)
+        // Update status to done immutably
+        setQueue(prev => prev.map(q => q.id === item.id ? { 
+          ...q, 
+          status: 'done', 
+          resultBlob: result, 
+          resultSize: result.size 
+        } : q))
+      } catch (err) {
+        setQueue(prev => prev.map(q => q.id === item.id ? { 
+          ...q, 
+          status: 'failed', 
+          errorMessage: "Failed to compress" 
+        } : q))
+      }
+    }
+    
+    setIsBatchProcessing(false)
+    toast.success("Batch processing complete!")
+  }
+
+  // Auto-start batch if queue has pending items
+  useEffect(() => {
+    if (processMode === 'batch' && !isBatchProcessing && queue.some(i => i.status === 'pending')) {
+      processBatch()
+    }
+  }, [queue, processMode, isBatchProcessing])
+
+  const handleDownloadZip = async () => {
+    const doneItems = queue.filter(i => i.status === 'done' && i.resultBlob)
+    if (doneItems.length === 0) return
+
+    const zip = new JSZip()
+    doneItems.forEach(item => {
+      const name = item.file.name.replace(/\.[^/.]+$/, "") + ".jpg"
+      zip.file(name, item.resultBlob!)
+    })
+
+    const content = await zip.generateAsync({ type: "blob" })
+    downloadBlob(content, `vanity-batch-${Date.now()}.zip`)
+    toast.success(`Downloaded ${doneItems.length} images`)
   }
 
   const handleDownload = () => {
@@ -111,16 +180,23 @@ export function ImageCompressor() {
 
   const PRESETS = [10, 50, 100, 200, 500]
 
-  if (!file) {
+  if (!file && !(processMode === 'batch' && queue.length > 0)) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Minimize2 className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Image Compressor</h1>
+        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
+           <Minimize2 className="w-8 h-8" />
+        </div>
+        <h1 className="text-3xl font-bold font-syne mb-1">Image Compressor</h1>
         <p className="text-muted-foreground text-lg mb-8">
           Aggressively reduce file size of your images. Optimized for web uploads and target size requirements.
         </p>
+
+        <ModeToggle mode={processMode} onChange={(m) => {
+          setProcessMode(m)
+          setFile(null)
+          setQueue([])
+          clearResultUrl()
+        }} />
 
         <div className="glass-panel p-6 rounded-xl mb-8 flex flex-col items-center">
           <h3 className="text-sm font-bold font-syne mb-4 uppercase tracking-widest text-muted-foreground">Target Size (KB)</h3>
@@ -154,10 +230,65 @@ export function ImageCompressor() {
           </div>
         </div>
 
-        <DropZone onDrop={handleCompress} accept={{ "image/*": [] }} />
+        <DropZone 
+          onDrop={handleCompress} 
+          accept={{ "image/*": [] }} 
+          multiple={processMode === 'batch'}
+          label={processMode === 'batch' ? "Drop multiple images for batch compression" : "Drop image to compress"}
+        />
       </div>
     )
   }
+
+  // Batch mode with files queued
+  if (processMode === 'batch' && queue.length > 0) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+               <Minimize2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold font-syne text-white">Batch Compress</h1>
+              <p className="text-muted-foreground text-sm font-mono">{queue.length} images · Target {targetSizeKB} KB</p>
+            </div>
+          </div>
+          <button onClick={() => { setQueue([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> Start Fresh
+          </button>
+        </div>
+
+        <ProcessingQueue 
+          items={queue} 
+          onRemove={(id) => setQueue(prev => prev.filter(i => i.id !== id))}
+          disabled={isBatchProcessing}
+        />
+        
+        <div className="flex justify-center gap-4">
+           <button 
+             onClick={handleDownloadZip}
+             disabled={queue.filter(i => i.status === 'done').length === 0}
+             className="px-8 py-4 text-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3 hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
+           >
+             <FileArchive className="w-6 h-6" /> 
+             Download ZIP ({queue.filter(i => i.status === 'done').length})
+           </button>
+           <div className="relative overflow-hidden inline-flex items-center justify-center">
+              <input 
+                 type="file" multiple accept="image/*" 
+                 onChange={(e) => e.target.files && handleCompress(Array.from(e.target.files))}
+                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <button className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all flex items-center gap-3">
+                 Add More Files
+              </button>
+           </div>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -167,7 +298,7 @@ export function ImageCompressor() {
           <p className="text-muted-foreground text-sm">Original: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
         </div>
         <button 
-          onClick={() => { setFile(null); setResultUrl(null); }} 
+          onClick={() => { setFile(null); clearResultUrl(); }} 
           className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Start New
@@ -203,7 +334,7 @@ export function ImageCompressor() {
                 <Download className="w-6 h-6" /> Download Image
               </button>
               <button 
-                onClick={() => { setFile(null); setResultUrl(null); }}
+                onClick={() => { setFile(null); clearResultUrl(); }}
                 className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all"
               >
                 Try Different Settings

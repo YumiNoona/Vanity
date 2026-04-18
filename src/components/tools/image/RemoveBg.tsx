@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
 import { safeImport } from "@/lib/utils/loader"
@@ -15,13 +16,7 @@ export function RemoveBg() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
-  
-  useEffect(() => {
-    return () => {
-      if (resultUrl) URL.revokeObjectURL(resultUrl)
-    }
-  }, [resultUrl])
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleProcess = async (uploadedFiles: File[]) => {
     if (isProcessing) return
@@ -58,9 +53,8 @@ export function RemoveBg() {
       if (!blob) throw new Error("Processing failed to produce result")
 
       setProgress(100)
-      const url = URL.createObjectURL(blob)
       setResultBlob(blob)
-      setResultUrl(url)
+      setResultUrl(blob)
       
       toast.success("Background removed!")
       
@@ -82,7 +76,7 @@ export function RemoveBg() {
 
   const handleStartNew = () => {
     setFile(null)
-    setResultUrl(null)
+    clearResultUrl()
     setResultBlob(null)
     setProgress(0)
   }

@@ -3,20 +3,21 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Contrast, RefreshCw, Palette } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function Duotone() {
   const [file, setFile] = useState<File | null>(null)
   const [shadowColor, setShadowColor] = useState("#2e1065") // Deep Purple
   const [highlightColor, setHighlightColor] = useState("#bef264") // Lime
   const [isProcessing, setIsProcessing] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    setPreviewUrl(URL.createObjectURL(uploadedFile))
+    setPreviewUrl(uploadedFile)
   }
 
   const hexToRgb = (hex: string) => {
@@ -102,7 +103,7 @@ export function Duotone() {
             <p className="text-muted-foreground text-sm">Create bold, high-contrast artistic styles.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Image
         </button>
       </div>

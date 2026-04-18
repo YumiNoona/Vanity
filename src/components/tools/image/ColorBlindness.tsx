@@ -3,6 +3,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 type Simulation = "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia" | "original"
 
@@ -15,9 +16,9 @@ const MATRICES: Record<string, number[]> = {
 
 export function ColorBlindness() {
   const [file, setFile] = useState<File | null>(null)
-  const [imgUrl, setImgUrl] = useState<string | null>(null)
+  const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
   const [mode, setMode] = useState<Simulation>("original")
-  const [outputUrl, setOutputUrl] = useState<string | null>(null)
+  const { url: outputUrl, setUrl: setOutputUrl, clear: clearOutputUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -26,16 +27,16 @@ export function ColorBlindness() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setImgUrl(URL.createObjectURL(files[0]))
+      setImgUrl(files[0])
       setMode("original")
-      setOutputUrl(null)
+      clearOutputUrl()
     }
   }
 
   const applyMatrix = async (simMode: Simulation) => {
     setMode(simMode)
     if (simMode === "original") {
-      setOutputUrl(imgUrl)
+      clearOutputUrl()
       return
     }
 
@@ -71,7 +72,9 @@ export function ColorBlindness() {
         }
 
         ctx.putImageData(imageData, 0, 0)
-        setOutputUrl(canvas.toDataURL("image/png"))
+        canvas.toBlob((blob) => {
+          if (blob) setOutputUrl(blob)
+        }, "image/png")
       } catch (err) {
         toast.error("Failed to process image matrix")
       } finally {
@@ -81,9 +84,10 @@ export function ColorBlindness() {
   }
 
   const handleDownload = () => {
-    if (!outputUrl || !file) return
+    const finalUrl = outputUrl || imgUrl
+    if (!finalUrl || !file) return
     const a = document.createElement("a")
-    a.href = outputUrl
+    a.href = finalUrl
     a.download = `vanity-${mode}-${file.name}`
     a.click()
   }
@@ -119,7 +123,7 @@ export function ColorBlindness() {
             <p className="text-muted-foreground text-sm">Visualizing {mode.toUpperCase()} matrices directly against RGB pipelines locally.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearImgUrl(); clearOutputUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Go Back
         </button>
       </div>
@@ -133,7 +137,7 @@ export function ColorBlindness() {
                      <p className="font-mono text-sm text-muted-foreground">Applying matrix transformation...</p>
                    </div>
                 ) : (
-                   outputUrl && <img src={outputUrl} className="max-w-full max-h-full object-contain pointer-events-none" alt="Simulated" />
+                   (outputUrl || imgUrl) && <img src={outputUrl || imgUrl || ""} className="max-w-full max-h-full object-contain pointer-events-none" alt="Simulated" />
                 )}
                 <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 backdrop-blur rounded text-xs font-bold text-white uppercase tracking-widest border border-white/5">
                    {mode}

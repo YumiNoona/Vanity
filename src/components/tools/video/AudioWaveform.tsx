@@ -5,9 +5,12 @@ import { FFmpeg } from "@ffmpeg/ffmpeg"
 import { fetchFile, toBlobURL } from "@ffmpeg/util"
 import { toast } from "sonner"
 
+import { getFFmpeg } from "@/lib/ffmpeg"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function AudioWaveform() {
   const [file, setFile] = useState<File | null>(null)
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const { url: audioUrl, setUrl: setAudioUrl, clear: clearAudioUrl } = useObjectUrl()
   
   const [isDecoding, setIsDecoding] = useState(false)
   const [isTrimming, setIsTrimming] = useState(false)
@@ -16,20 +19,19 @@ export function AudioWaveform() {
   // Trimming State (0 to 1 range representing percentage)
   const [trimStart, setTrimStart] = useState(0)
   const [trimEnd, setTrimEnd] = useState(1)
-  const [trimmedUrl, setTrimmedUrl] = useState<string | null>(null)
+  const { url: trimmedUrl, setUrl: setTrimmedUrl, clear: clearTrimmedUrl } = useObjectUrl()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const ffmpegRef = useRef(new FFmpeg())
+  const audioCtxRef = useRef<AudioContext | null>(null)
 
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      const url = URL.createObjectURL(files[0])
-      setAudioUrl(url)
+      setAudioUrl(files[0])
       setTrimStart(0)
       setTrimEnd(1)
-      setTrimmedUrl(null)
+      clearTrimmedUrl()
       decodeAudio(files[0])
     }
   }
@@ -39,8 +41,15 @@ export function AudioWaveform() {
     setIsDecoding(true)
     try {
       const buffer = await tgtFile.arrayBuffer()
-      // Create a temporary standard context just to get sample rate, then offline context to decode
+      
+      // Close previous context if exists
+      if (audioCtxRef.current) {
+        await audioCtxRef.current.close()
+      }
+
       const ctx = new window.AudioContext()
+      audioCtxRef.current = ctx
+      
       const decoded = await ctx.decodeAudioData(buffer)
       setAudioBuffer(decoded)
       drawWaveform(decoded)
@@ -110,8 +119,7 @@ export function AudioWaveform() {
     
     setIsTrimming(true)
     try {
-       await loadFfmpeg()
-       const ffmpeg = ffmpegRef.current
+       const ffmpeg = await getFFmpeg()
        
        const totalDuration = audioBuffer.duration
        const startTime = totalDuration * trimStart
@@ -133,7 +141,7 @@ export function AudioWaveform() {
 
        const data = await ffmpeg.readFile(outName)
        const blob = new Blob([data as any], { type: "audio/wav" })
-       setTrimmedUrl(URL.createObjectURL(blob))
+       setTrimmedUrl(blob)
        toast.success("Audio trimmed successfully!")
        
     } catch (err) {
@@ -172,6 +180,15 @@ export function AudioWaveform() {
     return () => window.removeEventListener("resize", handleResize)
   }, [audioBuffer])
 
+  // Cleanup AudioContext on unmount
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(console.error)
+      }
+    }
+  }, [])
+
   if (!file) {
     return (
        <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
@@ -199,7 +216,13 @@ export function AudioWaveform() {
             <p className="text-muted-foreground text-sm">Target: <span className="text-purple-400 font-mono">{file.name}</span></p>
           </div>
         </div>
-        <button onClick={() => {setFile(null); setAudioUrl(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={async () => {
+          if (audioCtxRef.current) await audioCtxRef.current.close().catch(() => {});
+          setFile(null); 
+          clearAudioUrl();
+          clearTrimmedUrl();
+          setAudioBuffer(null);
+        }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Load Different
         </button>
       </div>

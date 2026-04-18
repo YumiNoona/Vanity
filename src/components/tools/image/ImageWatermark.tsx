@@ -5,8 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
-
-
+import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
 export function ImageWatermark() {
   const { validateFiles } = usePremium()
@@ -16,6 +15,8 @@ export function ImageWatermark() {
   const fabricCanvas = useRef<fabric.Canvas | null>(null)
   const [activeTab, setActiveTab] = useState<"text" | "image">("text")
 
+  const { url: sourceUrl, setUrl: setSourceUrl, clear: clearSourceUrl } = useObjectUrl()
+  const { addUrl: addWatermarkUrl, clear: clearWatermarkUrls } = useObjectUrls()
   const [sourceData, setSourceData] = useState<{source: any, width: number, height: number} | null>(null)
 
   const handleDrop = async (files: File[]) => {
@@ -23,19 +24,27 @@ export function ImageWatermark() {
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
-    try {
-      const result = await loadImage(uploadedFile)
-      setSourceData({ source: result.source, width: result.width, height: result.height })
-      
-      // Cleanup previous fabric canvas if any
-      if (fabricCanvas.current) {
-        fabricCanvas.current.dispose()
-        fabricCanvas.current = null
-      }
-    } catch (e) {
-      toast.error("Failed to load image")
-    }
+    setSourceUrl(uploadedFile)
   }
+
+  // Load source image into fabric when URL changes
+  useEffect(() => {
+    if (!sourceUrl) return
+    const loadSource = async () => {
+      try {
+        const result = await loadImage(file!)
+        setSourceData({ source: result.source, width: result.width, height: result.height })
+        
+        if (fabricCanvas.current) {
+          fabricCanvas.current.dispose()
+          fabricCanvas.current = null
+        }
+      } catch (e) {
+        toast.error("Failed to load image")
+      }
+    }
+    loadSource()
+  }, [sourceUrl])
 
   useEffect(() => {
     if (sourceData && canvasRef.current) {
@@ -80,6 +89,9 @@ export function ImageWatermark() {
     if (!file || !fabricCanvas.current) return
     
     try {
+      // Use hook to manage watermark resource
+      addWatermarkUrl(file)
+      
       const result = await loadImage(file)
       const img = new fabric.FabricImage(result.source as HTMLImageElement)
       img.scale(0.2)
@@ -142,7 +154,7 @@ export function ImageWatermark() {
           <h1 className="text-3xl font-bold font-syne mb-2">Watermark Editor</h1>
           <p className="text-muted-foreground text-sm">Rotate, scale, and place watermarks anywhere.</p>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearSourceUrl(); clearWatermarkUrls(); setSourceData(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Change Image
         </button>
       </div>

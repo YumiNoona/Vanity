@@ -6,6 +6,8 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
 
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+
 export function PdfWatermark() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
@@ -14,13 +16,13 @@ export function PdfWatermark() {
   const [fontSize, setFontSize] = useState(50)
   const [color, setColor] = useState("#808080")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
-    setResultBlob(null)
+    setResultUrl(null)
   }
 
   const hexToRgb = (hex: string) => {
@@ -57,7 +59,7 @@ export function PdfWatermark() {
       
       const pdfBytes = await pdfDoc.save()
       const blob = new Blob([pdfBytes as any], { type: "application/pdf" })
-      setResultBlob(blob)
+      setResultUrl(blob)
       toast.success("PDF watermarked!")
     } catch (error) {
       toast.error("Failed to watermark PDF")
@@ -67,8 +69,11 @@ export function PdfWatermark() {
   }
 
   const handleDownload = () => {
-    if (!resultBlob) return
-    downloadBlob(resultBlob, `vanity-watermarked-${file?.name || "document.pdf"}`)
+    if (!resultUrl) return
+    const a = document.createElement("a")
+    a.href = resultUrl
+    a.download = `vanity-watermarked-${file?.name || "document.pdf"}`
+    a.click()
   }
 
   if (!file) {
@@ -93,7 +98,7 @@ export function PdfWatermark() {
           <h1 className="text-3xl font-bold font-syne mb-2">Configure Stamp</h1>
           <p className="text-muted-foreground text-sm">Target: {file.name}</p>
         </div>
-        <button onClick={() => { setFile(null); setResultBlob(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Over
         </button>
       </div>
@@ -162,7 +167,7 @@ export function PdfWatermark() {
            </div>
 
            <div className="pt-6 border-t border-white/5">
-              {!resultBlob ? (
+              {!resultUrl ? (
                 <button 
                   onClick={applyWatermark}
                   disabled={isProcessing || !text}

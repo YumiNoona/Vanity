@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Type, RefreshCw, Copy, CheckCircle } from "lucide-react"
+import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -11,19 +13,20 @@ const CHAR_SETS = {
 }
 
 export function AsciiArt() {
+  const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [charSet, setCharSet] = useState<keyof typeof CHAR_SETS>("standard")
-  const [resolution, setResolution] = useState(100)
   const [ascii, setAscii] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [copied, setCopied] = useState(false)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
-    if (!uploadedFile) return
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
-    setPreviewUrl(URL.createObjectURL(uploadedFile))
+    setPreviewUrl(uploadedFile)
   }
 
   const generateAscii = useCallback(() => {
@@ -61,6 +64,7 @@ export function AsciiArt() {
       }
       
       setAscii(result)
+      setResultUrl(new Blob([result], { type: "text/plain" }))
       setIsProcessing(false)
     }
     img.src = previewUrl
@@ -78,13 +82,11 @@ export function AsciiArt() {
   }
 
   const handleDownloadTxt = () => {
-    const blob = new Blob([ascii], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
+    if (!resultUrl) return
     const a = document.createElement("a")
-    a.href = url
+    a.href = resultUrl
     a.download = `vanity-ascii-${Date.now()}.txt`
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   if (!file) {
@@ -114,7 +116,7 @@ export function AsciiArt() {
             <p className="text-muted-foreground text-sm">Fine-tune resolution and character sets.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Start Over
         </button>
       </div>

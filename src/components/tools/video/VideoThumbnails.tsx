@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, ImagePlay, Loader2 } from "lucide-react"
 
+import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
+
 export function VideoThumbnails() {
   const [file, setFile] = useState<File | null>(null)
-  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const { url: videoUrl, setUrl: setVideoUrl, clear: clearVideoUrl } = useObjectUrl()
   
   const [frameCount, setFrameCount] = useState<number>(9)
-  const [thumbnails, setThumbnails] = useState<string[]>([])
+  const { urls: thumbnails, addUrl, clear: clearThumbnails } = useObjectUrls()
   
   const [isExtracting, setIsExtracting] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -18,8 +20,8 @@ export function VideoThumbnails() {
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setVideoUrl(URL.createObjectURL(files[0]))
-      setThumbnails([])
+      setVideoUrl(files[0])
+      clearThumbnails()
       setProgress(0)
     }
   }
@@ -67,9 +69,12 @@ export function VideoThumbnails() {
          })
 
          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-         generated.push(canvas.toDataURL("image/jpeg", 0.9))
          
-         setThumbnails([...generated])
+         const blob = await new Promise<Blob>((resolve) => 
+            canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9)
+         )
+         addUrl(blob)
+         
          setProgress(Math.round((i / frameCount) * 100))
       }
 
@@ -122,7 +127,7 @@ export function VideoThumbnails() {
              <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
            </div>
         </div>
-        <button onClick={() => {setFile(null); setVideoUrl(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Load Different
         </button>
       </div>

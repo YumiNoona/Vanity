@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Sparkles, SlidersHorizontal, RefreshCw, ImageIcon } from "lucide-react"
+import { usePremium } from "@/hooks/usePremium"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -9,14 +11,14 @@ export function NoiseGrain() {
   const [intensity, setIntensity] = useState(20)
   const [mono, setMono] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    setPreviewUrl(URL.createObjectURL(uploadedFile))
+    setPreviewUrl(uploadedFile)
   }
 
   const applyNoise = useCallback(() => {
@@ -96,7 +98,7 @@ export function NoiseGrain() {
             <p className="text-muted-foreground text-sm">Fine-tune the analog look and feel.</p>
           </div>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> New Photo
         </button>
       </div>

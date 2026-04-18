@@ -16,6 +16,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { useObjectUrls } from "@/hooks/useObjectUrl"
 
 interface TextAnnotation {
   id: string
@@ -41,7 +42,7 @@ export function PdfEditor() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [pageImages, setPageImages] = useState<string[]>([])
+  const { urls: pageImages, addUrl, clear: clearUrls } = useObjectUrls()
   const [currentPage, setCurrentPage] = useState(0)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
 
@@ -58,12 +59,6 @@ export function PdfEditor() {
   const [isDrawing, setIsDrawing] = useState(false)
   const [currentStroke, setCurrentStroke] = useState<{ x: number; y: number }[]>([])
 
-  // Cleanup page image URLs on unmount
-  useEffect(() => {
-    return () => {
-      pageImages.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -105,14 +100,15 @@ export function PdfEditor() {
         const blob = await new Promise<Blob>((resolve) =>
           canvas.toBlob((b) => resolve(b!), "image/png")
         )
-        images.push(URL.createObjectURL(blob))
+          images.push(addUrl(blob))
 
-        canvas.width = 0
-        canvas.height = 0
-        setProgress(15 + Math.floor((i / count) * 80))
-      }
+          canvas.width = 0
+          canvas.height = 0
+          setProgress(15 + Math.floor((i / count) * 80))
+        }
 
-      setPageImages(images)
+        // setPageImages(images) is no longer needed as addUrl updates hook state
+
       setProgress(100)
       toast.success(`Loaded ${count} pages for editing`)
     } catch (error: any) {
@@ -316,9 +312,8 @@ export function PdfEditor() {
       description={`Editing: ${file.name} — Page ${currentPage + 1} of ${pageImages.length}`}
       icon={FileEdit}
       onBack={() => {
-        pageImages.forEach((url) => URL.revokeObjectURL(url))
+        clearUrls()
         setFile(null)
-        setPageImages([])
         setTextAnnotations([])
         setDrawStrokes([])
         setResultBlob(null)
