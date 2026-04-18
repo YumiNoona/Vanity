@@ -54,6 +54,7 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
   { id: "icc-stripper", title: "ICC Profile Stripper", description: "Normalize images to sRGB spaces stripping embedded data.", icon: PaintBucket, path: "/tools/image/icc-stripper", keywords: ["color", "srgb", "profile"] },
   { id: "bulk-resize", title: "Bulk Image Resizer", description: "Resize entire batches locally via memory-safe sequential queues.", icon: Layers, path: "/tools/image/bulk-resize", keywords: ["batch", "scale", "dimensions"] },
+  { id: "heic-to-jpg", title: "HEIC to JPG", description: "Batch convert Apple HEIC photos instantly.", icon: ImagePlus, path: "/tools/image/heic-to-jpg", keywords: ["iphone", "apple", "convert"] },
 ]
 
 export const PDF_TOOLS: Tool[] = [
@@ -112,6 +113,7 @@ export const VIDEO_TOOLS: Tool[] = [
   { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
   { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
   { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
+  { id: "video-trimmer", title: "Video Trimmer", description: "Slice and exact clip segments via native stream-copying.", icon: Scissors, path: "/tools/video/trimmer", keywords: ["cut", "slice", "mp4"] },
 ]
 
 export const TEXT_TOOLS: Tool[] = [

@@ -16,6 +16,7 @@ export function AsciiArt() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [charSet, setCharSet] = useState<keyof typeof CHAR_SETS>("standard")
+  const [resolution, setResolution] = useState(100)
   const [ascii, setAscii] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()

@@ -61,6 +61,7 @@ const ImageDiff = lazy(() => import("./components/tools/image/ImageDiff").then(m
 const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
 const IccStripper = lazy(() => import("./components/tools/image/IccStripper").then(m => ({ default: m.IccStripper })))
 const ImageResizerBulk = lazy(() => import("./components/tools/image/ImageResizerBulk").then(m => ({ default: m.ImageResizerBulk })))
+const HeicToJpg = lazy(() => import("./components/tools/image/HeicToJpg").then(m => ({ default: m.HeicToJpg })))
 
 // PDF Tools
 const MergePdf = lazy(() => import("./components/tools/pdf/MergePdf").then(m => ({ default: m.MergePdf })))
@@ -103,6 +104,7 @@ const VideoToMp3 = lazy(() => import("./components/tools/video/VideoToMp3").then
 const VideoToGif = lazy(() => import("./components/tools/video/VideoToGif").then(m => ({ default: m.VideoToGif })))
 const AudioWaveform = lazy(() => import("./components/tools/video/AudioWaveform").then(m => ({ default: m.AudioWaveform })))
 const VideoThumbnails = lazy(() => import("./components/tools/video/VideoThumbnails").then(m => ({ default: m.VideoThumbnails })))
+const VideoTrimmer = lazy(() => import("./components/tools/video/VideoTrimmer").then(m => ({ default: m.VideoTrimmer })))
 
 // Text Tools
 const MarkdownPreview = lazy(() => import("./components/tools/text/MarkdownPreview").then(m => ({ default: m.MarkdownPreview })))
@@ -201,6 +203,7 @@ function App() {
             <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
             <Route path="/tools/image/icc-stripper" element={<IccStripper />} />
             <Route path="/tools/image/bulk-resize" element={<ImageResizerBulk />} />
+            <Route path="/tools/image/heic-to-jpg" element={<HeicToJpg />} />
 
             {/* PDF Tools */}
             <Route path="/tools/pdf/merge" element={<MergePdf />} />
@@ -246,6 +249,7 @@ function App() {
             <Route path="/tools/video/to-gif" element={<VideoToGif />} />
             <Route path="/tools/video/waveform" element={<AudioWaveform />} />
             <Route path="/tools/video/thumbnails" element={<VideoThumbnails />} />
+            <Route path="/tools/video/trimmer" element={<VideoTrimmer />} />
             <Route path="/tools/video/*" element={<ToolFallback />} />
 
             {/* Text Tools */}

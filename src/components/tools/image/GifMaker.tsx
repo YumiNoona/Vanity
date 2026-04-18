@@ -117,12 +117,11 @@ export function GifMaker() {
       }
 
       if (isCancelledRef.current) {
-        safeRevoke(frameUrls)
+        frameUrls.forEach(u => URL.revokeObjectURL(u))
         return
       }
 
       setProgressStage("encoding")
-      updateActiveUrls(frameUrls)
 
       // 2. Encode with Gifshot logic
       const effectiveDelay = Math.max(20, delay) // Enforce min 20ms delay

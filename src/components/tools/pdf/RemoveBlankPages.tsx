@@ -84,7 +84,7 @@ export function RemoveBlankPages() {
       }
 
       const savedPdfArr = await pdfDoc.save()
-      const blob = new Blob([savedPdfArr], { type: "application/pdf" })
+      const blob = new Blob([savedPdfArr as any], { type: "application/pdf" })
       setResultUrl(blob)
       setRemovedCount(blankPages.length)
       

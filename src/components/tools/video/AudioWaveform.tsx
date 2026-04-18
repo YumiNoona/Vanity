@@ -101,18 +101,7 @@ export function AudioWaveform() {
     ctx.stroke()
   }
 
-  // Load FFmpeg dynamically only when trim is requested
-  const loadFfmpeg = async () => {
-    const ffmpeg = ffmpegRef.current
-    if (ffmpeg.loaded) return
-    
-    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm"
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-      workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript"),
-    })
-  }
+
 
   const handleTrim = async () => {
     if (!file || !audioBuffer) return

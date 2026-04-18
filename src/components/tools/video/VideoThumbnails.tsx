@@ -32,7 +32,7 @@ export function VideoThumbnails() {
     if (!video || !canvas || !file || isExtracting) return
 
     setIsExtracting(true)
-    setThumbnails([])
+    clearThumbnails()
     setProgress(0)
 
     try {

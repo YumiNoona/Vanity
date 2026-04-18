@@ -15,6 +15,7 @@ export function VideoCompressor() {
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [crf, setCrf] = useState(28) // Compression level
+  const [resultSize, setResultSize] = useState(0)
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -51,6 +52,7 @@ export function VideoCompressor() {
 
       const data = await ffmpeg.readFile(outputName)
       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "video/mp4" })
+      setResultSize(blob.size)
       setResultUrl(blob)
       toast.success("Video compressed successfully!")
     } catch (error) {
@@ -125,7 +127,7 @@ export function VideoCompressor() {
                    <div className="space-y-2">
                       <h2 className="text-4xl font-bold font-syne text-white">Encoding Complete</h2>
                       <p className="text-muted-foreground">
-                        Size reduced to <strong>{Math.round(resultBlob.size / 1024 / 1024)} MB</strong>.
+                        Size reduced to <strong>{(resultSize / 1024 / 1024).toFixed(2)} MB</strong>.
                       </p>
                    </div>
                    <button 

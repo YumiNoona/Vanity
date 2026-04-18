@@ -295,7 +295,7 @@ export function ImageCompressor() {
       <div className="flex items-center justify-between mt-4">
         <div>
           <h1 className="text-3xl font-bold font-syne mb-2">Compress Image</h1>
-          <p className="text-muted-foreground text-sm">Original: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          <p className="text-muted-foreground text-sm">Original: {(file!.size / 1024 / 1024).toFixed(2)} MB</p>
         </div>
         <button 
           onClick={() => { setFile(null); clearResultUrl(); }} 
@@ -321,7 +321,7 @@ export function ImageCompressor() {
                 <span className="text-muted-foreground">New Size:</span> 
                 <span className="font-bold text-primary ml-2">{(resultBlob!.size / 1024).toFixed(1)} KB</span>
                 <span className="ml-4 text-green-500 font-bold bg-green-500/10 px-2 py-0.5 rounded">
-                  -{Math.round((1 - resultBlob!.size / file.size) * 100)}%
+                  -{Math.round((1 - resultBlob!.size / file!.size) * 100)}%
                 </span>
               </p>
             </div>

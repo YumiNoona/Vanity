@@ -12,7 +12,7 @@ interface ProcessedAltText {
   status: "pending" | "processing" | "done" | "error"
 }
 
-import { useObjectUrls } from "@/hooks/useObjectUrl"
+import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
 interface ProcessedAltText {
   filename: string

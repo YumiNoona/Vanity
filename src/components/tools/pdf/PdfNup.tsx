@@ -350,7 +350,7 @@ export function PdfNup() {
                </div>
 
                <div className="pt-4 border-t border-white/5">
-                 {result ? (
+                 {resultUrl ? (
                     <button 
                       onClick={handleDownload}
                       className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"

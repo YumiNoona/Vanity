@@ -22,6 +22,7 @@ export function PdfFontExtractor() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [fonts, setFonts] = useState<PdfFont[]>([])
   const [progress, setProgress] = useState(0)
+  const { setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]

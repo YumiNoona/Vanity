@@ -9,6 +9,7 @@ import { downloadBlob, exportCanvas } from "@/lib/canvas"
 export function BarcodeGenerator() {
   const svgRef = useRef<SVGSVGElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [text, setText] = useState("VANITYTOOLS")
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const generateBarcode = () => {
