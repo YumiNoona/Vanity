@@ -1,4 +1,4 @@
-import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images, Eraser, FileCode, Pipette, ShieldAlert, ShieldCheck, QrCode, Barcode, Sparkles, ListOrdered, Stamp, Maximize2 } from "lucide-react"
+import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images, Eraser, FileCode, Pipette, ShieldAlert, ShieldCheck, QrCode, Barcode, Sparkles, ListOrdered, Stamp, Maximize2, Languages, FileEdit, FileImage } from "lucide-react"
 
 export const IMAGE_TOOLS = [
   { id: "remove-bg", title: "Remove Background", description: "AI-powered background removal running locally in your browser.", icon: Image, path: "/tools/image/remove-bg", isPopular: true },
@@ -8,6 +8,7 @@ export const IMAGE_TOOLS = [
   { id: "crop-resize", title: "Crop & Resize", description: "Easily crop and resize free-hand or to specific dimensions.", icon: Crop, path: "/tools/image/crop" },
   { id: "add-watermark", title: "Add Watermark", description: "Protect your images with text or image watermarks.", icon: CheckCircle, path: "/tools/image/watermark" },
   { id: "remove-watermark", title: "Watermark Remover", description: "Smart AI lasso tool to remove unwanted watermarks.", icon: Eraser, path: "/tools/image/remove-watermark" },
+  { id: "ocr", title: "OCR — Image to Text", description: "Extract text from images using AI-powered OCR. 100+ languages.", icon: Languages, path: "/tools/image/ocr", isPopular: true },
   { id: "to-base64", title: "Image to Base64", description: "Convert images to base64 strings for code embedding.", icon: FileCode, path: "/tools/image/to-base64" },
   { id: "palette", title: "Color Palette", description: "Extract design palettes from any photograph.", icon: Pipette, path: "/tools/image/palette" },
   { id: "censor", title: "Smart Censor", description: "Pixelate sensitive information and faces.", icon: ShieldAlert, path: "/tools/image/censor" },
@@ -24,6 +25,8 @@ export const PDF_TOOLS = [
   { id: "compress-pdf", title: "Compress PDF", description: "Reduce file size while optimizing for maximal PDF quality.", icon: Minimize2, path: "/tools/pdf/compress" },
   { id: "pdf-password", title: "PDF Passwords", description: "Add or remove password protection from PDFs.", icon: Lock, path: "/tools/pdf/password" },
   { id: "pdf-to-images", title: "PDF to Images", description: "Convert each page of your PDF into high-quality images.", icon: Images, path: "/tools/pdf/to-images" },
+  { id: "images-to-pdf", title: "Images to PDF", description: "Combine multiple images (JPG, PNG) into a single PDF.", icon: FileImage, path: "/tools/pdf/images-to-pdf", isPopular: true },
+  { id: "pdf-editor", title: "PDF Editor Lite", description: "Add text, signatures, and highlights to your PDFs.", icon: FileEdit, path: "/tools/pdf/editor", isPopular: true },
   { id: "reorder-pdf", title: "Reorder PDF", description: "Drag and drop to rearrange pages in your PDF.", icon: ListOrdered, path: "/tools/pdf/reorder" },
   { id: "watermark-pdf", title: "PDF Watermark", description: "Add text stamps to all pages of your PDF.", icon: Stamp, path: "/tools/pdf/watermark" },
 ]

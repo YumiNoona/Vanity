@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Minimize2, Sparkles } from "lucide-react"
 import { PDFDocument } from "pdf-lib"
@@ -12,6 +12,13 @@ export function CompressPdf() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
   const [resultUrl, setResultUrl] = useState<string | null>(null)
+
+  // Cleanup Object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl)
+    }
+  }, [resultUrl])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]

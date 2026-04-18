@@ -1,15 +1,16 @@
+import "dotenv/config";
 import express from "express";
 import multer from "multer";
 import cors from "cors";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Full path to qpdf — adjust if installed elsewhere
-const QPDF = '"C:\\Program Files\\qpdf 12.3.2\\bin\\qpdf.exe"';
+// Configurable QPDF path — defaults to "qpdf" (assumes it's in PATH)
+const QPDF_PATH = process.env.QPDF_PATH || "qpdf";
 
 const app = express();
 app.use(cors());
@@ -63,11 +64,20 @@ app.post("/protect", upload.single("file"), (req, res) => {
     return res.status(400).json({ error: "Password is required" });
   }
 
-  // Windows-safe quoting with full qpdf path
-  const cmd = `${QPDF} --encrypt "${password}" "${password}" 256 -- "${inputPath}" "${outputPath}"`;
-  console.log("⚙️ Running:", cmd);
+  // Safe argument array — no shell, no injection
+  const args = [
+    "--encrypt",
+    password,
+    password,
+    "256",
+    "--",
+    inputPath,
+    outputPath,
+  ];
 
-  exec(cmd, (err, stdout, stderr) => {
+  console.log("⚙️ Running: qpdf", args.join(" "));
+
+  execFile(QPDF_PATH, args, (err, stdout, stderr) => {
     if (err) {
       console.error("❌ QPDF ERROR:", stderr || err.message);
       cleanup(inputPath, outputPath);
@@ -104,14 +114,14 @@ app.post("/unlock", upload.single("file"), (req, res) => {
 
   console.log("📄 Input:", inputPath);
 
-  // Windows-safe quoting with full qpdf path
-  const cmd = password
-    ? `${QPDF} --decrypt --password="${password}" "${inputPath}" "${outputPath}"`
-    : `${QPDF} --decrypt "${inputPath}" "${outputPath}"`;
+  // Safe argument array — no shell, no injection
+  const args = password
+    ? ["--decrypt", `--password=${password}`, inputPath, outputPath]
+    : ["--decrypt", inputPath, outputPath];
 
-  console.log("⚙️ Running:", cmd);
+  console.log("⚙️ Running: qpdf", args.join(" "));
 
-  exec(cmd, (err, stdout, stderr) => {
+  execFile(QPDF_PATH, args, (err, stdout, stderr) => {
     if (err) {
       console.error("❌ QPDF ERROR:", stderr || err.message);
       cleanup(inputPath, outputPath);
@@ -129,18 +139,19 @@ app.post("/unlock", upload.single("file"), (req, res) => {
 
 // Health check
 app.get("/health", (req, res) => {
-  exec(`${QPDF} --version`, (err, stdout) => {
+  execFile(QPDF_PATH, ["--version"], (err, stdout) => {
     if (err) return res.status(500).json({ status: "qpdf not found" });
     res.json({ status: "ok", qpdf: stdout.trim() });
   });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("");
   console.log("✅ Vanity PDF Server running on http://localhost:" + PORT);
   console.log("   POST /protect  — Add AES-256 password");
   console.log("   POST /unlock   — Remove password");
   console.log("   GET  /health   — Check qpdf status");
+  console.log("   QPDF Path:     " + QPDF_PATH);
   console.log("");
 });

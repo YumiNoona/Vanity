@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, FileText } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
@@ -15,6 +15,13 @@ export function FormatConverter() {
   const { isProcessing, processImage } = useImageProcessor()
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Cleanup Object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl)
+    }
+  }, [resultUrl])
 
   const handleConvert = async (files: File[]) => {
     const uploadedFile = files[0]

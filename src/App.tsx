@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AppLayout } from "./components/layout/AppLayout"
 import { Home } from "./pages/Home"
+import { PrivacyPolicy } from "./pages/PrivacyPolicy"
 
 // Image Tools
 import { ImageEffects } from "./components/tools/image/ImageEffects"
@@ -18,6 +19,7 @@ import { QRGenerator } from "./components/tools/image/QRGenerator"
 import { BarcodeGenerator } from "./components/tools/image/BarcodeGenerator"
 import { MemeGenerator } from "./components/tools/image/MemeGenerator"
 import { AiUpscaler } from "./components/tools/image/AiUpscaler"
+import { OcrExtractor } from "./components/tools/image/OcrExtractor"
 
 // PDF Tools
 import { MergePdf } from "./components/tools/pdf/MergePdf"
@@ -27,6 +29,8 @@ import { CompressPdf } from "./components/tools/pdf/CompressPdf"
 import { PdfPassword } from "./components/tools/pdf/PdfPassword"
 import { ReorderPdf } from "./components/tools/pdf/ReorderPdf"
 import { PdfWatermark } from "./components/tools/pdf/PdfWatermark"
+import { PdfEditor } from "./components/tools/pdf/PdfEditor"
+import { ImagesToPdf } from "./components/tools/pdf/ImagesToPdf"
 
 function App() {
   return (
@@ -34,6 +38,7 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           
           {/* Image Tools */}
           <Route path="/tools/image/effects" element={<ImageEffects />} />
@@ -51,6 +56,7 @@ function App() {
           <Route path="/tools/image/barcode" element={<BarcodeGenerator />} />
           <Route path="/tools/image/meme" element={<MemeGenerator />} />
           <Route path="/tools/image/upscale" element={<AiUpscaler />} />
+          <Route path="/tools/image/ocr" element={<OcrExtractor />} />
           
           {/* PDF Tools */}
           <Route path="/tools/pdf/merge" element={<MergePdf />} />
@@ -58,6 +64,8 @@ function App() {
           <Route path="/tools/pdf/compress" element={<CompressPdf />} />
           <Route path="/tools/pdf/password" element={<PdfPassword />} />
           <Route path="/tools/pdf/to-images" element={<PdfToImages />} />
+          <Route path="/tools/pdf/images-to-pdf" element={<ImagesToPdf />} />
+          <Route path="/tools/pdf/editor" element={<PdfEditor />} />
           <Route path="/tools/pdf/reorder" element={<ReorderPdf />} />
           <Route path="/tools/pdf/watermark" element={<PdfWatermark />} />
           
