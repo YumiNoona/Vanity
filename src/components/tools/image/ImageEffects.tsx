@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, SlidersHorizontal, ArrowLeft, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button" // Need to create a fake ui library or just use native DOM elements with Tailwind since shadcn components aren't fully generated yet. Let's just use regular HTML tailored buttons for speed, but I will provide a minimalist shadcn `Button` and `Slider` next.
+import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
+import { usePremium } from "@/hooks/usePremium"
+import { toast } from "sonner"
 
 export function ImageEffects() {
+  const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const origImageRef = useRef<HTMLImageElement | null>(null)
 
@@ -18,7 +21,6 @@ export function ImageEffects() {
     blur: 0,
   })
 
-  // Initialize original image
   useEffect(() => {
     if (!file) return
     const url = URL.createObjectURL(file)
@@ -30,10 +32,12 @@ export function ImageEffects() {
       applyFilters()
     }
     img.src = url
-    return () => URL.revokeObjectURL(url)
+    return () => {
+      URL.revokeObjectURL(url)
+      origImageRef.current = null
+    }
   }, [file])
 
-  // Apply filters to canvas
   const applyFilters = () => {
     const canvas = canvasRef.current
     const img = origImageRef.current
@@ -64,19 +68,32 @@ export function ImageEffects() {
   const handleDownload = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const url = canvas.toDataURL("image/png")
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `vanity-effects-${file?.name || "image.png"}`
-    a.click()
+    
+    setIsProcessing(true)
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) throw new Error("Export failed")
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `vanity-effects-${file?.name || "image.png"}`
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        setIsProcessing(false)
+        toast.success("Image exported!")
+      }, "image/png", 1.0)
+    } catch (err) {
+      toast.error("Export failed")
+      setIsProcessing(false)
+    }
   }
 
   if (!file) {
     return (
       <div className="max-w-2xl mx-auto py-12">
         <h1 className="text-3xl font-bold font-syne mb-2">Image Effects</h1>
-        <p className="text-muted-foreground mb-8">Apply beautiful filters, adjust colors, and tune your images directly in your browser.</p>
-        <DropZone onDrop={(f) => setFile(f[0])} accept={{ "image/*": [] }} />
+        <p className="text-muted-foreground mb-8">Apply beautiful filters and adjust colors directly in your browser.</p>
+        <DropZone onDrop={(f) => { if (validateFiles(f)) setFile(f[0]); }} accept={{ "image/*": [] }} />
       </div>
     )
   }
@@ -85,7 +102,7 @@ export function ImageEffects() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between mt-4">
         <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Image Effects</h1>
+          <h1 className="text-3xl font-bold font-syne mb-2">Edit Image</h1>
           <p className="text-muted-foreground text-sm">Editing: {file.name}</p>
         </div>
         <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
@@ -93,8 +110,7 @@ export function ImageEffects() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Editor sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">
           <div className="flex items-center gap-2 font-bold font-syne text-lg border-b border-border/50 pb-4">
             <SlidersHorizontal className="h-5 w-5 text-primary" />
@@ -129,14 +145,14 @@ export function ImageEffects() {
             </button>
             <button 
               onClick={handleDownload}
-              className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg flex-1 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-colors flex items-center justify-center gap-2"
+              disabled={isProcessing}
+              className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg flex-1 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Download className="w-4 h-4" /> Export
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export
             </button>
           </div>
         </div>
 
-        {/* Canvas Area */}
         <div className="lg:col-span-2 glass-panel p-6 rounded-xl min-h-[500px] flex items-center justify-center relative overflow-hidden bg-white/[0.01]">
           <canvas 
             ref={canvasRef} 

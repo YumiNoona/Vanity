@@ -1,4 +1,4 @@
-import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images } from "lucide-react"
+import { Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, Minimize2, Lock, ListTodo, Images, Eraser } from "lucide-react"
 
 export const IMAGE_TOOLS = [
   { id: "remove-bg", title: "Remove Background", description: "AI-powered background removal running locally in your browser.", icon: Image, path: "/tools/image/remove-bg", isPopular: true },
@@ -7,6 +7,7 @@ export const IMAGE_TOOLS = [
   { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", isPopular: true },
   { id: "crop-resize", title: "Crop & Resize", description: "Easily crop and resize free-hand or to specific dimensions.", icon: Crop, path: "/tools/image/crop" },
   { id: "add-watermark", title: "Add Watermark", description: "Protect your images with text or image watermarks.", icon: CheckCircle, path: "/tools/image/watermark" },
+  { id: "remove-watermark", title: "Watermark Remover", description: "Smart AI lasso tool to remove unwanted watermarks.", icon: Eraser, path: "/tools/image/remove-watermark" },
 ]
 
 export const PDF_TOOLS = [

@@ -1,26 +1,36 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import { removeBackground } from "@imgly/background-removal"
 import confetti from "canvas-confetti"
+import { usePremium } from "@/hooks/usePremium"
+import { toast } from "sonner"
 
 export function RemoveBg() {
+  const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [resultUrl, setResultUrl] = useState<string | null>(null)
   
-  const handleProcess = async (uploadedFile: File) => {
+  useEffect(() => {
+    return () => {
+      if (resultUrl) URL.revokeObjectURL(resultUrl)
+    }
+  }, [resultUrl])
+
+  const handleProcess = async (uploadedFiles: File[]) => {
+    const uploadedFile = uploadedFiles[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
+
     setFile(uploadedFile)
     setIsProcessing(true)
     setProgress(10)
     
     try {
-      // Free background removal running locally in browser
       const blob = await removeBackground(uploadedFile, {
         progress: (key, current, total) => {
-          // Fake some progress since the lib downloads models the first time
-          setProgress(prev => Math.min(prev + 5, 90))
+          setProgress(prev => Math.min(prev + 5, 95))
         }
       })
       
@@ -34,10 +44,13 @@ export function RemoveBg() {
         origin: { y: 0.6 },
         colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
       })
+      toast.success("Background removed!")
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      // Usually fallback or error toast here
+      toast.error("Failed to remove background", {
+        description: error?.message || "Ensure you are using a valid image file."
+      })
     } finally {
       setIsProcessing(false)
     }
@@ -59,9 +72,9 @@ export function RemoveBg() {
          </div>
         <h1 className="text-4xl font-bold font-syne mb-4">Background Removal</h1>
         <p className="text-muted-foreground text-lg mb-8">
-          Upload an image and instantly remove its background. Powered by AI, perfectly free, and processes entirely in your browser to maintain your privacy.
+          Upload an image and instantly remove its background. Powered by AI, perfectly free, and processes entirely in your browser.
         </p>
-        <DropZone onDrop={(f) => handleProcess(f[0])} accept={{ "image/*": [] }} />
+        <DropZone onDrop={handleProcess} accept={{ "image/*": [] }} />
       </div>
     )
   }
@@ -73,7 +86,10 @@ export function RemoveBg() {
           <h1 className="text-3xl font-bold font-syne mb-2">Remove Background</h1>
           <p className="text-muted-foreground text-sm">File: {file.name}</p>
         </div>
-        <button onClick={() => { setFile(null); setResultUrl(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button 
+          onClick={() => { setFile(null); setResultUrl(null); }} 
+          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
+        >
           <ArrowLeft className="w-4 h-4" /> Start New
         </button>
       </div>
@@ -84,8 +100,8 @@ export function RemoveBg() {
           <div className="absolute inset-0 bg-background/80 backdrop-blur flex flex-col items-center justify-center z-10 transition-opacity">
             <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
             <h3 className="text-xl font-bold font-syne animate-pulse text-white">Removing Background...</h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-sm text-center">
-              Our AI is processing your image locally. This may take a few seconds on the first run as we load the AI model.
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm text-center px-4">
+              AI is processing locally. The first run loads the model (approx 50MB).
             </p>
             <div className="w-64 h-2 bg-white/10 rounded-full mt-6 overflow-hidden">
               <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
