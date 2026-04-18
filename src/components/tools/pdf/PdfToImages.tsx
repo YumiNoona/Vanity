@@ -4,6 +4,19 @@ import { Download, ArrowLeft, Loader2, Images } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
+// Static imports (Isolated within this lazy-loaded tool chunk)
+import * as pdfjsLib from "pdfjs-dist"
+import JSZip from "jszip"
+
+
+// Vite worker URL pattern
+import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
+
+// Set worker source reliably
+if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+}
+
 export function PdfToImages() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
@@ -28,13 +41,8 @@ export function PdfToImages() {
     setProgress(5)
 
     try {
-      const pdfjs = await import("pdfjs-dist")
-      const JSZip = (await import("jszip")).default
-
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
-
       const arrayBuffer = await uploadedFile.arrayBuffer()
-      const loadingTask = pdfjs.getDocument({ data: arrayBuffer })
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
       const pdf = await loadingTask.promise
       const count = pdf.numPages
       setPageCount(count)
@@ -65,7 +73,7 @@ export function PdfToImages() {
         zip.file(`page-${i}.png`, blob)
         setProgress(Math.floor((i / count) * 85) + 10)
 
-        // Release GPU memory
+        // Release GPU memory immediately
         canvas.width = 0
         canvas.height = 0
       }
@@ -75,13 +83,7 @@ export function PdfToImages() {
       setResultZipUrl(url)
       setProgress(100)
 
-      const confetti = (await import("canvas-confetti")).default
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ["#F59E0B", "#FCD34D", "#FFFFFF"]
-      })
+
       toast.success(`Converted ${count} pages to images!`)
     } catch (error: any) {
       console.error(error)
@@ -150,7 +152,7 @@ export function PdfToImages() {
         )}
 
         {resultZipUrl && !isProcessing && (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-6 animate-in zoom-in-95 duration-500">
             <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-2xl mb-2">
                <Images className="w-20 h-20 text-primary opacity-50" />
             </div>

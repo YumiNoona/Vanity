@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { exportCanvas, downloadBlob } from "@/lib/canvas"
+import { releaseCanvas } from "@/lib/canvas/guards"
 
 export function ImageCrop() {
   const { validateFiles } = usePremium()
@@ -138,7 +139,6 @@ export function ImageCrop() {
       downloadBlob(blob, `vanity-cropped-${file?.name || "image.png"}`)
       toast.success("Image cropped successfully!")
       
-      const { releaseCanvas } = await import("@/lib/canvas/guards")
       releaseCanvas(canvas)
     } catch (error) {
       toast.error("Failed to generate image")

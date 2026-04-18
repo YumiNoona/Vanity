@@ -4,7 +4,8 @@ import { Download, ArrowLeft, Loader2, Maximize2, Sparkles } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob, getAdaptiveDimensions } from "@/lib/canvas"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { runYieldedTask, getAdaptiveDimensions } from "@/lib/canvas/guards"
 
 export function AiUpscaler() {
   const { validateFiles } = usePremium()
@@ -47,7 +48,7 @@ export function AiUpscaler() {
       let refinementProgress = 0
       updateProgress(0)
       
-      const { runYieldedTask } = await import("@/lib/canvas/guards")
+      // runYieldedTask is statically imported above
       await runYieldedTask(
         () => {
           refinementProgress += 5

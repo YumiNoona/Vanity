@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, Layers, FileText, Trash2, ArrowUp, ArrowDown, Loader2, Sparkles } from "lucide-react"
+import { Download, Layers, FileText, Trash2, ArrowUp, ArrowDown, Loader2, CheckCircle } from "lucide-react"
 import { PDFDocument } from "pdf-lib"
-import confetti from "canvas-confetti"
+
 import { motion, Reorder } from "framer-motion"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -81,6 +81,9 @@ export function MergePdf() {
       })
     } finally {
       setIsProcessing(false)
+      // Help GC
+      // @ts-ignore
+      if (typeof mergedPdfBytes !== 'undefined') mergedPdfBytes = null
     }
   }
 
@@ -100,7 +103,7 @@ export function MergePdf() {
         className="max-w-4xl mx-auto py-12 text-center flex flex-col items-center"
       >
         <div className="inline-flex items-center justify-center p-6 bg-accent/10 rounded-full mb-6 text-accent">
-          <Sparkles className="w-12 h-12" />
+          <CheckCircle className="w-12 h-12" />
         </div>
         <h1 className="text-4xl font-bold font-syne mb-6">Files Merged!</h1>
         <p className="text-muted-foreground mb-8">Your new PDF is ready to download.</p>

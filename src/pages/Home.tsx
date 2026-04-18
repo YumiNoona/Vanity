@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { IMAGE_TOOLS, PDF_TOOLS } from "@/config/tools"
 import { Link } from "react-router-dom"
 import { ArrowRight, ShieldCheck, Zap, ServerOff } from "lucide-react"
+import { preloadTool, loaders } from "@/App"
 
 export function Home() {
   const containerVariants = {
@@ -76,17 +77,31 @@ export function Home() {
           >
             {IMAGE_TOOLS.map((tool) => {
               const Icon = tool.icon
+              const isPopular = tool.isPopular
+              const loader = loaders[tool.id as keyof typeof loaders]
+              
               return (
                 <motion.div key={tool.id} variants={itemVariants}>
                   <Link
                     to={tool.path}
+                    // Prefetch only popular tools on hover to avoid over-concurrency
+                    onMouseEnter={() => {
+                      if (isPopular && loader) {
+                        preloadTool(loader)
+                      }
+                    }}
                     className="group relative flex flex-col justify-between overflow-hidden rounded-xl glass-panel p-6 shadow-sm transition-all hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] hover:-translate-y-1"
                   >
                     <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                     
                     <div>
-                      <div className="mb-4 inline-flex items-center justify-center rounded-lg bg-primary/10 p-3 text-primary">
-                        <Icon className="h-6 w-6" />
+                      <div className="mb-4 inline-flex items-center justify-between w-full">
+                        <div className="inline-flex items-center justify-center rounded-lg bg-primary/10 p-3 text-primary">
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        {isPopular && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-primary/10 text-primary rounded">Popular</span>
+                        )}
                       </div>
                       <h3 className="mb-2 font-syne text-xl font-bold">{tool.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
@@ -118,17 +133,30 @@ export function Home() {
           >
             {PDF_TOOLS.map((tool) => {
               const Icon = tool.icon
+              const isPopular = tool.isPopular
+              const loader = loaders[tool.id as keyof typeof loaders]
+
               return (
                 <motion.div key={tool.id} variants={itemVariants}>
                   <Link
                     to={tool.path}
+                    onMouseEnter={() => {
+                      if (isPopular && loader) {
+                        preloadTool(loader)
+                      }
+                    }}
                     className="group relative flex flex-col justify-between overflow-hidden rounded-xl glass-panel p-6 shadow-sm transition-all hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(252,211,77,0.1)] hover:-translate-y-1"
                   >
                     <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-accent/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                     
                     <div>
-                      <div className="mb-4 inline-flex items-center justify-center rounded-lg bg-accent/10 p-3 text-accent">
-                        <Icon className="h-6 w-6" />
+                      <div className="mb-4 inline-flex items-center justify-between w-full">
+                        <div className="inline-flex items-center justify-center rounded-lg bg-accent/10 p-3 text-accent">
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        {isPopular && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-accent/10 text-accent rounded">Popular</span>
+                        )}
                       </div>
                       <h3 className="mb-2 font-syne text-xl font-bold">{tool.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">

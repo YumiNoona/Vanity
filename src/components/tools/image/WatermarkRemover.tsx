@@ -5,6 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { runYieldedTask, releaseCanvas } from "@/lib/canvas/guards"
 
 export function WatermarkRemover() {
   const { validateFiles } = usePremium()
@@ -118,7 +119,6 @@ export function WatermarkRemover() {
     
     try {
       // Use time-budgeted yielding
-      const { runYieldedTask } = await import("@/lib/canvas/guards")
       await runYieldedTask(step, () => processed < total && jobId === getJobId())
       
       // Abort if job ID changed
@@ -140,7 +140,6 @@ export function WatermarkRemover() {
   }
 
   const handleStartNew = async () => {
-    const { releaseCanvas } = await import("@/lib/canvas/guards")
     releaseCanvas(canvasRef.current)
     releaseCanvas(maskCanvasRef.current)
     setFile(null)

@@ -53,6 +53,9 @@ export function SplitPdf() {
       toast.error("Failed to split PDF")
     } finally {
       setIsProcessing(false)
+      // Help GC
+      // @ts-ignore
+      if (typeof content !== 'undefined') content = null
     }
   }
 

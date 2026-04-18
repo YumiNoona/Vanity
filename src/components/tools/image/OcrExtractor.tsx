@@ -4,6 +4,10 @@ import { Download, ArrowLeft, Loader2, FileText, Copy, CheckCircle, Languages } 
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { safeImport } from "@/lib/utils/loader"
+
+// Module-level cache for heavy library
+let tesseractModule: any = null
 
 export function OcrExtractor() {
   const { validateFiles } = usePremium()
@@ -38,9 +42,19 @@ export function OcrExtractor() {
     setIsProcessing(true)
 
     try {
-      const Tesseract = await import("tesseract.js")
+      // 1. Action-triggered dynamic import with caching
+      if (!tesseractModule) {
+        setProgress(5) // Starter progress
+        tesseractModule = await safeImport(
+          () => import("tesseract.js"),
+          "OCR engine"
+        )
+      }
 
-      const result = await Tesseract.recognize(uploadedFile, language, {
+      const { recognize } = tesseractModule
+
+      // 2. Processing with logger
+      const result = await recognize(uploadedFile, language, {
         logger: (m: any) => {
           if (m.status === "recognizing text") {
             setProgress(Math.round(m.progress * 100))
@@ -53,7 +67,8 @@ export function OcrExtractor() {
       toast.success("Text extracted successfully!")
     } catch (error: any) {
       console.error(error)
-      toast.error("OCR failed: " + (error?.message || "Unknown error"))
+      toast.error(error?.message || "OCR failed. Check your network.")
+      setFile(null)
     } finally {
       setIsProcessing(false)
     }
@@ -143,24 +158,24 @@ export function OcrExtractor() {
             <img
               src={previewUrl}
               alt="Source"
-              className="max-h-[400px] object-contain rounded shadow-lg"
+              className={`max-h-[400px] object-contain rounded shadow-lg transition-opacity duration-300 ${isProcessing ? 'opacity-40' : 'opacity-100'}`}
             />
           )}
 
           {isProcessing && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur flex flex-col items-center justify-center z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6">
               <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-              <h3 className="text-xl font-bold font-syne text-white">
-                {progress > 0 ? `Recognizing: ${progress}%` : "Loading OCR Engine..."}
+              <h3 className="text-xl font-bold font-syne text-white text-center">
+                {progress < 10 ? "Loading OCR Engine..." : `Recognizing: ${progress}%`}
               </h3>
               <div className="w-64 h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                  style={{ width: `${progress || 5}%` }}
                 />
               </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                First run downloads the language model (~15MB)
+              <p className="text-sm text-muted-foreground mt-4 text-center max-w-xs">
+                {progress < 10 ? "First run fetches language models (~15MB from CDN)" : "Processing text locally in your browser."}
               </p>
             </div>
           )}
@@ -203,7 +218,7 @@ export function OcrExtractor() {
           />
 
           {extractedText && (
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between animate-in fade-in duration-500 text-xs text-muted-foreground">
               <span>{extractedText.split(/\s+/).filter(Boolean).length} words</span>
               <span>{extractedText.length} characters</span>
             </div>
