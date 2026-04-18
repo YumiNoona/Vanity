@@ -134,7 +134,8 @@ export function ImageWatermark() {
     // Get the data URL at high scale for quality
     const dataUrl = fabricCanvas.current.toDataURL({
       format: "png",
-      quality: 1
+      quality: 1,
+      multiplier: 1
     })
     
     const a = document.createElement("a")

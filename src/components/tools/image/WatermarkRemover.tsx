@@ -16,6 +16,9 @@ export function WatermarkRemover() {
   const [isDrawing, setIsDrawing] = useState(false)
   const [brushSize, setBrushSize] = useState(30)
 
+  const [isLoaded, setIsLoaded] = useState(false)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
   useEffect(() => {
     if (!file) return
     const url = URL.createObjectURL(file)
@@ -23,10 +26,24 @@ export function WatermarkRemover() {
     
     const img = new Image()
     img.src = url
-    img.onload = () => {
-      if (!canvasRef.current || !maskCanvasRef.current) return
+    img.onload = async () => {
+      try {
+        await img.decode()
+        imgRef.current = img
+        setIsLoaded(true)
+      } catch (e) {
+        toast.error("Failed to load image")
+      }
+    }
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
+  useEffect(() => {
+    if (isLoaded && imgRef.current && canvasRef.current && maskCanvasRef.current) {
+      const img = imgRef.current
       const canvas = canvasRef.current
       const mask = maskCanvasRef.current
+      
       canvas.width = mask.width = img.width
       canvas.height = mask.height = img.height
       
@@ -36,8 +53,7 @@ export function WatermarkRemover() {
       const mCtx = mask.getContext("2d")!
       mCtx.clearRect(0, 0, mask.width, mask.height)
     }
-    return () => URL.revokeObjectURL(url)
-  }, [file])
+  }, [isLoaded])
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true)
