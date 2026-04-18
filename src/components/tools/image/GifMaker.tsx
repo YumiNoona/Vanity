@@ -97,8 +97,8 @@ export function GifMaker() {
           reader.onload = (e) => {
             const img = new Image()
             img.onload = () => {
-              const { w, h } = guardDimensions(img.width, img.height)
-              aggregatePixels += w * h
+              const { width, height } = guardDimensions(img.width, img.height)
+              aggregatePixels += width * height
               
               if (aggregatePixels > MAX_TOTAL_PX) {
                 reject(new Error("Image set is too large for device memory. Reduce frames or resolution."))
@@ -106,12 +106,12 @@ export function GifMaker() {
               }
 
               const canvas = document.createElement("canvas")
-              canvas.width = w
-              canvas.height = h
+              canvas.width = width
+              canvas.height = height
               const ctx = canvas.getContext("2d")
               if (ctx) {
                 ctx.imageSmoothingEnabled = true
-                ctx.drawImage(img, 0, 0, w, h)
+                ctx.drawImage(img, 0, 0, width, height)
               }
               const dataUrl = canvas.toDataURL("image/jpeg", 0.75)
               

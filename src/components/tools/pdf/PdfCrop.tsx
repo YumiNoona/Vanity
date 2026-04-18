@@ -4,6 +4,7 @@ import { ArrowLeft, Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHor
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { toBlob } from "@/lib/utils/blob"
 
 // Static worker import for pdfjs
 import * as pdfjsLib from "pdfjs-dist"
@@ -120,7 +121,7 @@ export function PdfCrop() {
       canvas.width = viewport.width
       canvas.height = viewport.height
       
-      await page.render({ canvasContext: context, viewport }).promise
+      await (page.render({ canvasContext: context, viewport } as any)).promise
       
       const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"))
       const url = URL.createObjectURL(blob)
@@ -182,7 +183,7 @@ export function PdfCrop() {
 
   const handleDownload = () => {
     if (!resultPdf) return
-    const blob = new Blob([new Uint8Array(resultPdf)], { type: "application/pdf" })
+    const blob = toBlob(resultPdf, "application/pdf")
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url

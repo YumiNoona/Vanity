@@ -5,7 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
-import { runYieldedTask, getAdaptiveDimensions } from "@/lib/canvas/guards"
+import { runYieldedTask, guardDimensions } from "@/lib/canvas/guards"
 
 export function AiUpscaler() {
   const { validateFiles } = usePremium()
@@ -24,7 +24,7 @@ export function AiUpscaler() {
     
     try {
       const result = await processImage(uploadedFile)
-      if (!result || jobId !== getJobId()) return
+      if (!result || jobId !== getJobId() || !result.dimensions?.width) return
 
       const sourceW = result.dimensions.width
       const sourceH = result.dimensions.height
@@ -32,7 +32,7 @@ export function AiUpscaler() {
       let targetWidth = sourceW * scale
       let targetHeight = sourceH * scale
 
-      const finalGuards = getAdaptiveDimensions(targetWidth, targetHeight)
+      const finalGuards = guardDimensions(targetWidth, targetHeight)
       targetWidth = finalGuards.width
       targetHeight = finalGuards.height
 

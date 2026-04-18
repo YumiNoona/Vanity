@@ -5,17 +5,24 @@
 const MAX_PIXELS = 20_000_000; // 20MP
 const MAX_DIMENSION = 8192; // Max width or height for most GPUs
 
-export interface ScaledDimensions {
+export interface GuardedDimensions {
   width: number;
   height: number;
   scale: number;
   isScaled: boolean;
 }
 
-export const getAdaptiveDimensions = (
+/**
+ * Ensures images fit within device memory limits.
+ * Desktop: 20MP, Mobile: 10MP
+ */
+export const guardDimensions = (
   originalWidth: number,
   originalHeight: number
-): ScaledDimensions => {
+): GuardedDimensions => {
+  const isMobile = typeof navigator !== 'undefined' ? /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) : false;
+  const MAX_PX = isMobile ? 10_000_000 : MAX_PIXELS;
+  
   let width = originalWidth;
   let height = originalHeight;
   let scale = 1;
@@ -28,7 +35,7 @@ export const getAdaptiveDimensions = (
   }
 
   // 2. Iterative adjustment for MAX_PIXELS
-  while (width * height > MAX_PIXELS) {
+  while (width * height > MAX_PX) {
     const adjustment = 0.9;
     width = Math.floor(width * adjustment);
     height = Math.floor(height * adjustment);

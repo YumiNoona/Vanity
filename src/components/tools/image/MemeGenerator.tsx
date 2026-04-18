@@ -24,8 +24,8 @@ export function MemeGenerator() {
     setFile(uploadedFile)
     try {
       const result = await loadImage(uploadedFile)
-      const { w, h } = guardDimensions(result.width, result.height)
-      setSourceData({ source: result.source, width: w, height: h })
+      const { width, height } = guardDimensions(result.width, result.height)
+      setSourceData({ source: result.source, width, height })
       
       if (fabricCanvas.current) {
         fabricCanvas.current.dispose()

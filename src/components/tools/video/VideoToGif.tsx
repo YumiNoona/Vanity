@@ -6,6 +6,7 @@ import { fetchFile, toBlobURL } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { toBlob } from "@/lib/utils/blob"
 
 export function VideoToGif() {
   const [file, setFile] = useState<File | null>(null)
@@ -58,7 +59,7 @@ export function VideoToGif() {
       ])
 
       const data = await ffmpeg.readFile(outputName)
-      const blob = new Blob([new Uint8Array((data as Uint8Array).buffer)], { type: "image/gif" })
+      const blob = toBlob(data as Uint8Array, "image/gif")
       setResultBlob(blob)
       toast.success("GIF generated successfully!")
     } catch (error) {

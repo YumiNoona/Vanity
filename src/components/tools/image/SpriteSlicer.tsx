@@ -36,15 +36,15 @@ export function SpriteSlicer() {
       reader.onload = (e) => {
         const img = new Image()
         img.onload = () => {
-          const { w, h } = guardDimensions(img.width, img.height)
+          const { width, height } = guardDimensions(img.width, img.height)
           
           const tempCanvas = document.createElement("canvas")
-          tempCanvas.width = w
-          tempCanvas.height = h
+          tempCanvas.width = width
+          tempCanvas.height = height
           const ctx = tempCanvas.getContext("2d")
           if (ctx) {
             ctx.imageSmoothingEnabled = false
-            ctx.drawImage(img, 0, 0, w, h)
+            ctx.drawImage(img, 0, 0, width, height)
           }
           
           const scaledImg = new Image()

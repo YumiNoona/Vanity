@@ -8,6 +8,7 @@ import {
 import { PDFDocument, rgb } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { toBlob } from "@/lib/utils/blob"
 
 type NupResult = {
   blob: Blob;
@@ -186,7 +187,7 @@ export function PdfNup() {
 
       const outBytes = await outDoc.save()
       setResult({
-        blob: new Blob([outBytes], { type: "application/pdf" }),
+        blob: toBlob(outBytes, "application/pdf"),
         name: `vanity-nup-${nup}-${file.name}`
       })
       toast.success("PDF Imposition complete!")

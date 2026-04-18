@@ -4,7 +4,7 @@ import { guardDimensions, maybeYield } from "../lib/utils";
 
 export interface ImageProcessResult {
   source: ImageBitmap | HTMLImageElement;
-  dimensions: { w: number; h: number; scale: number };
+  dimensions: { width: number; height: number; scale: number };
   cleanup: () => void;
 }
 

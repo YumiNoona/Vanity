@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Maximize, Smartphone, Share2, Share, Briefcase, ImageIcon, RefreshCw } from "lucide-react"
+import { ArrowLeft, Download, Maximize, Smartphone, Share2, Share, Briefcase, ImageIcon, RefreshCw, AlertCircle } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { guardDimensions } from "@/lib/canvas/guards"
 import * as fabric from "fabric"
 
 const PRESETS = [
@@ -58,12 +59,13 @@ export function SocialResizer() {
         })
         fabricCanvas.current = canvas
 
-        const { w, h } = guardDimensions(img.width, img.height)
+        if (!img.width) return
+        const { width, height } = guardDimensions(img.width, img.height)
         const fabricImg = new fabric.FabricImage(img)
         fabricImgRef.current = fabricImg
         
         // Fit image initially
-        const scale = Math.min(canvas.width / w, canvas.height / h)
+        const scale = Math.min(canvas.width / width, canvas.height / height)
         fabricImg.scale(scale)
         
         canvas.add(fabricImg)
