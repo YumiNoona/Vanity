@@ -85,6 +85,13 @@ export function ReorderPdf() {
   if (!file) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
+         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
+            <ListOrdered className="w-8 h-8" />
+         </div>
+        <h1 className="text-4xl font-bold font-syne mb-1">Reorder PDF</h1>
+        <p className="text-muted-foreground text-lg mb-8">
+          Drag and drop to rearrange pages or remove unwanted ones before recompiling.
+        </p>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} />
       </div>
     )

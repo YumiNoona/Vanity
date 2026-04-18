@@ -1,12 +1,34 @@
-import React from "react"
-import { Outlet } from "react-router-dom"
-import { Link } from "react-router-dom"
+import React, { useEffect } from "react"
+import { Outlet, Link, useLocation } from "react-router-dom"
 import { Navbar } from "./Navbar"
 import { Sidebar } from "./Sidebar"
 import { AdSlot } from "../shared/AdSlot"
 import { Toaster } from "sonner"
+import { ALL_TOOLS } from "@/config/tools"
 
 export function AppLayout() {
+  const location = useLocation()
+
+  useEffect(() => {
+    const currentTool = ALL_TOOLS.find(t => t.path === location.pathname)
+    if (currentTool) {
+      document.title = `${currentTool.title} | Vanity`
+      // Update meta description dynamically
+      const metaDescription = document.querySelector('meta[name="description"]')
+      if (metaDescription) {
+        metaDescription.setAttribute("content", currentTool.description)
+      }
+    } else if (location.pathname === "/") {
+      document.title = "Vanity — Every Tool You Need. Always Free."
+      const metaDescription = document.querySelector('meta[name="description"]')
+      if (metaDescription) {
+        metaDescription.setAttribute("content", "Privacy-first utilities for images, PDFs, developer tools, and video. 100% browser-based. Zero server uploads.")
+      }
+    } else {
+      document.title = "Vanity"
+    }
+  }, [location.pathname])
+
   return (
     <div className="h-screen flex flex-col overflow-hidden relative bg-background">
       <div className="gradient-ambient" />

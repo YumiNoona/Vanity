@@ -33,14 +33,11 @@ const RemoveBg = lazy(() => import("./components/tools/image/RemoveBg").then(m =
 const ImageCompressor = lazy(() => import("./components/tools/image/ImageCompressor").then(m => ({ default: m.ImageCompressor })))
 const FormatConverter = lazy(() => import("./components/tools/image/FormatConverter").then(m => ({ default: m.FormatConverter })))
 const ImageCrop = lazy(() => import("./components/tools/image/ImageCrop").then(m => ({ default: m.ImageCrop })))
-const ImageWatermark = lazy(() => import("./components/tools/image/ImageWatermark").then(m => ({ default: m.ImageWatermark })))
-const WatermarkRemover = lazy(() => import("./components/tools/image/WatermarkRemover").then(m => ({ default: m.WatermarkRemover })))
-const ImageToBase64 = lazy(() => import("./components/tools/image/ImageToBase64").then(m => ({ default: m.ImageToBase64 })))
+const WatermarkStudio = lazy(() => import("./components/tools/image/WatermarkStudio").then(m => ({ default: m.WatermarkStudio })))
 const ColorPalette = lazy(() => import("./components/tools/image/ColorPalette").then(m => ({ default: m.ColorPalette })))
 const SmartCensor = lazy(() => import("./components/tools/image/SmartCensor").then(m => ({ default: m.SmartCensor })))
 const ExifSanitizer = lazy(() => import("./components/tools/image/ExifSanitizer").then(m => ({ default: m.ExifSanitizer })))
-const QRGenerator = lazy(() => import("./components/tools/image/QRGenerator").then(m => ({ default: m.QRGenerator })))
-const BarcodeGenerator = lazy(() => import("./components/tools/image/BarcodeGenerator").then(m => ({ default: m.BarcodeGenerator })))
+const CodeGenerator = lazy(() => import("./components/tools/image/CodeGenerator").then(m => ({ default: m.CodeGenerator })))
 const MemeGenerator = lazy(() => import("./components/tools/image/MemeGenerator").then(m => ({ default: m.MemeGenerator })))
 const AiUpscaler = lazy(() => import("./components/tools/image/AiUpscaler").then(m => ({ default: m.AiUpscaler })))
 const OcrExtractor = lazy(() => import("./components/tools/image/OcrExtractor").then(m => ({ default: m.OcrExtractor })))
@@ -77,7 +74,7 @@ const RemoveBlankPages = lazy(() => import("./components/tools/pdf/RemoveBlankPa
 const JsonFormatter = lazy(() => import("./components/tools/dev/JsonFormatter").then(m => ({ default: m.JsonFormatter })))
 const ColorPicker = lazy(() => import("./components/tools/dev/ColorPicker").then(m => ({ default: m.ColorPicker })))
 const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then(m => ({ default: m.CssGradient })))
-const Base64Tool = lazy(() => import("./components/tools/dev/Base64Tool").then(m => ({ default: m.Base64Tool })))
+const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
 const FaviconGenerator = lazy(() => import("./components/tools/dev/FaviconGenerator").then(m => ({ default: m.FaviconGenerator })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
 
@@ -152,19 +149,16 @@ function App() {
             <Route path="/tools/image/compress" element={<ImageCompressor />} />
             <Route path="/tools/image/convert" element={<FormatConverter />} />
             <Route path="/tools/image/crop" element={<ImageCrop />} />
-            <Route path="/tools/image/watermark" element={<ImageWatermark />} />
-            <Route path="/tools/image/remove-watermark" element={<WatermarkRemover />} />
-            <Route path="/tools/image/to-base64" element={<ImageToBase64 />} />
+            <Route path="/tools/image/watermark-studio" element={<WatermarkStudio />} />
             <Route path="/tools/image/palette" element={<ColorPalette />} />
             <Route path="/tools/image/censor" element={<SmartCensor />} />
             <Route path="/tools/image/exif-sanitizer" element={<ExifSanitizer />} />
-            <Route path="/tools/image/qr" element={<QRGenerator />} />
-            <Route path="/tools/image/barcode" element={<BarcodeGenerator />} />
+            <Route path="/tools/image/code-generator" element={<CodeGenerator />} />
             <Route path="/tools/image/meme" element={<MemeGenerator />} />
             <Route path="/tools/image/upscale" element={<AiUpscaler />} />
             <Route path="/tools/image/ocr" element={<OcrExtractor />} />
             <Route path="/tools/image/svg-to-raster" element={<SvgToRaster />} />
-            <Route path="/tools/sketch" element={<ImageToSketch />} />
+            <Route path="/tools/image/sketch" element={<ImageToSketch />} />
             <Route path="/tools/image/social-resizer" element={<SocialResizer />} />
             <Route path="/tools/image/noise" element={<NoiseGrain />} />
             <Route path="/tools/image/pixel-art" element={<PixelArt />} />
@@ -199,7 +193,7 @@ function App() {
             <Route path="/tools/dev/json" element={<JsonFormatter />} />
             <Route path="/tools/dev/color" element={<ColorPicker />} />
             <Route path="/tools/dev/gradient" element={<CssGradient />} />
-            <Route path="/tools/dev/base64" element={<Base64Tool />} />
+            <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
             <Route path="/tools/dev/favicon" element={<FaviconGenerator />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
 
