@@ -5,6 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { guardDimensions } from "@/lib/utils"
 
 export function ImageEffects() {
   const { validateFiles } = usePremium()
@@ -53,6 +54,13 @@ export function ImageEffects() {
   useEffect(() => {
     if (sourceImage && canvasRef.current) {
       applyFilters()
+    }
+
+    return () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = 0
+        canvasRef.current.height = 0
+      }
     }
   }, [settings, sourceImage])
 

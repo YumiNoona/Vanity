@@ -154,7 +154,7 @@ export function PdfPassword() {
 
         {serverOnline === false && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-            ⚠️ PDF Server is offline. Run <code className="bg-white/10 px-2 py-0.5 rounded">node server/server.js</code> to enable encryption.
+            ⚠️ PDF Password Service is offline. Run <code className="bg-white/10 px-2 py-0.5 rounded">node server/server.js</code> locally to enable encryption.
           </div>
         )}
 

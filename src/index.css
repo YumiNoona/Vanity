@@ -43,6 +43,17 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'DM Sans', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+  html, #root {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  main:focus {
+    outline: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Syne', sans-serif;

@@ -5,6 +5,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
+import { guardDimensions, maybeYield } from "@/lib/utils"
 
 export function MemeGenerator() {
   const { validateFiles } = usePremium()
@@ -23,7 +24,8 @@ export function MemeGenerator() {
     setFile(uploadedFile)
     try {
       const result = await loadImage(uploadedFile)
-      setSourceData({ source: result.source, width: result.width, height: result.height })
+      const { w, h } = guardDimensions(result.width, result.height)
+      setSourceData({ source: result.source, width: w, height: h })
       
       if (fabricCanvas.current) {
         fabricCanvas.current.dispose()
@@ -57,6 +59,17 @@ export function MemeGenerator() {
       
       addMemeText("TOP TEXT", "top")
       addMemeText("BOTTOM TEXT", "bottom")
+    }
+
+    return () => {
+       if (fabricCanvas.current) {
+          fabricCanvas.current.dispose()
+          fabricCanvas.current = null
+          if (canvasRef.current) {
+            canvasRef.current.width = 0
+            canvasRef.current.height = 0
+          }
+       }
     }
   }, [sourceData])
 

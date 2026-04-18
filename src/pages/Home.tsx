@@ -1,6 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
-import { IMAGE_TOOLS, PDF_TOOLS } from "@/config/tools"
+import { CATEGORIES } from "@/config/tools"
 import { Link } from "react-router-dom"
 import { ArrowRight, ShieldCheck, Zap, ServerOff } from "lucide-react"
 import { preloadTool, loaders } from "@/App"
@@ -10,7 +10,7 @@ export function Home() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.05 }
+      transition: { staggerChildren: 0.1 }
     }
   }
 
@@ -35,7 +35,7 @@ export function Home() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-syne"
+          className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl font-syne px-4"
         >
           Every Tool You Need.<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Always Free.</span>
@@ -45,9 +45,9 @@ export function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="max-w-[42rem] text-muted-foreground sm:text-xl sm:leading-8"
+          className="max-w-[42rem] text-muted-foreground sm:text-lg px-6"
         >
-          Image editing, PDF tools, format conversion — all in your browser. Zero uploads to any server. Your files stay exactly where they belong: on your device.
+          Privacy-first utilities for images, PDFs, developer tools, and video. All processing happens 100% in your browser. Zero server uploads.
         </motion.p>
         
         <motion.div
@@ -56,124 +56,76 @@ export function Home() {
           transition={{ delay: 0.3 }}
           className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-muted-foreground font-medium"
         >
-          <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /> 11 Tools</div>
+          <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /> 30+ Tools</div>
           <div className="flex items-center gap-2"><ServerOff className="h-4 w-4 text-green-500" /> No Server Upload</div>
           <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-green-500" /> Fully Private</div>
         </motion.div>
       </div>
 
-      <div className="space-y-16">
-        {/* Image Tools */}
-        <section>
-          <h2 className="mb-8 text-2xl font-bold font-syne flex items-center gap-2">
-            <span className="w-8 h-1 rounded-full bg-primary inline-block"></span>
-            Image Tools
-          </h2>
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {IMAGE_TOOLS.map((tool) => {
-              const Icon = tool.icon
-              const isPopular = tool.isPopular
-              const loader = loaders[tool.id as keyof typeof loaders]
-              
-              return (
-                <motion.div key={tool.id} variants={itemVariants}>
-                  <Link
-                    to={tool.path}
-                    // Prefetch only popular tools on hover to avoid over-concurrency
-                    onMouseEnter={() => {
-                      if (isPopular && loader) {
-                        preloadTool(loader)
-                      }
-                    }}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-xl glass-panel p-6 shadow-sm transition-all hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(245,158,11,0.1)] hover:-translate-y-1"
-                  >
-                    <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    
-                    <div>
-                      <div className="mb-4 inline-flex items-center justify-between w-full">
-                        <div className="inline-flex items-center justify-center rounded-lg bg-primary/10 p-3 text-primary">
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        {isPopular && (
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-primary/10 text-primary rounded">Popular</span>
-                        )}
-                      </div>
-                      <h3 className="mb-2 font-syne text-xl font-bold">{tool.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {tool.description}
-                      </p>
-                    </div>
-                    
-                    <div className="mt-6 flex items-center text-sm font-semibold text-primary">
-                      Open Tool <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </section>
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="space-y-24 px-4"
+      >
+        {CATEGORIES.map((category) => (
+          <section key={category.id} id={category.id}>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold font-syne flex items-center gap-3">
+                <span className={`w-8 h-1 rounded-full bg-${category.color} inline-block`}></span>
+                {category.title}
+              </h2>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
+                {category.tools.length} Tools
+              </span>
+            </div>
 
-        {/* PDF Tools */}
-        <section>
-          <h2 className="mb-8 text-2xl font-bold font-syne flex items-center gap-2">
-            <span className="w-8 h-1 rounded-full bg-accent inline-block"></span>
-            PDF Tools
-          </h2>
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {PDF_TOOLS.map((tool) => {
-              const Icon = tool.icon
-              const isPopular = tool.isPopular
-              const loader = loaders[tool.id as keyof typeof loaders]
-
-              return (
-                <motion.div key={tool.id} variants={itemVariants}>
-                  <Link
-                    to={tool.path}
-                    onMouseEnter={() => {
-                      if (isPopular && loader) {
-                        preloadTool(loader)
-                      }
-                    }}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-xl glass-panel p-6 shadow-sm transition-all hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(252,211,77,0.1)] hover:-translate-y-1"
-                  >
-                    <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-accent/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    
-                    <div>
-                      <div className="mb-4 inline-flex items-center justify-between w-full">
-                        <div className="inline-flex items-center justify-center rounded-lg bg-accent/10 p-3 text-accent">
-                          <Icon className="h-6 w-6" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {category.tools.map((tool) => {
+                const Icon = tool.icon
+                const isPopular = (tool as any).isPopular
+                const loader = loaders[tool.id as keyof typeof loaders]
+                
+                return (
+                  <motion.div key={tool.id} variants={itemVariants}>
+                    <Link
+                      to={tool.path}
+                      onMouseEnter={() => {
+                        if (isPopular && loader) {
+                          preloadTool(loader)
+                        }
+                      }}
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-xl glass-panel p-6 shadow-sm transition-all hover:bg-white/[0.06] hover:-translate-y-1 h-full"
+                    >
+                      <div className={`absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-${category.color}/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100`} />
+                      
+                      <div>
+                        <div className="mb-4 inline-flex items-center justify-between w-full">
+                          <div className={`inline-flex items-center justify-center rounded-lg bg-${category.color}/10 p-3 text-${category.color}`}>
+                            <Icon className="h-6 w-6" />
+                          </div>
+                          {isPopular && (
+                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-${category.color}/10 text-${category.color} rounded`}>Popular</span>
+                          )}
                         </div>
-                        {isPopular && (
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-accent/10 text-accent rounded">Popular</span>
-                        )}
+                        <h3 className="mb-2 font-syne text-lg font-bold group-hover:text-primary transition-colors">{tool.title}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {tool.description}
+                        </p>
                       </div>
-                      <h3 className="mb-2 font-syne text-xl font-bold">{tool.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {tool.description}
-                      </p>
-                    </div>
-                    
-                    <div className="mt-6 flex items-center text-sm font-semibold text-accent">
-                      Open Tool <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </section>
-      </div>
+                      
+                      <div className={`mt-6 flex items-center text-sm font-semibold text-${category.color}`}>
+                        Open Tool <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </section>
+        ))}
+      </motion.div>
     </div>
   )
 }
+

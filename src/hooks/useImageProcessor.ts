@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { loadImage, type LoadedImage } from "../lib/canvas/loadImage";
-import { getAdaptiveDimensions, type ScaledDimensions } from "../lib/canvas/guards";
+import { guardDimensions, maybeYield } from "../lib/utils";
 
 export interface ImageProcessResult {
   source: ImageBitmap | HTMLImageElement;
-  dimensions: ScaledDimensions;
+  dimensions: { w: number; h: number; scale: number };
   cleanup: () => void;
 }
 
@@ -40,6 +40,7 @@ export const useImageProcessor = () => {
 
     try {
       const loaded = await loadImage(file);
+      await maybeYield();
       
       // Zero-dimension guard
       if (loaded.width === 0 || loaded.height === 0) {
@@ -52,7 +53,7 @@ export const useImageProcessor = () => {
         return null;
       }
 
-      const dimensions = getAdaptiveDimensions(loaded.width, loaded.height);
+      const dimensions = guardDimensions(loaded.width, loaded.height);
 
       const cleanup = () => {
         loaded.cleanup();

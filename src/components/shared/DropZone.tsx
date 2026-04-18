@@ -7,14 +7,16 @@ interface DropZoneProps {
   onDrop: (files: File[]) => void
   accept?: Record<string, string[]>
   maxFiles?: number
+  multiple?: boolean
   label?: string
 }
 
-export function DropZone({ onDrop, accept, maxFiles = 1, label = "Drop files here or click to browse" }: DropZoneProps) {
+export function DropZone({ onDrop, accept, maxFiles = 1, multiple = false, label = "Drop files here or click to browse" }: DropZoneProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept,
-    maxFiles
+    maxFiles: multiple ? undefined : maxFiles,
+    multiple
   })
 
   return (

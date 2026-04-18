@@ -55,3 +55,25 @@ vanity-*.jpg
 # Backend Server
 server/node_modules
 server/uploads
+
+# Antigravity / Gemini Artifacts
+.gemini/
+artifacts/
+brain/
+scratch/
+implementation_plan*.md
+task.md
+walkthrough.md
+*.log
+
+# Lockfiles
+yarn.lock
+pnpm-lock.yaml
+
+# Misc
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

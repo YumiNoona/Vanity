@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Vanity-Image%20%26%20PDF%20Suite-F59E0B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDJMNiA3IDEyIDEyIDE4IDd6Ii8+PC9zdmc+" alt="Vanity" />
-</p>
-
 <h1 align="center">✦ Vanity</h1>
 <p align="center"><strong>The All-In-One Private Image & PDF Utility Suite</strong></p>
 
@@ -23,7 +19,7 @@
   <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square" alt="Build" />
   <img src="https://img.shields.io/badge/Client--Side-100%25-blueviolet?style=flat-square" alt="Client-Side" />
   <img src="https://img.shields.io/badge/Privacy-Zero%20Upload-success?style=flat-square" alt="Privacy" />
-  <img src="https://img.shields.io/badge/Bundle-Code%20Split-informational?style=flat-square" alt="Code Split" />
+  <img src="https://img.shields.io/badge/AI-BYOK%20(Anthropic)-orange?style=flat-square" alt="AI BYOK" />
 </p>
 
 ---
@@ -37,11 +33,10 @@
 ### 🏗️ Architecture Highlights
 
 - **Hybrid Processing** — 95% client-side; high-security PDF encryption via a local qpdf-powered micro-server
-- **Job-Tracked Processing** — Race-condition-safe async pipeline with automatic cancellation
-- **Time-Budgeted Yielding** — 16ms yield loops maintain 60fps during heavy pixel operations
-- **Lazy-Loaded Modules** — Heavy libraries (`pdf-lib`, `pdfjs-dist`) load on-demand with idle pre-warming
-- **GPU Memory Management** — Aggressive canvas release (0×0 reset) prevents mobile browser crashes
-- **Throttled UI Feedback** — Progress updates capped at 100ms intervals to prevent React re-render spam
+- **Industrial Dimensions Guard** — Mobile-aware (10MP) vs Desktop (20MP) scaling protects against OOM crashes
+- **Time-Budgeted Yielding** — 10ms `maybeYield` loops maintain 60fps during heavy pixel manipulations
+- **Lazy-Loaded Modules** — Heavy libraries (`pdf-lib`, `ffmpeg.wasm`) load on-demand with idle pre-warming
+- **Bulletproof Memory Hygiene** — Tracked Object URL lifecycles and recursive canvas disposal (`safeRevoke`)
 
 ---
 
@@ -50,34 +45,36 @@
 ### 🖼️ Image Tools
 | Tool | Description |
 |---|---|
+| **Social Media Resizer** | One-click resize for IG, TikTok, YouTube with safe-area overlays and aspect locking |
+| **GIF Maker** | Combine images into animated GIFs with frame delay control and aggregate pixel guards |
+| **Sprite Sheet Slicer** | Canvas-based grid slicer with pixel-art modes and JSZip chunked archiving |
 | **Remove Background (AI)** | ML-powered background removal running locally via WebAssembly (`@imgly/background-removal`) |
-| **Image Effects** | Native Canvas filters — Brightness, Contrast, Saturation, Sepia, Grayscale, Blur |
 | **Asset Compressor** | Resize and compress to WebP/JPEG using lossy or lossless degradation |
-| **Crop & Resize** | Interactive crop region with real-time preview and full-resolution export |
 | **Format Converter** | Convert between WebP, PNG, JPEG, and GIF instantly |
-| **AI Upscaler** | 2× / 4× super-resolution upscaling with simulated deep refinement |
-| **Watermark Remover** | Brush-based in-painting with yielded pixel reconstruction |
 | **Meme Generator** | Fabric.js canvas editor with draggable text layers and layer deletion |
-| **Image Watermark** | Overlay text or image watermarks with opacity and positioning control |
+| **Before/After Slider** | Interactive comparison deck with smooth touch-masking |
 
 ### 📄 PDF Tools
 | Tool | Description |
 |---|---|
-| **Merge PDFs** | Drag, arrange, and seamlessly combine multiple PDF files |
-| **Split PDFs** | Extract page ranges into new documents or individual downloads |
+| **Merge & Split** | Drag, arrange, and seamlessly combine or extract PDF files |
 | **PDF to Images** | Convert each page to high-quality PNG with per-page progress |
-| **PDF Compression** | Client-side metadata stripping to reduce file sizes |
 | **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend |
-| **PDF Watermark** | Stamp text across all pages of a PDF document |
-| **Reorder Pages** | Drag-and-drop page reordering with live preview |
+| **Remove Blank Pages** | Smart pixel-density analysis to auto-sanitize documents |
 
-### 🧰 Utility Tools
+### 🎬 Video & Audio Tools (FFMPEG.wasm)
 | Tool | Description |
 |---|---|
-| **QR Code Generator** | Generate QR codes from any text or URL |
-| **Barcode Generator** | Create standard barcodes with JsBarcode |
-| **OCR Text Extraction** | Extract text from images using Tesseract.js |
-| **GIF Maker** | Combine multiple images into animated GIFs |
+| **Video Compressor** | High-performance MP4/WebM compression with CRF control |
+| **Audio Converter** | Transcode between MP3, WAV, OGG, and M4A losslessly |
+| **Video to MP3** | One-click audio extraction from video sources |
+
+### 🤖 AI Utilities (Anthropic BYOK)
+| Tool | Description |
+|---|---|
+| **Screenshot to Code** | Convert UI mockups into clean **Tailwind CSS + HTML** code |
+| **AI PDF Summariser** | Intelligent recursive summarisation for large documents |
+| **AI Alt-Text Writer** | Accurate accessibility descriptions from any image |
 
 ---
 
@@ -87,13 +84,11 @@
 |---|---|---|
 | **Runtime** | React 19, TypeScript 6 | Type-safe component architecture |
 | **Build** | Vite 8 | Sub-second HMR, optimized code splitting |
-| **Styling** | Tailwind CSS 3.4, CSS Variables | Dark-mode design tokens, utility-first |
-| **Components** | shadcn/ui, Radix Primitives | Accessible headless UI primitives |
-| **Canvas** | Fabric.js 7 | Rich interactive canvas editing (memes, watermarks) |
-| **Animations** | Framer Motion, Canvas Confetti | Staggered entrances, success celebrations |
-| **PDF Engine** | `pdf-lib`, `pdfjs-dist` | Read/write/render PDF binaries |
-| **AI / ML** | `@imgly/background-removal` | Client-side WASM neural network inference |
-| **OCR** | `tesseract.js` | In-browser optical character recognition |
+| **Canvas Engine** | Fabric.js 7 | Rich interactive canvas editing & composition |
+| **Video Engine** | `ffmpeg.wasm` v0.12 | Multi-threaded browser video processing |
+| **GIF Engine** | `gifshot` | High-performance GIF encoding & palette optimization |
+| **Archiver** | `jszip` | Chunked client-side ZIP generation |
+| **AI / ML** | `Claude 3` | LLM Vision reasoning & code generation |
 | **Icons** | Lucide React | Consistent icon system across all tools |
 
 ---
@@ -143,6 +138,7 @@
 - **Node.js** ≥ 18
 - **npm** ≥ 9
 - **qpdf** (installed and added to PATH or absolute path configured in `server/server.js`)
+- **Anthropic API Key** (Required for AI Tools)
 
 ### Installation
 
