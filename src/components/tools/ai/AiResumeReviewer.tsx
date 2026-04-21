@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, FileText, Loader2, Award, Zap, AlertCircle, Sparkles, Target, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -8,8 +8,8 @@ import * as pdfjsLib from "pdfjs-dist"
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
-import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
-import { callClaude, ClaudeError } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderError, callAI } from "@/lib/ai-providers"
 
 interface ReviewResult {
   score: number // 0-100
@@ -19,13 +19,20 @@ interface ReviewResult {
 }
 
 export function AiResumeReviewer() {
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
   const [file, setFile] = useState<File | null>(null)
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [loadingStep, setLoadingStep] = useState<string>("Waiting...")
   
   const [result, setResult] = useState<ReviewResult | null>(null)
+  const requestControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
   
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
@@ -49,9 +56,12 @@ export function AiResumeReviewer() {
   }
 
   const handleReview = async () => {
-    if (!file || !key) return
+    if (!file) return
     setIsProcessing(true)
     setResult(null)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
       let rawText = ""
@@ -75,10 +85,10 @@ Your response must exactly match this JSON structure:
   "suggestions": ["<actionable advice 1>", "<actionable advice 2>"]
 }`
 
-      const responseText = await callClaude({
-         messages: [{ role: "user", content: `Here is the resume text to evaluate:\n\n${rawText}` }],
+      const responseText = await callAI({
+         prompt: `Here is the resume text to evaluate:\n\n${rawText}`,
          systemPrompt,
-         maxTokens: 2000
+         signal: controller.signal
       })
 
       // Ensure clean parsing if Claude still injects backticks despite strict prompt
@@ -93,7 +103,10 @@ Your response must exactly match this JSON structure:
       setResult(parsed)
 
     } catch (err: any) {
-      if (err instanceof ClaudeError) {
+      if (err?.name === "AbortError" || err?.message === "Request was cancelled.") {
+        return
+      }
+      if (err instanceof AIProviderError) {
          toast.error(err.message)
       } else if (err instanceof SyntaxError) {
          toast.error("Failed to parse the AI's response properly. Please try again.")
@@ -101,6 +114,9 @@ Your response must exactly match this JSON structure:
          toast.error(err.message || "An unknown error occurred during analysis.")
       }
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
       setLoadingStep("Waiting...")
     }
@@ -110,21 +126,6 @@ Your response must exactly match this JSON structure:
      if (score >= 80) return "text-emerald-400"
      if (score >= 60) return "text-amber-400"
      return "text-red-400"
-  }
-
-  if (!key) {
-    return (
-      <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-             <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-6 text-blue-500">
-                <Sparkles className="w-8 h-8" />
-             </div>
-             <h1 className="text-3xl font-bold font-syne mb-2 text-white">AI Resume Analyst</h1>
-             <p className="text-muted-foreground text-sm">Secure, direct browser integration with Anthropic Claude.</p>
-         </div>
-         <AnthropicKeyManager />
-      </div>
-    )
   }
 
   if (!file) {
@@ -137,6 +138,7 @@ Your response must exactly match this JSON structure:
          <p className="text-muted-foreground text-lg mb-8">
            Get an elite recruiter's actionable breakdown completely privately without uploading to third-party databases.
          </p>
+         <ApiKeyManager />
          <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"], "text/plain": [".txt"] }} label="Drop PDF/TXT Resume" />
       </div>
     )
@@ -151,7 +153,7 @@ Your response must exactly match this JSON structure:
            </div>
            <div>
              <h1 className="text-2xl font-bold font-syne text-white">Executive Scorecard</h1>
-             <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
+            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
            </div>
         </div>
         <button onClick={() => {setFile(null); setResult(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">

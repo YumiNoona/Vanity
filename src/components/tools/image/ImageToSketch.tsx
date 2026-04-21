@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Pencil, RefreshCw, SlidersHorizontal } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
@@ -68,6 +68,8 @@ export function ImageToSketch() {
         
         ctx.filter = "none"
         ctx.putImageData(result, 0, 0)
+        tempCanvas.width = 0
+        tempCanvas.height = 0
         setIsProcessing(false)
       }, 50)
     }
@@ -177,8 +179,4 @@ export function ImageToSketch() {
       </div>
     </div>
   )
-}
-
-function useCallback(arg0: () => void, arg1: (File | null | number | string | null)[]) {
-    return React.useCallback(arg0, arg1)
 }

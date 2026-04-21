@@ -1,9 +1,9 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Download, Layers, CheckCircle, Image as ImageIcon, Trash2, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
-import { callClaudeVision, ClaudeError } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderError, callAIVision } from "@/lib/ai-providers"
 
 interface ProcessedAltText {
   filename: string
@@ -14,14 +14,8 @@ interface ProcessedAltText {
 
 import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
-interface ProcessedAltText {
-  filename: string
-  alt: string
-  status: "pending" | "processing" | "done" | "error"
-}
-
 export function AltTextBatch() {
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
   const [queue, setQueue] = useState<File[]>([])
   const [results, setResults] = useState<ProcessedAltText[]>([])
   const { urls, addUrl, removeUrl, clear: clearUrls } = useObjectUrls()
@@ -29,6 +23,13 @@ export function AltTextBatch() {
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
+  const requestControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const handleDrop = (newFiles: File[]) => {
     if (newFiles.length > 0) {
@@ -53,9 +54,12 @@ export function AltTextBatch() {
   }
 
   const processBatchSequentially = async () => {
-    if (queue.length === 0 || !key) return
+    if (queue.length === 0) return
     setIsProcessing(true)
     setProgress(0)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
     
     // Reset any previously processed or errored state before beginning
     const currentResults = [...results]
@@ -87,19 +91,22 @@ Return ONLY the raw string. No markdown.`
         setResults([...currentResults])
 
         try {
-           const response = await callClaudeVision({
+           const response = await callAIVision({
               file,
               prompt,
               systemPrompt,
-              maxTokens: 100
+              signal: controller.signal
            })
 
            currentResults[i].alt = response.trim().replace(/^"/, "").replace(/"$/, "") // Handle if Claude quotes it
            currentResults[i].status = "done"
            completed++
         } catch (err: any) {
+           if (err?.name === "AbortError" || err?.message === "Request was cancelled.") {
+             break
+           }
            currentResults[i].status = "error"
-           currentResults[i].alt = err instanceof ClaudeError ? err.message : "Failed to generate alt text."
+           currentResults[i].alt = err instanceof AIProviderError ? err.message : "Failed to generate alt text."
            toast.error(`Error on ${file.name}: ${currentResults[i].alt}`)
            // We intentionally do not throw to allow the bulk sequence to continue.
         }
@@ -109,10 +116,15 @@ Return ONLY the raw string. No markdown.`
     }
 
     setIsProcessing(false)
-    if (completed === queue.length) {
+    if (controller.signal.aborted) {
+       toast.info("Batch processing cancelled.")
+    } else if (completed === queue.length) {
        toast.success("Batch generation complete!")
     } else {
        toast.warning(`Finished with ${queue.length - completed} errors.`)
+    }
+    if (requestControllerRef.current === controller) {
+      requestControllerRef.current = null
     }
   }
 
@@ -145,21 +157,6 @@ Return ONLY the raw string. No markdown.`
     URL.revokeObjectURL(tempUrl)
   }
 
-  if (!key) {
-    return (
-      <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-             <div className="inline-flex items-center justify-center p-3 bg-pink-500/10 rounded-full mb-6 text-pink-500">
-                <Eye className="w-8 h-8" />
-             </div>
-             <h1 className="text-3xl font-bold font-syne mb-2 text-white">Batch Alt-Text Writer</h1>
-             <p className="text-muted-foreground text-sm">Secure, direct browser integration with Anthropic Claude Vision.</p>
-         </div>
-         <AnthropicKeyManager />
-      </div>
-    )
-  }
-
   if (queue.length === 0) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
@@ -170,6 +167,7 @@ Return ONLY the raw string. No markdown.`
          <p className="text-muted-foreground text-lg mb-8">
            Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV.
          </p>
+         <ApiKeyManager />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
       </div>
     )
@@ -184,7 +182,7 @@ Return ONLY the raw string. No markdown.`
           </div>
           <div>
             <h1 className="text-3xl font-bold font-syne text-white">Queue Manager</h1>
-            <p className="text-muted-foreground text-sm font-mono">{queue.length} items loaded</p>
+            <p className="text-muted-foreground text-sm font-mono">{queue.length} items loaded · {activeProvider}</p>
           </div>
         </div>
         <button onClick={() => { setQueue([]); setResults([]); clearUrls(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">

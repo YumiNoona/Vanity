@@ -1,14 +1,14 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Sparkles, MessageSquare, Copy, CheckCircle, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
-import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
-import { callClaudeVision, ClaudeError } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderError, callAIVision } from "@/lib/ai-providers"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function ImageCaptionGenerator() {
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
   const [file, setFile] = useState<File | null>(null)
   const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
   
@@ -18,6 +18,7 @@ export function ImageCaptionGenerator() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [captions, setCaptions] = useState<string[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const requestControllerRef = useRef<AbortController | null>(null)
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -27,10 +28,19 @@ export function ImageCaptionGenerator() {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
+
   const generateCaptions = async () => {
-    if (!file || !key) return
+    if (!file) return
     setIsProcessing(true)
     setCaptions([])
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
       const prompt = `Analyze this image carefully. Generate 3 distinct captions suitable for ${platform}.
@@ -41,11 +51,11 @@ JSON Structure requirement:
 
       const systemPrompt = "You are a master social media manager and creative writer. Strictly adhere to generating an exact JSON array of strings."
 
-      const responseText = await callClaudeVision({
+      const responseText = await callAIVision({
          file,
          prompt,
          systemPrompt,
-         maxTokens: 800
+         signal: controller.signal
       })
 
       const cleaned = responseText.replace(/```json/gi, "").replace(/```/gi, "").trim()
@@ -59,7 +69,10 @@ JSON Structure requirement:
       toast.success("Captions generated!")
 
     } catch (err: any) {
-      if (err instanceof ClaudeError) {
+      if (err?.name === "AbortError" || err?.message === "Request was cancelled.") {
+        return
+      }
+      if (err instanceof AIProviderError) {
          toast.error(err.message)
       } else if (err instanceof SyntaxError) {
          toast.error("Failed to parse the AI's response properly. Please try again.")
@@ -67,6 +80,9 @@ JSON Structure requirement:
          toast.error("An unknown error occurred during generation.")
       }
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -76,21 +92,6 @@ JSON Structure requirement:
      setCopiedIndex(index)
      toast.success("Caption copied!")
      setTimeout(() => setCopiedIndex(null), 2000)
-  }
-
-  if (!key) {
-    return (
-      <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-             <div className="inline-flex items-center justify-center p-3 bg-fuchsia-500/10 rounded-full mb-6 text-fuchsia-500">
-                <MessageSquare className="w-8 h-8" />
-             </div>
-             <h1 className="text-3xl font-bold font-syne mb-2 text-white">AI Creative Captioning</h1>
-             <p className="text-muted-foreground text-sm">Secure, direct browser integration with Anthropic Claude Vision.</p>
-         </div>
-         <AnthropicKeyManager />
-      </div>
-    )
   }
 
   if (!file || !imgUrl) {
@@ -103,6 +104,7 @@ JSON Structure requirement:
          <p className="text-muted-foreground text-lg mb-8">
            Upload any image and let Claude write engaging, platform-perfect captions in seconds.
          </p>
+         <ApiKeyManager />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to caption" />
       </div>
     )
@@ -117,7 +119,7 @@ JSON Structure requirement:
            </div>
            <div>
              <h1 className="text-2xl font-bold font-syne text-white">Content Studio</h1>
-             <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
+            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
            </div>
         </div>
         <button onClick={() => { setFile(null); clearImgUrl(); setCaptions([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">

@@ -1,18 +1,24 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
 import * as pdfjsLib from "pdfjs-dist"
-import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callClaude } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { callAI } from "@/lib/ai-providers"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 
 export function PdfSummariser() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [summary, setSummary] = useState("")
   const [progress, setProgress] = useState(0)
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
+  const requestControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
@@ -22,10 +28,13 @@ export function PdfSummariser() {
   }
 
   const startSummarisation = async () => {
-    if (!file || !key) return
+    if (!file) return
     setIsProcessing(true)
     setSummary("")
     setProgress(0)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
       const arrayBuffer = await file.arrayBuffer()
@@ -48,10 +57,10 @@ export function PdfSummariser() {
         const chunk = pageTexts.slice(i, i + chunkSize).join("\n")
         const prompt = `Summarise the following text from a PDF document (Pages ${i + 1} to ${Math.min(i + chunkSize, pageTexts.length)}). Focus on key takeaways and data points. \n\n[TEXT START]\n${chunk}\n[TEXT END]`
         
-        const responseText = await callClaude({
-           messages: [{ role: "user", content: prompt }],
+        const responseText = await callAI({
+           prompt,
            systemPrompt: "You are a professional research assistant.",
-           maxTokens: 1000
+           signal: controller.signal
         })
         summaries.push(responseText)
         
@@ -68,9 +77,15 @@ export function PdfSummariser() {
       
       toast.success("Summary generated!")
     } catch (error: any) {
+      if (error?.name === "AbortError" || error?.message === "Request was cancelled.") {
+        return
+      }
       console.error(error)
       toast.error(error.message || "Failed to generate summary.")
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -89,7 +104,7 @@ export function PdfSummariser() {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <AnthropicKeyManager />
+            <ApiKeyManager />
             <div className="space-y-4">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">PDF Source</label>
                 <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to summarise" />
@@ -108,7 +123,7 @@ export function PdfSummariser() {
           </div>
           <div>
             <h1 className="text-3xl font-bold font-syne text-white">Insight Engine</h1>
-            <p className="text-muted-foreground text-sm">{file.name} ({progress}% processed)</p>
+            <p className="text-muted-foreground text-sm">{file.name} ({progress}% processed) · {activeProvider}</p>
           </div>
         </div>
         <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
@@ -145,15 +160,11 @@ export function PdfSummariser() {
                    </div>
                    <button 
                      onClick={startSummarisation}
-                     disabled={!key}
                      className="px-12 py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4"
                    >
                      <Sparkles className="w-6 h-6" />
                      Generate AI Summary
                    </button>
-                   {!key && (
-                      <p className="text-xs text-red-500 animate-pulse">Anthropic API Key required to continue.</p>
-                   )}
                 </div>
               )}
            </div>

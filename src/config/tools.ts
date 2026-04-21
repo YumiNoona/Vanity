@@ -79,6 +79,7 @@ export const PDF_TOOLS: Tool[] = [
 
 export const AI_TOOLS: Tool[] = [
   { id: "ai-screenshot-to-code", title: "Screenshot to Code", description: "UI screenshot → HTML + Tailwind via Claude Vision.", icon: Monitor, path: "/tools/ai/screenshot-to-code", isPopular: true, keywords: ["ui", "frontend", "dev"] },
+  { id: "ai-screenshot-to-game-code", title: "Screenshot to Game Code", description: "Convert code screenshots to Godot, Unity, or Unreal code using Gemini or OCR fallback.", icon: Code2, path: "/tools/ai/screenshot-to-game-code", isPopular: true, keywords: ["godot", "unity", "unreal", "ocr", "gemini"] },
   { id: "ai-alt-text", title: "AI Alt-Text Writer", description: "Generate accessibility alt text for any image automatically.", icon: BrainCircuit, path: "/tools/ai/alt-text", keywords: ["seo", "accessibility", "description"] },
   { id: "ai-summarizer", title: "AI PDF Summarizer", description: "Extract and summarize PDF content using Claude.", icon: Sigma, path: "/tools/ai/summarizer", keywords: ["tl;dr", "reading", "study"] },
   { id: "ai-bg-replacer", title: "AI Background Replacer", description: "Remove BG and describe a new scene to Claude.", icon: ImagePlus, path: "/tools/ai/bg-replacer", keywords: ["generative", "creative", "edit"] },
@@ -88,6 +89,7 @@ export const AI_TOOLS: Tool[] = [
   { id: "alt-text-batch", title: "Batch Alt Text", description: "Mass-generate SEO descriptions queued sequentially.", icon: Images, path: "/tools/ai/alt-text-batch", keywords: ["bulk", "seo", "vision"] },
   { id: "caption-generator", title: "Caption Generator", description: "Generate contextual social captions securely.", icon: MessageSquare, path: "/tools/ai/caption", keywords: ["social", "instagram", "post"] },
   { id: "mock-api-generator", title: "Mock JSON Generator", description: "Synthesize strict deterministic schema arrays seamlessly.", icon: Database, path: "/tools/ai/mock-api", keywords: ["dummy", "data", "scaffold"] },
+  { id: "ai-providers", title: "AI Keys", description: "Manage Gemini, Anthropic, OpenAI, and Groq keys in one place.", icon: KeyRound, path: "/tools/ai/providers", keywords: ["api", "keys", "providers"] },
 ]
 
 export const DEV_TOOLS: Tool[] = [

@@ -1,8 +1,8 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Monitor, Code, ShieldCheck, Copy, CheckCircle, Smartphone } from "lucide-react"
-import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callClaudeVision } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { callAIVision } from "@/lib/ai-providers"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -15,7 +15,8 @@ export function ScreenshotToCode() {
   const [code, setCode] = useState("")
   const [copied, setCopied] = useState(false)
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
+  const requestControllerRef = useRef<AbortController | null>(null)
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -25,21 +26,21 @@ export function ScreenshotToCode() {
     }
   }
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve((reader.result as string).split(",")[1])
-      reader.onerror = (error) => reject(error)
-    })
-  }
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const generateCode = async () => {
-    if (!file || !key) return
+    if (!file) return
     setIsProcessing(true)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
-      const responseText = await callClaudeVision({
+      const responseText = await callAIVision({
          file,
          prompt: `Reconstruct this UI screenshot into clean, responsive HTML using Tailwind CSS. 
               - Return ONLY the raw HTML code block. 
@@ -47,16 +48,22 @@ export function ScreenshotToCode() {
               - Use placeholder images for icons. 
               - Focus on high-fidelity spacing, colors, and typography.`,
          systemPrompt: "You are a senior front-end engineer specialized in Tailwind CSS.",
-         maxTokens: 4096
+         signal: controller.signal
       })
 
       const rawCode = responseText.replace(/```html|```/g, "").trim()
       setCode(rawCode)
       toast.success("Code generated!")
     } catch (error: any) {
+      if (error?.name === "AbortError" || error?.message === "Request was cancelled.") {
+        return
+      }
       console.error(error)
       toast.error(error.message || "Failed to generate code.")
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -82,7 +89,7 @@ export function ScreenshotToCode() {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <AnthropicKeyManager />
+            <ApiKeyManager />
             <div className="space-y-4">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">UI Mockup Source</label>
                 <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop screenshot here" />
@@ -101,7 +108,7 @@ export function ScreenshotToCode() {
           </div>
           <div>
             <h1 className="text-3xl font-bold font-syne text-white">Visual Coder</h1>
-            <p className="text-muted-foreground text-sm">Translating pixels to responsive HTML</p>
+            <p className="text-muted-foreground text-sm">Translating pixels to responsive HTML · {activeProvider}</p>
           </div>
         </div>
         <button onClick={() => { setFile(null); clearPreviewUrl(); setCode(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
@@ -125,7 +132,7 @@ export function ScreenshotToCode() {
               {!code && (
                 <button 
                   onClick={generateCode}
-                  disabled={!key || isProcessing}
+                  disabled={isProcessing}
                   className="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
                 >
                   <Sparkles className="w-6 h-6" />

@@ -23,6 +23,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ de
 
 // AI Tools
 const ScreenshotToCode = lazy(() => import("./components/tools/ai/ScreenshotToCode").then(m => ({ default: m.ScreenshotToCode })))
+const ScreenshotToGameCode = lazy(() => import("./components/tools/ai/ScreenshotToGameCode").then(m => ({ default: m.ScreenshotToGameCode })))
 const AiAltTextWriter = lazy(() => import("./components/tools/ai/AiAltTextWriter").then(m => ({ default: m.AiAltTextWriter })))
 const PdfSummariser = lazy(() => import("./components/tools/ai/PdfSummariser").then(m => ({ default: m.PdfSummariser })))
 const BgReplacer = lazy(() => import("./components/tools/ai/BgReplacer").then(m => ({ default: m.BgReplacer })))
@@ -32,6 +33,7 @@ const ExplainUi = lazy(() => import("./components/tools/ai/ExplainUi").then(m =>
 const AltTextBatch = lazy(() => import("./components/tools/ai/AltTextBatch").then(m => ({ default: m.AltTextBatch })))
 const ImageCaptionGenerator = lazy(() => import("./components/tools/ai/ImageCaptionGenerator").then(m => ({ default: m.ImageCaptionGenerator })))
 const MockApiGenerator = lazy(() => import("./components/tools/ai/MockApiGenerator").then(m => ({ default: m.MockApiGenerator })))
+const ApiKeysPage = lazy(() => import("./components/shared/ApiKeyManager").then(m => ({ default: m.ApiKeysPage })))
 
 // Image Tools
 const ImageEffects = lazy(() => import("./components/tools/image/ImageEffects").then(m => ({ default: m.ImageEffects })))
@@ -165,6 +167,7 @@ function App() {
             
             {/* AI Tools */}
             <Route path="/tools/ai/screenshot-to-code" element={<ScreenshotToCode />} />
+            <Route path="/tools/ai/screenshot-to-game-code" element={<ScreenshotToGameCode />} />
             <Route path="/tools/ai/alt-text" element={<AiAltTextWriter />} />
             <Route path="/tools/ai/summarizer" element={<PdfSummariser />} />
             <Route path="/tools/ai/bg-replacer" element={<BgReplacer />} />
@@ -174,6 +177,7 @@ function App() {
             <Route path="/tools/ai/alt-text-batch" element={<AltTextBatch />} />
             <Route path="/tools/ai/caption" element={<ImageCaptionGenerator />} />
             <Route path="/tools/ai/mock-api" element={<MockApiGenerator />} />
+            <Route path="/tools/ai/providers" element={<ApiKeysPage />} />
 
             {/* Image Tools */}
             <Route path="/tools/image/effects" element={<ImageEffects />} />

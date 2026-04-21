@@ -22,6 +22,7 @@ export function GifMaker() {
   const { urls: previewUrls, setUrls: setPreviewUrls, clear: clearPreviewUrls } = useObjectUrls()
   
   const isCancelledRef = useRef(false)
+  const generationIdRef = useRef(0)
 
   useEffect(() => {
     setPreviewUrls(files)
@@ -53,6 +54,7 @@ export function GifMaker() {
 
   const cancelTask = () => {
     isCancelledRef.current = true
+    generationIdRef.current += 1
     setIsProcessing(false)
     setProgressStage("idle")
     toast.info("Task cancelled")
@@ -65,6 +67,8 @@ export function GifMaker() {
     }
 
     isCancelledRef.current = false
+    const generationId = generationIdRef.current + 1
+    generationIdRef.current = generationId
     setIsProcessing(true)
     setProgressStage("processing")
     const startTime = performance.now()
@@ -134,6 +138,10 @@ export function GifMaker() {
         numWorkers: 2,
         sampleInterval: 10, // Palette quality vs speed
       }, (obj: any) => {
+        if (generationIdRef.current !== generationId) {
+          frameUrls.forEach(u => URL.revokeObjectURL(u))
+          return
+        }
         if (isCancelledRef.current) {
           frameUrls.forEach(u => URL.revokeObjectURL(u))
           return
@@ -152,10 +160,19 @@ export function GifMaker() {
            // Convert base64 result to Blob for managed lifecycle
            fetch(obj.image)
              .then(res => res.blob())
-             .then(blob => setResultGif(blob))
+             .then(blob => {
+               if (generationIdRef.current !== generationId || isCancelledRef.current) {
+                 return
+               }
+               setResultGif(blob)
+             })
+             .finally(() => {
+               frameUrls.forEach(u => URL.revokeObjectURL(u))
+             })
            toast.success("GIF generated!")
         } else {
            toast.error(obj.errorMsg || "GIF encoding failed")
+           frameUrls.forEach(u => URL.revokeObjectURL(u))
         }
         setIsProcessing(false)
         setProgressStage("idle")

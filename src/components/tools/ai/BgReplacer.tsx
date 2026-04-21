@@ -1,10 +1,9 @@
-import React, { useState, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Wand2, ShieldCheck, Download, Trash2 } from "lucide-react"
-import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callClaude } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { callAI } from "@/lib/ai-providers"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -15,7 +14,14 @@ export function BgReplacer() {
   const [prompt, setPrompt] = useState("A professional studio with soft rim lighting and a minimalist aesthetic")
   const [isProcessing, setIsProcessing] = useState(false)
   const [generatedBg, setGeneratedBg] = useState("")
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
+  const requestControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -42,31 +48,33 @@ export function BgReplacer() {
   }
 
   const generateNewBg = async () => {
-    if (!key || !prompt) return
+    if (!prompt) return
     setIsProcessing(true)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
-      const messages: { role: "user"; content: string }[] = [
-        {
-          role: "user",
-          content: `Generate a gorgeous, responsive CSS/Tailwind background based on this description: "${prompt}". 
+      const responseText = await callAI({
+         prompt: `Generate a gorgeous, responsive CSS/Tailwind background based on this description: "${prompt}". 
           Use gradients, SVG patterns, or multiple background layers. 
           Return ONLY the raw HTML string for a div that will serve as the background. 
-          Exclude any explanation or code blocks.`
-        }
-      ]
-
-      const responseText = await callClaude({
-         messages,
+          Exclude any explanation or code blocks.`,
          systemPrompt: "You are a master of CSS artistry and creative backgrounds.",
-         maxTokens: 1500
+         signal: controller.signal
       })
       setGeneratedBg(responseText)
       toast.success("New background generated!")
     } catch (e: any) {
+      if (e?.name === "AbortError" || e?.message === "Request was cancelled.") {
+        return
+      }
       console.error(e)
       toast.error(e.message || "Failed to generate background.")
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -85,7 +93,7 @@ export function BgReplacer() {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <AnthropicKeyManager />
+            <ApiKeyManager />
             <div className="space-y-4">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Subject Source</label>
                 <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to replace background" />
@@ -104,7 +112,7 @@ export function BgReplacer() {
           </div>
           <div>
             <h1 className="text-3xl font-bold font-syne text-white">Background Studio</h1>
-            <p className="text-muted-foreground text-sm">Hybrid local-AI scene generation</p>
+            <p className="text-muted-foreground text-sm">Hybrid local-AI scene generation · {activeProvider}</p>
           </div>
         </div>
         <button 
@@ -167,7 +175,7 @@ export function BgReplacer() {
               <div className="flex flex-col gap-3">
                  <button 
                    onClick={generateNewBg}
-                   disabled={!key || !noBgUrl || isProcessing}
+                   disabled={!noBgUrl || isProcessing}
                    className="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
                  >
                    <Sparkles className="w-5 h-5" />

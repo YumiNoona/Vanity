@@ -1,10 +1,9 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle } from "lucide-react"
-import { AnthropicKeyManager, useAnthropicKey } from "@/components/shared/AnthropicKeyManager"
-import { callClaudeVision } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { callAIVision } from "@/lib/ai-providers"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -14,7 +13,8 @@ export function AiAltTextWriter() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [altText, setAltText] = useState("")
   const [copied, setCopied] = useState(false)
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
+  const requestControllerRef = useRef<AbortController | null>(null)
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -24,33 +24,39 @@ export function AiAltTextWriter() {
     }
   }
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve((reader.result as string).split(",")[1])
-      reader.onerror = (error) => reject(error)
-    })
-  }
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const generateAltText = async () => {
-    if (!file || !key) return
+    if (!file) return
     setIsProcessing(true)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
-      const responseText = await callClaudeVision({
+      const responseText = await callAIVision({
          file,
          prompt: "Write a high-quality, descriptive alternative text for this image to be used for accessibility (screen readers). Keep it objective and concise, but include key visual details.",
          systemPrompt: "You are an accessibility expert.",
-         maxTokens: 500
+         signal: controller.signal
       })
 
       setAltText(responseText)
       toast.success("Alt-text generated!")
     } catch (error: any) {
+      if (error?.name === "AbortError" || error?.message === "Request was cancelled.") {
+        return
+      }
       console.error(error)
       toast.error(error.message || "Failed to call AI.")
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -76,7 +82,7 @@ export function AiAltTextWriter() {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <AnthropicKeyManager />
+            <ApiKeyManager />
             <div className="space-y-4">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Image Source</label>
                 <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to describe" />
@@ -95,7 +101,7 @@ export function AiAltTextWriter() {
           </div>
           <div>
             <h1 className="text-3xl font-bold font-syne text-white">Accessibility Engine</h1>
-            <p className="text-muted-foreground text-sm">Powered by Claude 3 Vision</p>
+            <p className="text-muted-foreground text-sm">Provider: {activeProvider}</p>
           </div>
         </div>
         <button onClick={() => { setFile(null); clearPreviewUrl(); setAltText(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
@@ -141,15 +147,12 @@ export function AiAltTextWriter() {
                 </div>
                 <button 
                   onClick={generateAltText}
-                  disabled={!key || isProcessing}
+                  disabled={isProcessing}
                   className="px-12 py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 justify-center lg:justify-start"
                 >
                   <Sparkles className="w-6 h-6" />
                   Generate Description
                 </button>
-                {!key && (
-                   <p className="text-xs text-red-500 animate-pulse">Anthropic API Key required.</p>
-                )}
              </div>
            )}
 

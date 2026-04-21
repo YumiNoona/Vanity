@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Mic, Scissors, Download, Loader2, Play, Square, FastForward } from "lucide-react"
-import { FFmpeg } from "@ffmpeg/ffmpeg"
-import { fetchFile, toBlobURL } from "@ffmpeg/util"
+import { ArrowLeft, Mic, Scissors, Download, Loader2, FastForward } from "lucide-react"
+import { fetchFile } from "@ffmpeg/util"
 import { toast } from "sonner"
 
 import { getFFmpeg } from "@/lib/ffmpeg"
@@ -107,15 +106,15 @@ export function AudioWaveform() {
     if (!file || !audioBuffer) return
     
     setIsTrimming(true)
+    const inputName = `input_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
+    const outName = `out_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
+    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
     try {
-       const ffmpeg = await getFFmpeg()
+       ffmpeg = await getFFmpeg()
        
        const totalDuration = audioBuffer.duration
        const startTime = totalDuration * trimStart
        const endTime = totalDuration * trimEnd
-
-       const inputName = `input_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
-       const outName = `out_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
 
        await ffmpeg.writeFile(inputName, await fetchFile(file))
        
@@ -136,6 +135,12 @@ export function AudioWaveform() {
     } catch (err) {
        toast.error("Failed to trim audio track")
     } finally {
+       if (ffmpeg) {
+         await Promise.allSettled([
+           ffmpeg.deleteFile(inputName),
+           ffmpeg.deleteFile(outName)
+         ])
+       }
        setIsTrimming(false)
     }
   }

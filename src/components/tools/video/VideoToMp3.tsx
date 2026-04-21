@@ -1,11 +1,9 @@
-import React, { useState, useRef } from "react"
+import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Mic, Download, RefreshCw, Zap, VideoOff, CheckCircle } from "lucide-react"
-import { FFmpeg } from "@ffmpeg/ffmpeg"
-import { fetchFile, toBlobURL } from "@ffmpeg/util"
+import { ArrowLeft, Mic, Download, Zap, VideoOff, CheckCircle } from "lucide-react"
+import { fetchFile } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 
 import { getFFmpeg } from "@/lib/ffmpeg"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -25,17 +23,17 @@ export function VideoToMp3() {
   const extractAudio = async () => {
     if (!file) return
     startProcessing()
-    
-    try {
-      const ffmpeg = await getFFmpeg()
-      
-      ffmpeg.on("progress", ({ progress }) => {
-        updateProgress(Math.round(progress * 100))
-      })
+    const inputName = `input.${file.name.split('.').pop()}`
+    const outputName = "output.mp3"
+    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
+    let onProgress: ((event: { progress: number }) => void) | null = null
 
-      const inputName = `input.${file.name.split('.').pop()}`
-      const outputName = "output.mp3"
-      
+    try {
+      ffmpeg = await getFFmpeg()
+      onProgress = ({ progress }: { progress: number }) => {
+        updateProgress(Math.round(progress * 100))
+      }
+      ffmpeg.on("progress", onProgress)
       await ffmpeg.writeFile(inputName, await fetchFile(file))
       
       // -vn = disable video. -ab = bitrate.
@@ -49,6 +47,15 @@ export function VideoToMp3() {
       console.error(error)
       toast.error("Extraction failed.")
     } finally {
+      if (ffmpeg) {
+        if (onProgress && typeof (ffmpeg as any).off === "function") {
+          ;(ffmpeg as any).off("progress", onProgress)
+        }
+        await Promise.allSettled([
+          ffmpeg.deleteFile(inputName),
+          ffmpeg.deleteFile(outputName)
+        ])
+      }
       finishProcessing()
     }
   }

@@ -26,17 +26,17 @@ export function VideoTrimmer() {
     if (!file || !startTime || !endTime) return
     
     startProcessing()
+    const ext = file.name.split('.').pop() || "mp4"
+    const inputName = `input.${ext}`
+    const outputName = `output.${ext}`
+    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
+    let onProgress: ((event: { progress: number }) => void) | null = null
     try {
-      const ffmpeg = await getFFmpeg()
-      
-      ffmpeg.on("progress", ({ progress }) => {
+      ffmpeg = await getFFmpeg()
+      onProgress = ({ progress }: { progress: number }) => {
         updateProgress(Math.round(progress * 100))
-      })
-
-      const ext = file.name.split('.').pop() || "mp4"
-      const inputName = `input.${ext}`
-      const outputName = `output.${ext}`
-      
+      }
+      ffmpeg.on("progress", onProgress)
       await ffmpeg.writeFile(inputName, await fetchFile(file))
       
       // -c copy allows instant trimming without re-encoding
@@ -57,6 +57,15 @@ export function VideoTrimmer() {
       console.error(error)
       toast.error("Trimming failed. Check timestamps.")
     } finally {
+      if (ffmpeg) {
+        if (onProgress && typeof (ffmpeg as any).off === "function") {
+          ;(ffmpeg as any).off("progress", onProgress)
+        }
+        await Promise.allSettled([
+          ffmpeg.deleteFile(inputName),
+          ffmpeg.deleteFile(outputName)
+        ])
+      }
       finishProcessing()
     }
   }

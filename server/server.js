@@ -26,6 +26,23 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
+const cleanupStaleUploads = (maxAgeMs = 6 * 60 * 60 * 1000) => {
+  const now = Date.now();
+  try {
+    const entries = fs.readdirSync(uploadsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      const fullPath = path.join(uploadsDir, entry.name);
+      const stats = fs.statSync(fullPath);
+      if (now - stats.mtimeMs > maxAgeMs) {
+        fs.unlinkSync(fullPath);
+      }
+    }
+  } catch (error) {
+    console.error("Startup cleanup error:", error.message);
+  }
+};
+
 // Helper: safely delete files
 const cleanup = (...files) => {
   files.forEach((f) => {
@@ -36,6 +53,8 @@ const cleanup = (...files) => {
     }
   });
 };
+
+cleanupStaleUploads();
 
 // 🔒 Add Password (AES-256 encryption via qpdf)
 app.post("/protect", upload.single("file"), (req, res) => {
@@ -146,7 +165,7 @@ app.get("/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log("");
   console.log("✅ Vanity PDF Server running on http://localhost:" + PORT);
   console.log("   POST /protect  — Add AES-256 password");
@@ -155,3 +174,14 @@ app.listen(PORT, () => {
   console.log("   QPDF Path:     " + QPDF_PATH);
   console.log("");
 });
+
+const shutdown = () => {
+  try {
+    cleanupStaleUploads(0);
+  } finally {
+    server.close(() => process.exit(0));
+  }
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

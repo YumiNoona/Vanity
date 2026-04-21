@@ -1,12 +1,12 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Trash2 } from "lucide-react"
 import { toast } from "sonner"
-import { useAnthropicKey, AnthropicKeyManager } from "@/components/shared/AnthropicKeyManager"
-import { callClaude, ClaudeError } from "@/lib/anthropic"
+import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderError, callAI } from "@/lib/ai-providers"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function MockApiGenerator() {
-  const { key } = useAnthropicKey()
+  const activeProvider = useActiveProvider()
   
   const [modelName, setModelName] = useState("User")
   const [schema, setSchema] = useState("id: uuid\nname: string\nemail: string\nrole: admin | user\ncreatedAt: iso_date")
@@ -16,12 +16,22 @@ export function MockApiGenerator() {
   const [resultJson, setResultJson] = useState<string>("")
   const [copied, setCopied] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+  const requestControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
 
   const generateMockData = async () => {
-    if (!key || !schema.trim()) return
+    if (!schema.trim()) return
     setIsProcessing(true)
     setResultJson("")
     setResultUrl(null)
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
 
     try {
       // Extremely strict system prompt based on user specs to avoid Markdown pollution
@@ -34,10 +44,10 @@ Your output must be immediately parsable by JavaScript's JSON.parse().`
 Use this schema/field definition as a guide:
 ${schema}`
 
-      const responseText = await callClaude({
-         messages: [{ role: "user", content: prompt }],
+      const responseText = await callAI({
+         prompt,
          systemPrompt,
-         maxTokens: 3000
+         signal: controller.signal
       })
 
       // Attempt parsing to guarantee it's valid JSON before displaying
@@ -59,12 +69,18 @@ ${schema}`
       }
 
     } catch (err: any) {
-      if (err instanceof ClaudeError) {
+      if (err?.name === "AbortError" || err?.message === "Request was cancelled.") {
+        return
+      }
+      if (err instanceof AIProviderError) {
          toast.error(err.message)
       } else {
          toast.error(err.message || "An unknown error occurred during generation.")
       }
     } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
       setIsProcessing(false)
     }
   }
@@ -84,21 +100,6 @@ ${schema}`
      a.click()
   }
 
-  if (!key) {
-    return (
-      <div className="max-w-xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-             <div className="inline-flex items-center justify-center p-3 bg-red-500/10 rounded-full mb-6 text-red-500">
-                <Database className="w-8 h-8" />
-             </div>
-             <h1 className="text-3xl font-bold font-syne mb-2 text-white">Mock JSON Generator</h1>
-             <p className="text-muted-foreground text-sm">Secure, direct browser integration with Anthropic Claude.</p>
-         </div>
-         <AnthropicKeyManager />
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
       <div className="flex items-center justify-between">
@@ -108,7 +109,7 @@ ${schema}`
            </div>
            <div>
              <h1 className="text-2xl font-bold font-syne text-white">API Scaffold</h1>
-             <p className="text-muted-foreground text-sm font-mono">Synthesize data structures accurately</p>
+            <p className="text-muted-foreground text-sm font-mono">Synthesize data structures accurately · {activeProvider}</p>
            </div>
         </div>
       </div>
@@ -116,6 +117,7 @@ ${schema}`
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel p-6 rounded-3xl border-red-500/20 bg-black/40 space-y-6">
+               <ApiKeyManager />
                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-red-400 border-b border-white/5 pb-4">
                   <SlidersHorizontal className="w-4 h-4" /> Parameters
                </div>

@@ -16,6 +16,7 @@ export function VideoThumbnails() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isUnmountedRef = useRef(false)
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -25,6 +26,16 @@ export function VideoThumbnails() {
       setProgress(0)
     }
   }
+
+  useEffect(() => {
+    return () => {
+      isUnmountedRef.current = true
+      const video = videoRef.current
+      if (video) {
+        video.onloadedmetadata = null
+      }
+    }
+  }, [])
 
   const extractFrames = async () => {
     const video = videoRef.current
@@ -41,6 +52,7 @@ export function VideoThumbnails() {
          await new Promise(resolve => {
            video.onloadedmetadata = resolve
          })
+         video.onloadedmetadata = null
       }
 
       const duration = video.duration
@@ -67,21 +79,28 @@ export function VideoThumbnails() {
             }
             video.addEventListener("seeked", onSeeked)
          })
+         if (isUnmountedRef.current) return
 
          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
          
          const blob = await new Promise<Blob>((resolve) => 
             canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9)
          )
-         addUrl(blob)
+         if (!isUnmountedRef.current) {
+           addUrl(blob)
+         }
          
-         setProgress(Math.round((i / frameCount) * 100))
+         if (!isUnmountedRef.current) {
+           setProgress(Math.round((i / frameCount) * 100))
+         }
       }
 
     } catch (e) {
       console.error(e)
     } finally {
-      setIsExtracting(false)
+      if (!isUnmountedRef.current) {
+        setIsExtracting(false)
+      }
     }
   }
 

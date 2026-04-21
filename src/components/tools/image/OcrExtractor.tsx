@@ -22,6 +22,16 @@ export function OcrExtractor() {
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
+  useEffect(() => {
+    return () => {
+      const maybeTerminate = (tesseractModule as { terminate?: () => Promise<void> } | null)?.terminate
+      if (typeof maybeTerminate === "function") {
+        void maybeTerminate().catch(() => {})
+        tesseractModule = null
+      }
+    }
+  }, [])
+
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
