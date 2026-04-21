@@ -1,13 +1,8 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, FileText, Download, Copy, CheckCircle, RefreshCw, FileSearch } from "lucide-react"
-import * as pdfjsLib from "pdfjs-dist"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-
-// Set up worker
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+import { extractPdfText } from "@/lib/pdf-text"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -32,20 +27,10 @@ export function PdfToText() {
     setIsProcessing(true)
     setProgress(0)
     try {
-      const arrayBuffer = await pdfFile.arrayBuffer()
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-      let fullText = ""
-
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i)
-        const textContent = await page.getTextContent()
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(" ")
-        
-        fullText += `--- Page ${i} ---\n${pageText}\n\n`
-        setProgress(Math.round((i / pdf.numPages) * 100))
-      }
+      const { fullText } = await extractPdfText(pdfFile, {
+        includePageMarkers: true,
+        onProgress: setProgress,
+      })
 
       setExtractedText(fullText)
       setResultUrl(new Blob([fullText], { type: "text/plain" }))

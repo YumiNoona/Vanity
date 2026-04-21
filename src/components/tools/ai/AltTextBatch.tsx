@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Download, Layers, CheckCircle, Image as ImageIcon, Trash2, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAIVision } from "@/lib/ai-providers"
 
 interface ProcessedAltText {
@@ -24,9 +25,12 @@ export function AltTextBatch() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const requestControllerRef = useRef<AbortController | null>(null)
+  const runIdRef = useRef(0)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false
       requestControllerRef.current?.abort()
     }
   }, [])
@@ -55,6 +59,8 @@ export function AltTextBatch() {
 
   const processBatchSequentially = async () => {
     if (queue.length === 0) return
+    runIdRef.current += 1
+    const runId = runIdRef.current
     setIsProcessing(true)
     setProgress(0)
     requestControllerRef.current?.abort()
@@ -68,6 +74,7 @@ export function AltTextBatch() {
     })
     setResults(currentResults)
 
+    const workQueue = [...queue]
     let completed = 0
 
     const prompt = `Write a concise, highly descriptive alt text for this image optimized for screen readers and SEO. 
@@ -76,19 +83,26 @@ Return ONLY the raw string. No markdown.`
 
     const systemPrompt = "You are an accessibility expert writing precise alt text."
 
-    for (let i = 0; i < queue.length; i++) {
-        const file = queue[i]
+    for (let i = 0; i < workQueue.length; i++) {
+        if (!isMountedRef.current || runId !== runIdRef.current) break
+        const file = workQueue[i]
+        const resultIndex = currentResults.findIndex(r => r.filename === file.name)
+        if (resultIndex === -1) continue
         
         // Skip items already successfully processed in a previous partial run
-        if (currentResults[i].status === "done") {
+        if (currentResults[resultIndex].status === "done") {
            completed++
-           setProgress(Math.round((completed / queue.length) * 100))
+           if (isMountedRef.current && runId === runIdRef.current) {
+             setProgress(Math.round((completed / workQueue.length) * 100))
+           }
            continue
         }
 
         // Mark as processing
-        currentResults[i].status = "processing"
-        setResults([...currentResults])
+        currentResults[resultIndex].status = "processing"
+        if (isMountedRef.current && runId === runIdRef.current) {
+          setResults([...currentResults])
+        }
 
         try {
            const response = await callAIVision({
@@ -98,30 +112,36 @@ Return ONLY the raw string. No markdown.`
               signal: controller.signal
            })
 
-           currentResults[i].alt = response.trim().replace(/^"/, "").replace(/"$/, "") // Handle if Claude quotes it
-           currentResults[i].status = "done"
+           currentResults[resultIndex].alt = response.trim().replace(/^"/, "").replace(/"$/, "") // Handle if Claude quotes it
+           currentResults[resultIndex].status = "done"
            completed++
         } catch (err: any) {
            if (err?.name === "AbortError" || err?.message === "Request was cancelled.") {
              break
            }
-           currentResults[i].status = "error"
-           currentResults[i].alt = err instanceof AIProviderError ? err.message : "Failed to generate alt text."
-           toast.error(`Error on ${file.name}: ${currentResults[i].alt}`)
+           currentResults[resultIndex].status = "error"
+           currentResults[resultIndex].alt = err instanceof AIProviderError ? err.message : "Failed to generate alt text."
+           if (isMountedRef.current && runId === runIdRef.current) {
+             toast.error(`Error on ${file.name}: ${currentResults[resultIndex].alt}`)
+           }
            // We intentionally do not throw to allow the bulk sequence to continue.
         }
 
-        setResults([...currentResults])
-        setProgress(Math.round((completed / queue.length) * 100))
+        if (isMountedRef.current && runId === runIdRef.current) {
+          setResults([...currentResults])
+          setProgress(Math.round((completed / workQueue.length) * 100))
+        }
     }
 
-    setIsProcessing(false)
-    if (controller.signal.aborted) {
+    if (isMountedRef.current && runId === runIdRef.current) {
+      setIsProcessing(false)
+    }
+    if (isMountedRef.current && runId === runIdRef.current && controller.signal.aborted) {
        toast.info("Batch processing cancelled.")
-    } else if (completed === queue.length) {
+    } else if (isMountedRef.current && runId === runIdRef.current && completed === workQueue.length) {
        toast.success("Batch generation complete!")
-    } else {
-       toast.warning(`Finished with ${queue.length - completed} errors.`)
+    } else if (isMountedRef.current && runId === runIdRef.current) {
+       toast.warning(`Finished with ${workQueue.length - completed} errors.`)
     }
     if (requestControllerRef.current === controller) {
       requestControllerRef.current = null
@@ -167,7 +187,7 @@ Return ONLY the raw string. No markdown.`
          <p className="text-muted-foreground text-lg mb-8">
            Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV.
          </p>
-         <ApiKeyManager />
+         <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
       </div>
     )

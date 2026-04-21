@@ -34,7 +34,7 @@ export function CssGradient() {
              <Zap className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold font-syne">Gradient Builder</h1>
+            <h1 className="text-3xl font-bold font-syne text-white">Gradient Builder</h1>
             <p className="text-muted-foreground text-sm">Visual CSS linear gradient generator.</p>
           </div>
         </div>
@@ -159,10 +159,10 @@ export function CssGradient() {
            <div className="glass-panel p-6 rounded-2xl space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Presets</h4>
               <div className="grid grid-cols-2 gap-2 text-center">
-                 <button onClick={() => { setColor1("#6366f1"); setColor2("#a855f7"); setAngle(135); }} className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-4 transition-all" />
-                 <button onClick={() => { setColor1("#f97316"); setColor2("#e11d48"); setAngle(135); }} className="p-3 bg-gradient-to-br from-orange-500 to-rose-600 rounded-lg hover:ring-2 ring-pink-500 ring-offset-4 transition-all" />
-                 <button onClick={() => { setColor1("#22c55e"); setColor2("#14b8a6"); setAngle(135); }} className="p-3 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-4 transition-all" />
-                 <button onClick={() => { setColor1("#3b82f6"); setColor2("#0ea5e9"); setAngle(135); }} className="p-3 bg-gradient-to-br from-blue-500 to-sky-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-4 transition-all" />
+                 <button onClick={() => { setColor1("#6366f1"); setColor2("#a855f7"); setAngle(135); }} className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-2 ring-offset-black transition-all" />
+                 <button onClick={() => { setColor1("#f97316"); setColor2("#e11d48"); setAngle(135); }} className="p-3 bg-gradient-to-br from-orange-500 to-rose-600 rounded-lg hover:ring-2 ring-pink-500 ring-offset-2 ring-offset-black transition-all" />
+                 <button onClick={() => { setColor1("#22c55e"); setColor2("#14b8a6"); setAngle(135); }} className="p-3 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-2 ring-offset-black transition-all" />
+                 <button onClick={() => { setColor1("#3b82f6"); setColor2("#0ea5e9"); setAngle(135); }} className="p-3 bg-gradient-to-br from-blue-500 to-sky-500 rounded-lg hover:ring-2 ring-pink-500 ring-offset-2 ring-offset-black transition-all" />
               </div>
            </div>
         </div>

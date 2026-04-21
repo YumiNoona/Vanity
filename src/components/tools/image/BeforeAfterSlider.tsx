@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2 } from "lucide-react"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function BeforeAfterSlider() {
@@ -11,7 +9,10 @@ export function BeforeAfterSlider() {
   const { url: imgUrl1, setUrl: setImgUrl1, clear: clearImgUrl1 } = useObjectUrl()
   const { url: imgUrl2, setUrl: setImgUrl2, clear: clearImgUrl2 } = useObjectUrl()
   const [sliderPos, setSliderPos] = useState(50)
+  const [isDragging, setIsDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [dims1, setDims1] = useState<{ w: number; h: number } | null>(null)
+  const [dims2, setDims2] = useState<{ w: number; h: number } | null>(null)
 
   const handleDrop1 = (files: File[]) => {
     if (files[0]) {
@@ -27,7 +28,7 @@ export function BeforeAfterSlider() {
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
+  const updateFromEvent = (e: React.MouseEvent | React.TouchEvent) => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
@@ -35,13 +36,47 @@ export function BeforeAfterSlider() {
     setSliderPos((x / rect.width) * 100)
   }
 
+  const handlePointerStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true)
+    updateFromEvent(e)
+  }
+
+  const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return
+    updateFromEvent(e)
+  }
+
+  useEffect(() => {
+    const onMouseUp = () => setIsDragging(false)
+    window.addEventListener("mouseup", onMouseUp)
+    window.addEventListener("touchend", onMouseUp)
+    window.addEventListener("touchcancel", onMouseUp)
+    return () => {
+      window.removeEventListener("mouseup", onMouseUp)
+      window.removeEventListener("touchend", onMouseUp)
+      window.removeEventListener("touchcancel", onMouseUp)
+    }
+  }, [])
+
   const reset = () => {
     setFile1(null)
     setFile2(null)
     clearImgUrl1()
     clearImgUrl2()
     setSliderPos(50)
+    setIsDragging(false)
+    setDims1(null)
+    setDims2(null)
   }
+
+  const aspectWarning = (() => {
+    if (!dims1 || !dims2) return null
+    const a1 = dims1.w / dims1.h
+    const a2 = dims2.w / dims2.h
+    const diff = Math.abs(a1 - a2)
+    if (!isFinite(diff) || diff < 0.02) return null
+    return `Aspect ratio mismatch: ${dims1.w}×${dims1.h} vs ${dims2.w}×${dims2.h}. For best results, use the same resolution/aspect ratio.`
+  })()
 
   if (!file1 || !file2) {
     return (
@@ -54,6 +89,9 @@ export function BeforeAfterSlider() {
             <p className="text-muted-foreground text-lg mb-12">
                Upload two versions of the same photo to compare them with a smooth slider.
             </p>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+              Tip: Use images with the same aspect ratio for a perfect overlay.
+            </div>
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -105,31 +143,44 @@ export function BeforeAfterSlider() {
         </button>
       </div>
 
+      {aspectWarning && (
+        <div className="mx-auto max-w-6xl px-4 sm:px-0">
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200/80 text-xs">
+            {aspectWarning}
+          </div>
+        </div>
+      )}
+
       <div 
         ref={containerRef}
         className="relative w-full aspect-video rounded-[2.5rem] overflow-hidden bg-black shadow-2xl group cursor-col-resize select-none touch-none border border-white/5"
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleMouseMove}
+        onMouseDown={handlePointerStart}
+        onTouchStart={handlePointerStart}
+        onMouseMove={handlePointerMove}
+        onTouchMove={handlePointerMove}
       >
         {/* Under Image (After) */}
         <img 
           src={imgUrl2!} 
           className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
           alt="After" 
+          onLoad={(e) => {
+            const img = e.currentTarget
+            if (img.naturalWidth && img.naturalHeight) setDims2({ w: img.naturalWidth, h: img.naturalHeight })
+          }}
         />
         
         {/* Over Image (Before) */}
-        <div 
-           className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
-           style={{ width: `${sliderPos}%` }}
-        >
-           <img 
-              src={imgUrl1!} 
-              className="absolute inset-0 w-full h-full object-cover transition-none" 
-              style={{ width: `${100 / (sliderPos / 100)}%` }} // Counter scale
-              alt="Before" 
-           />
-        </div>
+        <img
+          src={imgUrl1!}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          alt="Before"
+          style={{ clipPath: `inset(0 ${Math.max(0, Math.min(100, 100 - sliderPos))}% 0 0)` }}
+          onLoad={(e) => {
+            const img = e.currentTarget
+            if (img.naturalWidth && img.naturalHeight) setDims1({ w: img.naturalWidth, h: img.naturalHeight })
+          }}
+        />
 
         {/* Slider Handle */}
         <div 

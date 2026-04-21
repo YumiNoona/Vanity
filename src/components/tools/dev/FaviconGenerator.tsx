@@ -38,29 +38,66 @@ export function FaviconGenerator() {
       const canvas = document.createElement("canvas")
       const ctx = canvas.getContext("2d")!
 
-      for (const size of SIZES) {
+      const blobToU8 = async (b: Blob) => new Uint8Array(await b.arrayBuffer())
+
+      const makePngBlob = async (size: number) => {
         canvas.width = size
         canvas.height = size
         ctx.clearRect(0, 0, size, size)
-        
-        // Use high-quality resizing
         ctx.imageSmoothingQuality = "high"
         ctx.drawImage(img, 0, 0, size, size)
-        
-        const blob = await new Promise<Blob>((resolve) => 
-          canvas.toBlob((b) => resolve(b!), "image/png")
-        )
+        return await new Promise<Blob>((resolve) => canvas.toBlob((bb) => resolve(bb!), "image/png"))
+      }
+
+      const makeIcoFromPngs = (pngs: Uint8Array[], sizes: number[]) => {
+        // ICO header (6 bytes) + N directory entries (16 bytes each) + images
+        const count = pngs.length
+        const headerSize = 6 + 16 * count
+        const totalSize = headerSize + pngs.reduce((sum, p) => sum + p.length, 0)
+        const out = new Uint8Array(totalSize)
+        const dv = new DataView(out.buffer)
+
+        // ICONDIR
+        dv.setUint16(0, 0, true) // reserved
+        dv.setUint16(2, 1, true) // type = icon
+        dv.setUint16(4, count, true) // count
+
+        let dataOffset = headerSize
+        for (let i = 0; i < count; i++) {
+          const size = sizes[i]
+          const png = pngs[i]
+          const entryOffset = 6 + 16 * i
+
+          out[entryOffset + 0] = size >= 256 ? 0 : size // width
+          out[entryOffset + 1] = size >= 256 ? 0 : size // height
+          out[entryOffset + 2] = 0 // color count
+          out[entryOffset + 3] = 0 // reserved
+          dv.setUint16(entryOffset + 4, 1, true) // planes
+          dv.setUint16(entryOffset + 6, 32, true) // bit count
+          dv.setUint32(entryOffset + 8, png.length, true) // bytes in res
+          dv.setUint32(entryOffset + 12, dataOffset, true) // image offset
+
+          out.set(png, dataOffset)
+          dataOffset += png.length
+        }
+
+        return out
+      }
+
+      for (const size of SIZES) {
+        const blob = await makePngBlob(size)
         zip.file(`favicon-${size}x${size}.png`, blob)
       }
 
+      // favicon.ico (PNG-compressed icon images inside .ico)
+      const icoSizes = [16, 32, 48]
+      const icoPngs = await Promise.all(icoSizes.map(async (s) => blobToU8(await makePngBlob(s))))
+      const icoBytes = makeIcoFromPngs(icoPngs, icoSizes)
+      zip.file("favicon.ico", icoBytes)
+
       // Special handling for apple-touch-icon (usually 180x180)
       const appleSize = 180
-      canvas.width = appleSize
-      canvas.height = appleSize
-      ctx.drawImage(img, 0, 0, appleSize, appleSize)
-      const appleBlob = await new Promise<Blob>((resolve) => 
-        canvas.toBlob((b) => resolve(b!), "image/png")
-      )
+      const appleBlob = await makePngBlob(appleSize)
       zip.file("apple-touch-icon.png", appleBlob)
 
       const content = await zip.generateAsync({ type: "blob" })

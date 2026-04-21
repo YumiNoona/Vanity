@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Video, Download, RefreshCw, Scissors, Clock, Zap } from "lucide-react"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -10,14 +10,22 @@ import { fetchFile } from "@ffmpeg/util"
 export function VideoTrimmer() {
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
+  const { url: sourceUrl, setUrl: setSourceUrl, clear: clearSourceUrl } = useObjectUrl()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
   const [startTime, setStartTime] = useState("00:00:00")
   const [endTime, setEndTime] = useState("00:00:10")
 
+  useEffect(() => {
+    return () => {
+      clearSourceUrl()
+    }
+  }, [clearSourceUrl])
+
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
+      setSourceUrl(files[0])
       clearResultUrl()
     }
   }
@@ -94,7 +102,7 @@ export function VideoTrimmer() {
             </div>
           </div>
           <button 
-            onClick={() => { setFile(null); clearResultUrl(); }} 
+            onClick={() => { setFile(null); clearSourceUrl(); clearResultUrl(); }} 
             className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" /> Start New
@@ -139,11 +147,24 @@ export function VideoTrimmer() {
                       <div className="inline-flex items-center justify-center p-6 bg-purple-500/10 rounded-full border border-purple-500/20">
                          <Video className="w-12 h-12 text-purple-400" />
                       </div>
+                      <div className="w-full max-w-xl mx-auto">
+                        <video
+                          src={sourceUrl || ""}
+                          controls
+                          preload="metadata"
+                          className="max-h-[260px] w-full rounded-xl border border-white/10 shadow-2xl bg-black/40"
+                        />
+                      </div>
                       <div className="space-y-2">
                         <h2 className="text-3xl font-bold font-syne text-white">Ready to Slice</h2>
                         <p className="text-muted-foreground max-w-md mx-auto">
                            Set your IN and OUT timestamps to extract exactly the footage you need without losing original quality.
                         </p>
+                        {file.size > 200 * 1024 * 1024 && (
+                          <p className="text-[10px] text-amber-300/80 uppercase tracking-widest font-bold">
+                            Large video detected — loading and trimming may take longer.
+                          </p>
+                        )}
                       </div>
                       <button 
                         onClick={trimVideo}

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Trash2 } from "lucide-react"
 import { toast } from "sonner"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAI } from "@/lib/ai-providers"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -117,7 +118,7 @@ ${schema}`
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel p-6 rounded-3xl border-red-500/20 bg-black/40 space-y-6">
-               <ApiKeyManager />
+               <AIProviderHint />
                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-red-400 border-b border-white/5 pb-4">
                   <SlidersHorizontal className="w-4 h-4" /> Parameters
                </div>

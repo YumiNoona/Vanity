@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Monitor, Loader2, Glasses, ListTree, MousePointer2 } from "lucide-react"
 import { toast } from "sonner"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAIVision } from "@/lib/ai-providers"
 
 interface UiBreakdown {
@@ -103,7 +104,7 @@ JSON Structure requirement:
          <p className="text-muted-foreground text-lg mb-8">
            Upload a screenshot of any application and let Claude reverse-engineer its UX hierarchy.
          </p>
-         <ApiKeyManager />
+         <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop UI Screenshot" />
       </div>
     )

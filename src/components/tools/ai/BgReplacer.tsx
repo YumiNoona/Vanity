@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Wand2, ShieldCheck, Download, Trash2 } from "lucide-react"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAI } from "@/lib/ai-providers"
 import { toast } from "sonner"
 
@@ -81,24 +82,19 @@ export function BgReplacer() {
 
   if (!file) {
     return (
-      <div className="max-w-3xl mx-auto py-12 space-y-12 animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-               <Wand2 className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI BG Replacer</h1>
-            <p className="text-muted-foreground text-lg mb-8">
-               Remove your background locally, then let Claude "imagine" a new set using CSS & SVG artistry.
-            </p>
-         </div>
+      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
+        <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
+          <Wand2 className="w-8 h-8" />
+        </div>
+        <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI BG Replacer</h1>
+        <p className="text-muted-foreground text-lg mb-8">
+          Remove your background locally, then let Claude "imagine" a new set using CSS & SVG artistry.
+        </p>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ApiKeyManager />
-            <div className="space-y-4">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Subject Source</label>
-                <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to replace background" />
-            </div>
-         </div>
+        <div className="space-y-6">
+          <AIProviderHint />
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to replace background" />
+        </div>
       </div>
     )
   }

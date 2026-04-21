@@ -1,12 +1,11 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Film, Zap } from "lucide-react"
-import { fetchFile } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { toBlob } from "@/lib/utils/blob"
 
-import { getFFmpeg } from "@/lib/ffmpeg"
+import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function VideoToGif() {
@@ -27,41 +26,28 @@ export function VideoToGif() {
     startProcessing()
     const inputName = "input.mp4"
     const outputName = "output.gif"
-    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
-    let onProgress: ((event: { progress: number }) => void) | null = null
 
     try {
-      ffmpeg = await getFFmpeg()
-      onProgress = ({ progress }: { progress: number }) => {
-        updateProgress(Math.round(progress * 100))
-      }
-      ffmpeg.on("progress", onProgress)
-      await ffmpeg.writeFile(inputName, await fetchFile(file))
-      
-      // High quality GIF generation with palette
-      await ffmpeg.exec([
-        "-i", inputName,
-        "-vf", `fps=${fps},scale=${scale}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`,
-        outputName
-      ])
-
-      const data = await ffmpeg.readFile(outputName)
-      const blob = toBlob(data as Uint8Array, "image/gif")
+      const data = await runFFmpegJob({
+        file,
+        inputName,
+        outputName,
+        args: [
+          "-i",
+          inputName,
+          "-vf",
+          `fps=${fps},scale=${scale}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`,
+          outputName,
+        ],
+        onProgress: updateProgress,
+      })
+      const blob = toBlob(data, "image/gif")
       setResultUrl(blob)
       toast.success("GIF generated successfully!")
     } catch (error) {
       console.error(error)
       toast.error("Conversion failed. Ensure COOP/COEP headers are set.")
     } finally {
-      if (ffmpeg) {
-        if (onProgress && typeof (ffmpeg as any).off === "function") {
-          ;(ffmpeg as any).off("progress", onProgress)
-        }
-        await Promise.allSettled([
-          ffmpeg.deleteFile(inputName),
-          ffmpeg.deleteFile(outputName)
-        ])
-      }
       finishProcessing()
     }
   }
@@ -185,12 +171,12 @@ export function VideoToGif() {
                     <select 
                       value={scale}
                       onChange={(e) => setScale(parseInt(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-pink-500"
+                      className="w-full bg-black/40 text-white border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-pink-500"
                     >
-                       <option value={320}>320px (Mobile-friendly)</option>
-                       <option value={480}>480px (Balanced)</option>
-                       <option value={640}>640px (High Res)</option>
-                       <option value={800}>800px (Desktop)</option>
+                       <option className="bg-black text-white" value={320}>320px (Mobile-friendly)</option>
+                       <option className="bg-black text-white" value={480}>480px (Balanced)</option>
+                       <option className="bg-black text-white" value={640}>640px (High Res)</option>
+                       <option className="bg-black text-white" value={800}>800px (Desktop)</option>
                     </select>
                  </div>
               </div>

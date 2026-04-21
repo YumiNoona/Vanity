@@ -1,11 +1,10 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Video, Download, ShieldCheck, Zap } from "lucide-react"
-import { fetchFile } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 
-import { getFFmpeg } from "@/lib/ffmpeg"
+import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function VideoCompressor() {
@@ -27,29 +26,28 @@ export function VideoCompressor() {
     startProcessing()
     const inputName = "input.mp4"
     const outputName = "output.mp4"
-    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
-    let onProgress: ((event: { progress: number }) => void) | null = null
 
     try {
-      ffmpeg = await getFFmpeg()
-      onProgress = ({ progress }: { progress: number }) => {
-        updateProgress(Math.round(progress * 100))
-      }
-      ffmpeg.on("progress", onProgress)
-      await ffmpeg.writeFile(inputName, await fetchFile(file))
-      
-      // CRF 23-28 is good. Higher = smaller file.
-      await ffmpeg.exec([
-        "-i", inputName,
-        "-vcodec", "libx264",
-        "-crf", crf.toString(),
-        "-preset", "ultrafast",
-        "-acodec", "aac",
-        outputName
-      ])
-
-      const data = await ffmpeg.readFile(outputName)
-      const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "video/mp4" })
+      const data = await runFFmpegJob({
+        file,
+        inputName,
+        outputName,
+        args: [
+          "-i",
+          inputName,
+          "-vcodec",
+          "libx264",
+          "-crf",
+          crf.toString(),
+          "-preset",
+          "ultrafast",
+          "-acodec",
+          "aac",
+          outputName,
+        ],
+        onProgress: updateProgress,
+      })
+      const blob = new Blob([data as any], { type: "video/mp4" })
       setResultSize(blob.size)
       setResultUrl(blob)
       toast.success("Video compressed successfully!")
@@ -57,15 +55,6 @@ export function VideoCompressor() {
       console.error(error)
       toast.error("Compression failed. Ensure COOP/COEP headers are set.")
     } finally {
-      if (ffmpeg) {
-        if (onProgress && typeof (ffmpeg as any).off === "function") {
-          ;(ffmpeg as any).off("progress", onProgress)
-        }
-        await Promise.allSettled([
-          ffmpeg.deleteFile(inputName),
-          ffmpeg.deleteFile(outputName)
-        ])
-      }
       finishProcessing()
     }
   }

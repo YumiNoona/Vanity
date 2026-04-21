@@ -107,7 +107,7 @@ export function AudioWaveform() {
     
     setIsTrimming(true)
     const inputName = `input_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
-    const outName = `out_${file.name.replace(/[^a-zA-Z0-9]/g, "")}`
+    const outName = "out.wav"
     let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
     try {
        ffmpeg = await getFFmpeg()
@@ -118,17 +118,19 @@ export function AudioWaveform() {
 
        await ffmpeg.writeFile(inputName, await fetchFile(file))
        
-       // -ss = start time, -to = end time, -c copy = no re-encoding (instant split)
+       // Re-encode to WAV for reliability across input formats.
        await ffmpeg.exec([
-         "-i", inputName,
          "-ss", startTime.toFixed(3),
          "-to", endTime.toFixed(3),
-         "-c", "copy",
+         "-i", inputName,
+         "-acodec", "pcm_s16le",
+         "-ar", "44100",
+         "-ac", "2",
          outName
        ])
 
        const data = await ffmpeg.readFile(outName)
-       const blob = new Blob([data as any], { type: "audio/wav" })
+       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "audio/wav" })
        setTrimmedUrl(blob)
        toast.success("Audio trimmed successfully!")
        

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, ImagePlay, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
@@ -18,12 +19,39 @@ export function VideoThumbnails() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isUnmountedRef = useRef(false)
 
+  const waitForEvent = (target: HTMLMediaElement, eventName: string, timeoutMs: number) => {
+    return new Promise<void>((resolve, reject) => {
+      const onEvent = () => {
+        cleanup()
+        resolve()
+      }
+      const onError = () => {
+        cleanup()
+        reject(new Error("Video decode failed. Try a different format or smaller file."))
+      }
+      const timeoutId = window.setTimeout(() => {
+        cleanup()
+        reject(new Error("Timed out while decoding video frames. Try fewer frames or a smaller file."))
+      }, timeoutMs)
+
+      const cleanup = () => {
+        window.clearTimeout(timeoutId)
+        target.removeEventListener(eventName, onEvent)
+        target.removeEventListener("error", onError)
+      }
+
+      target.addEventListener("error", onError, { once: true })
+      target.addEventListener(eventName, onEvent, { once: true })
+    })
+  }
+
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
       setVideoUrl(files[0])
       clearThumbnails()
       setProgress(0)
+      setIsExtracting(false)
     }
   }
 
@@ -49,10 +77,8 @@ export function VideoThumbnails() {
     try {
       // Ensure video metadata loaded
       if (video.readyState < 1) {
-         await new Promise(resolve => {
-           video.onloadedmetadata = resolve
-         })
-         video.onloadedmetadata = null
+        video.load()
+        await waitForEvent(video, "loadedmetadata", 15000)
       }
 
       const duration = video.duration
@@ -72,13 +98,7 @@ export function VideoThumbnails() {
          video.currentTime = targetTime
          
          // Wait for seek strictly
-         await new Promise(resolve => {
-            const onSeeked = () => {
-               video.removeEventListener("seeked", onSeeked)
-               resolve(true)
-            }
-            video.addEventListener("seeked", onSeeked)
-         })
+         await waitForEvent(video, "seeked", 12000)
          if (isUnmountedRef.current) return
 
          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
@@ -95,8 +115,12 @@ export function VideoThumbnails() {
          }
       }
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
+      if (!isUnmountedRef.current) {
+        toast.error(e?.message || "Failed to extract frames.")
+        setProgress(0)
+      }
     } finally {
       if (!isUnmountedRef.current) {
         setIsExtracting(false)

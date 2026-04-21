@@ -1,11 +1,10 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Mic, Download, Zap, VideoOff, CheckCircle } from "lucide-react"
-import { fetchFile } from "@ffmpeg/util"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 
-import { getFFmpeg } from "@/lib/ffmpeg"
+import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function VideoToMp3() {
@@ -25,37 +24,22 @@ export function VideoToMp3() {
     startProcessing()
     const inputName = `input.${file.name.split('.').pop()}`
     const outputName = "output.mp3"
-    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
-    let onProgress: ((event: { progress: number }) => void) | null = null
 
     try {
-      ffmpeg = await getFFmpeg()
-      onProgress = ({ progress }: { progress: number }) => {
-        updateProgress(Math.round(progress * 100))
-      }
-      ffmpeg.on("progress", onProgress)
-      await ffmpeg.writeFile(inputName, await fetchFile(file))
-      
-      // -vn = disable video. -ab = bitrate.
-      await ffmpeg.exec(["-i", inputName, "-vn", "-ab", "192k", "-ar", "44100", "-y", outputName])
-
-      const data = await ffmpeg.readFile(outputName)
-      const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "audio/mp3" })
+      const data = await runFFmpegJob({
+        file,
+        inputName,
+        outputName,
+        args: ["-i", inputName, "-vn", "-ab", "192k", "-ar", "44100", "-y", outputName],
+        onProgress: updateProgress,
+      })
+      const blob = new Blob([data as any], { type: "audio/mp3" })
       setResultUrl(blob)
       toast.success("Audio extracted successfully!")
     } catch (error) {
       console.error(error)
       toast.error("Extraction failed.")
     } finally {
-      if (ffmpeg) {
-        if (onProgress && typeof (ffmpeg as any).off === "function") {
-          ;(ffmpeg as any).off("progress", onProgress)
-        }
-        await Promise.allSettled([
-          ffmpeg.deleteFile(inputName),
-          ffmpeg.deleteFile(outputName)
-        ])
-      }
       finishProcessing()
     }
   }

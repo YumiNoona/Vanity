@@ -1,6 +1,6 @@
 import React from "react"
 import { Link } from "react-router-dom"
-import { Heart } from "lucide-react"
+import { Heart, KeyRound } from "lucide-react"
 
 interface NavbarProps {
   onDonateOpen: () => void
@@ -23,6 +23,13 @@ export function Navbar({ onDonateOpen }: NavbarProps) {
         </div>
         
         <div className="flex-1 flex items-center justify-end">
+          <Link
+            to="/tools/ai/providers"
+            className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-white/10 transition-colors border border-white/10 mr-2"
+          >
+            <KeyRound className="h-4 w-4" />
+            AI Keys
+          </Link>
           <button
             onClick={onDonateOpen}
             className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors border border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"

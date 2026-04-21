@@ -167,7 +167,10 @@ export function Home() {
                         <div className="mb-4 inline-flex items-center justify-center rounded-xl bg-primary/5 p-4 text-primary group-hover:scale-110 transition-transform">
                           <Icon className="h-6 w-6" />
                         </div>
-                        <h3 className="font-syne text-sm font-bold truncate w-full">{tool.title}</h3>
+                        <h3 className="font-syne text-sm font-bold truncate w-full inline-flex items-center justify-center gap-2">
+                          {tool.isBulk && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" title="Bulk tool" aria-label="Bulk tool" />}
+                          {tool.title}
+                        </h3>
                       </Link>
                     </motion.div>
                   )
@@ -211,12 +214,20 @@ export function Home() {
                           <div className={`inline-flex items-center justify-center rounded-xl bg-${category.color}/10 p-3.5 text-${category.color} group-hover:scale-110 transition-transform`}>
                             <Icon className="h-6 w-6" />
                           </div>
-                          {isPopular && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full border border-primary/10">
-                              <Sparkles className="w-3 h-3" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest">Popular</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {tool.isBulk && (
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Bulk</span>
+                              </div>
+                            )}
+                            {isPopular && (
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full border border-primary/10">
+                                <Sparkles className="w-3 h-3" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Popular</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <h3 className="mb-2 font-syne text-xl font-bold group-hover:text-primary transition-colors tracking-tight">{tool.title}</h3>
                         <p className="text-sm text-muted-foreground leading-relaxed">

@@ -13,6 +13,18 @@ export function ImageToSketch() {
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const mainCanvas = useRef<HTMLCanvasElement>(null)
+  const processingTimeoutRef = useRef<number | null>(null)
+  const runIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+      if (processingTimeoutRef.current !== null) {
+        window.clearTimeout(processingTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -23,10 +35,17 @@ export function ImageToSketch() {
 
   const applyEffect = useCallback(() => {
     if (!file || !mainCanvas.current) return
+    runIdRef.current += 1
+    const runId = runIdRef.current
+    if (processingTimeoutRef.current !== null) {
+      window.clearTimeout(processingTimeoutRef.current)
+      processingTimeoutRef.current = null
+    }
     setIsProcessing(true)
 
     const img = new Image()
     img.onload = () => {
+      if (!isMountedRef.current || runId !== runIdRef.current) return
       const canvas = mainCanvas.current!
       canvas.width = img.width
       canvas.height = img.height
@@ -53,7 +72,8 @@ export function ImageToSketch() {
       const invData = tCtx.getImageData(0, 0, canvas.width, canvas.height)
       
       // 4. Color Dodge Blend (Yield to browser to render loading state)
-      setTimeout(() => {
+      processingTimeoutRef.current = window.setTimeout(() => {
+        if (!isMountedRef.current || runId !== runIdRef.current) return
         const result = ctx.createImageData(canvas.width, canvas.height)
         for (let i = 0; i < grayData.data.length; i += 4) {
           // Color Dodge formula: result = base / (1 - blend)
@@ -71,7 +91,13 @@ export function ImageToSketch() {
         tempCanvas.width = 0
         tempCanvas.height = 0
         setIsProcessing(false)
+        processingTimeoutRef.current = null
       }, 50)
+    }
+    img.onerror = () => {
+      if (!isMountedRef.current || runId !== runIdRef.current) return
+      setIsProcessing(false)
+      toast.error("Failed to decode image")
     }
     img.src = previewUrl!
   }, [file, intensity, previewUrl])

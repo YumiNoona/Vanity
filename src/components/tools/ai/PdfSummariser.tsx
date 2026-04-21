@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
-import * as pdfjsLib from "pdfjs-dist"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAI } from "@/lib/ai-providers"
+import { extractPdfText } from "@/lib/pdf-text"
 import { toast } from "sonner"
 
 export function PdfSummariser() {
@@ -13,9 +14,12 @@ export function PdfSummariser() {
   const [progress, setProgress] = useState(0)
   const activeProvider = useActiveProvider()
   const requestControllerRef = useRef<AbortController | null>(null)
+  const runIdRef = useRef(0)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false
       requestControllerRef.current?.abort()
     }
   }, [])
@@ -29,6 +33,8 @@ export function PdfSummariser() {
 
   const startSummarisation = async () => {
     if (!file) return
+    runIdRef.current += 1
+    const runId = runIdRef.current
     setIsProcessing(true)
     setSummary("")
     setProgress(0)
@@ -37,17 +43,12 @@ export function PdfSummariser() {
     requestControllerRef.current = controller
 
     try {
-      const arrayBuffer = await file.arrayBuffer()
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-      
-      const pageTexts: string[] = []
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i)
-        const textContent = await page.getTextContent()
-        const text = textContent.items.map((item: any) => item.str).join(" ")
-        pageTexts.push(text)
-        setProgress(Math.round((i / pdf.numPages) * 30)) // First 30% is extraction
-      }
+      const { pageTexts } = await extractPdfText(file, {
+        onProgress: (p) => {
+          if (!isMountedRef.current || runId !== runIdRef.current) return
+          setProgress(Math.round(p * 0.3))
+        },
+      })
 
       // Chunking strategy: Summarise in batches of 4 pages to stay within token limits
       const chunkSize = 4
@@ -65,10 +66,12 @@ export function PdfSummariser() {
         summaries.push(responseText)
         
         const currentCompletion = Math.min(100, 30 + Math.round(((i + chunkSize) / pageTexts.length) * 70))
+        if (!isMountedRef.current || runId !== runIdRef.current) return
         setProgress(currentCompletion)
       }
 
       // Final aggregation if it was a multi-chunk document
+      if (!isMountedRef.current || runId !== runIdRef.current) return
       if (summaries.length > 1) {
          setSummary("### Executive Summary (Aggregated)\n\n" + summaries.join("\n\n---\n\n"))
       } else {
@@ -86,30 +89,27 @@ export function PdfSummariser() {
       if (requestControllerRef.current === controller) {
         requestControllerRef.current = null
       }
-      setIsProcessing(false)
+      if (isMountedRef.current && runId === runIdRef.current) {
+        setIsProcessing(false)
+      }
     }
   }
 
   if (!file) {
     return (
-      <div className="max-w-3xl mx-auto py-12 space-y-12 animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-               <BrainCircuit className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI PDF Summariser</h1>
-            <p className="text-muted-foreground text-lg mb-8">
-               Paste your Anthropic key and upload a PDF to get 100% private, AI-powered insights.
-            </p>
-         </div>
+      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
+        <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
+          <BrainCircuit className="w-8 h-8" />
+        </div>
+        <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI PDF Summariser</h1>
+        <p className="text-muted-foreground text-lg mb-8">
+          Upload a PDF to get private, AI-powered insights.
+        </p>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ApiKeyManager />
-            <div className="space-y-4">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">PDF Source</label>
-                <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to summarise" />
-            </div>
-         </div>
+        <div className="space-y-6">
+          <AIProviderHint />
+          <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to summarise" />
+        </div>
       </div>
     )
   }

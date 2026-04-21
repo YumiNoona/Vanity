@@ -8,7 +8,8 @@ import * as pdfjsLib from "pdfjs-dist"
 import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAI } from "@/lib/ai-providers"
 
 interface ReviewResult {
@@ -138,7 +139,7 @@ Your response must exactly match this JSON structure:
          <p className="text-muted-foreground text-lg mb-8">
            Get an elite recruiter's actionable breakdown completely privately without uploading to third-party databases.
          </p>
-         <ApiKeyManager />
+         <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"], "text/plain": [".txt"] }} label="Drop PDF/TXT Resume" />
       </div>
     )

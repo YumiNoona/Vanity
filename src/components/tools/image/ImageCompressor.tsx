@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { ModeToggle } from "@/components/shared/ModeToggle"
 import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
 import type { QueueItem } from "@/types/bulk"
-import { cn, formatSize } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { downloadBlob } from "@/lib/canvas/export"
 import JSZip from "jszip"
 
@@ -28,15 +28,27 @@ export function ImageCompressor() {
   // Settings
   const [targetSizeKB, setTargetSizeKB] = useState(100)
 
+  const loadImageFromFile = (input: File) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(input)
+      const img = new Image()
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(img)
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error("Failed to decode image"))
+      }
+      img.src = objectUrl
+    })
+
   const runIterativeCompress = async (file: File, targetKB: number) => {
     const targetBytes = targetKB * 1024
     const MAX_ITERS = 10
     
     // Load image into canvas
-    const img = new Image()
-    img.src = URL.createObjectURL(file)
-    await new Promise((resolve) => img.onload = resolve)
-    URL.revokeObjectURL(img.src)
+    const img = await loadImageFromFile(file)
 
     let scale = 1.0
     let quality = 0.8

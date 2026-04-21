@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { BrainCircuit, CheckCircle2, KeyRound, Trash2 } from "lucide-react"
+import { BrainCircuit, CheckCircle2, Trash2 } from "lucide-react"
 import { getActiveProvider } from "@/lib/ai-providers"
 
 type ProviderKey = {
@@ -71,31 +71,31 @@ export function ApiKeyManager() {
         {PROVIDERS.map((provider) => {
           const saved = Boolean(values[provider.storageKey])
           return (
-            <div key={provider.id} className="grid grid-cols-12 gap-2 items-center p-3 rounded-xl border border-white/10 bg-black/20">
-              <div className="col-span-3 flex items-center gap-2">
+            <div key={provider.id} className="p-3 rounded-xl border border-white/10 bg-black/20 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 rounded-md bg-white/10">
                   <BrainCircuit className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-semibold">{provider.label}</span>
+                  <span className="text-sm font-semibold truncate">{provider.label}</span>
+                </div>
+                <span className={`text-[10px] px-2 py-1 rounded-full shrink-0 ${saved ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-muted-foreground"}`}>
+                  {saved ? "Saved" : "Not set"}
+                </span>
               </div>
-              <div className="col-span-6">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   value={drafts[provider.storageKey] || ""}
                   onChange={(e) => setDrafts((prev) => ({ ...prev, [provider.storageKey]: e.target.value }))}
                   placeholder={saved ? mask(values[provider.storageKey]) : "Paste API key"}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
+                  className="flex-1 min-w-0 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
                 />
-              </div>
-              <div className="col-span-3 flex items-center justify-end gap-2">
-                <button onClick={() => save(provider.storageKey)} className="px-2.5 py-1.5 text-xs rounded-lg bg-emerald-600 text-white">
+                <button onClick={() => save(provider.storageKey)} className="px-3 py-2 text-xs rounded-lg bg-emerald-600 text-white">
                   Save
                 </button>
-                <button onClick={() => clear(provider.storageKey)} className="px-2.5 py-1.5 text-xs rounded-lg bg-white/10">
+                <button onClick={() => clear(provider.storageKey)} className="px-3 py-2 text-xs rounded-lg bg-white/10">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-                <span className={`text-[10px] px-2 py-1 rounded-full ${saved ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-muted-foreground"}`}>
-                  {saved ? "Saved" : "Not set"}
-                </span>
               </div>
             </div>
           )

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Monitor, Code, ShieldCheck, Copy, CheckCircle, Smartphone } from "lucide-react"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAIVision } from "@/lib/ai-providers"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -77,7 +78,7 @@ export function ScreenshotToCode() {
 
   if (!file) {
     return (
-      <div className="max-w-3xl mx-auto py-12 space-y-12 animate-in fade-in duration-500">
+      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
          <div className="text-center">
             <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
                <Monitor className="w-8 h-8" />
@@ -88,12 +89,9 @@ export function ScreenshotToCode() {
             </p>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ApiKeyManager />
-            <div className="space-y-4">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">UI Mockup Source</label>
-                <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop screenshot here" />
-            </div>
+         <div className="space-y-6">
+            <AIProviderHint />
+            <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop screenshot here" />
          </div>
       </div>
     )

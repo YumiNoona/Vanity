@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Sparkles, MessageSquare, Copy, CheckCircle, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
-import { AIProviderError, callAIVision } from "@/lib/ai-providers"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
+import { AIProviderError } from "@/lib/ai-providers"
+import { useAIVisionTask } from "@/hooks/useAIVisionTask"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -18,7 +20,7 @@ export function ImageCaptionGenerator() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [captions, setCaptions] = useState<string[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const requestControllerRef = useRef<AbortController | null>(null)
+  const { isRunning, run } = useAIVisionTask()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -28,19 +30,10 @@ export function ImageCaptionGenerator() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      requestControllerRef.current?.abort()
-    }
-  }, [])
-
   const generateCaptions = async () => {
     if (!file) return
     setIsProcessing(true)
     setCaptions([])
-    requestControllerRef.current?.abort()
-    const controller = new AbortController()
-    requestControllerRef.current = controller
 
     try {
       const prompt = `Analyze this image carefully. Generate 3 distinct captions suitable for ${platform}.
@@ -51,12 +44,7 @@ JSON Structure requirement:
 
       const systemPrompt = "You are a master social media manager and creative writer. Strictly adhere to generating an exact JSON array of strings."
 
-      const responseText = await callAIVision({
-         file,
-         prompt,
-         systemPrompt,
-         signal: controller.signal
-      })
+      const responseText = await run({ file, prompt, systemPrompt })
 
       const cleaned = responseText.replace(/```json/gi, "").replace(/```/gi, "").trim()
       const parsed = JSON.parse(cleaned) as string[]
@@ -80,9 +68,6 @@ JSON Structure requirement:
          toast.error("An unknown error occurred during generation.")
       }
     } finally {
-      if (requestControllerRef.current === controller) {
-        requestControllerRef.current = null
-      }
       setIsProcessing(false)
     }
   }
@@ -104,7 +89,7 @@ JSON Structure requirement:
          <p className="text-muted-foreground text-lg mb-8">
            Upload any image and let Claude write engaging, platform-perfect captions in seconds.
          </p>
-         <ApiKeyManager />
+         <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to caption" />
       </div>
     )
@@ -170,7 +155,7 @@ JSON Structure requirement:
 
                <button 
                  onClick={generateCaptions}
-                 disabled={isProcessing}
+                   disabled={isProcessing || isRunning}
                  className="w-full mt-4 py-4 bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                >
                  {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Drafting...</> : <><Sparkles className="w-5 h-5" /> Generate Options</>}

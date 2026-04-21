@@ -23,6 +23,18 @@ export function ColorBlindness() {
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+  const processingTimeoutRef = useRef<number | null>(null)
+  const runIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+      if (processingTimeoutRef.current !== null) {
+        window.clearTimeout(processingTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -34,9 +46,16 @@ export function ColorBlindness() {
   }
 
   const applyMatrix = async (simMode: Simulation) => {
+    runIdRef.current += 1
+    const runId = runIdRef.current
+    if (processingTimeoutRef.current !== null) {
+      window.clearTimeout(processingTimeoutRef.current)
+      processingTimeoutRef.current = null
+    }
     setMode(simMode)
     if (simMode === "original") {
       clearOutputUrl()
+      setIsProcessing(false)
       return
     }
 
@@ -44,8 +63,9 @@ export function ColorBlindness() {
     setIsProcessing(true)
 
     // Using setTimeout to yield main thread briefly so UI doesn't completely lock instantly before loader renders
-    setTimeout(() => {
+    processingTimeoutRef.current = window.setTimeout(() => {
       try {
+        if (!isMountedRef.current || runId !== runIdRef.current) return
         const img = imgRef.current!
         const canvas = canvasRef.current!
         canvas.width = img.naturalWidth
@@ -73,12 +93,18 @@ export function ColorBlindness() {
 
         ctx.putImageData(imageData, 0, 0)
         canvas.toBlob((blob) => {
+          if (!isMountedRef.current || runId !== runIdRef.current) return
           if (blob) setOutputUrl(blob)
         }, "image/png")
       } catch (err) {
-        toast.error("Failed to process image matrix")
+        if (isMountedRef.current && runId === runIdRef.current) {
+          toast.error("Failed to process image matrix")
+        }
       } finally {
-        setIsProcessing(false)
+        if (isMountedRef.current && runId === runIdRef.current) {
+          setIsProcessing(false)
+        }
+        processingTimeoutRef.current = null
       }
     }, 50)
   }

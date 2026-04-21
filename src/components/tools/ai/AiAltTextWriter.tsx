@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle } from "lucide-react"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
-import { callAIVision } from "@/lib/ai-providers"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
+import { useAIVisionTask } from "@/hooks/useAIVisionTask"
 import { toast } from "sonner"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -14,7 +15,7 @@ export function AiAltTextWriter() {
   const [altText, setAltText] = useState("")
   const [copied, setCopied] = useState(false)
   const activeProvider = useActiveProvider()
-  const requestControllerRef = useRef<AbortController | null>(null)
+  const { isRunning, run } = useAIVisionTask()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
@@ -24,25 +25,16 @@ export function AiAltTextWriter() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      requestControllerRef.current?.abort()
-    }
-  }, [])
-
   const generateAltText = async () => {
     if (!file) return
     setIsProcessing(true)
-    requestControllerRef.current?.abort()
-    const controller = new AbortController()
-    requestControllerRef.current = controller
 
     try {
-      const responseText = await callAIVision({
+      const responseText = await run({
          file,
-         prompt: "Write a high-quality, descriptive alternative text for this image to be used for accessibility (screen readers). Keep it objective and concise, but include key visual details.",
+         prompt:
+           "Write a high-quality, descriptive alternative text for this image to be used for accessibility (screen readers). Keep it objective and concise, but include key visual details.",
          systemPrompt: "You are an accessibility expert.",
-         signal: controller.signal
       })
 
       setAltText(responseText)
@@ -54,9 +46,6 @@ export function AiAltTextWriter() {
       console.error(error)
       toast.error(error.message || "Failed to call AI.")
     } finally {
-      if (requestControllerRef.current === controller) {
-        requestControllerRef.current = null
-      }
       setIsProcessing(false)
     }
   }
@@ -70,24 +59,19 @@ export function AiAltTextWriter() {
 
   if (!file) {
     return (
-      <div className="max-w-3xl mx-auto py-12 space-y-12 animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-               <Eye className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI Alt-Text Writer</h1>
-            <p className="text-muted-foreground text-lg mb-8">
-               Generate professional accessibility descriptions for your images using Claude Vision.
-            </p>
-         </div>
+      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
+        <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
+          <Eye className="w-8 h-8" />
+        </div>
+        <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI Alt-Text Writer</h1>
+        <p className="text-muted-foreground text-lg mb-8">
+          Generate professional accessibility descriptions for your images using Claude Vision.
+        </p>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ApiKeyManager />
-            <div className="space-y-4">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Image Source</label>
-                <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to describe" />
-            </div>
-         </div>
+        <div className="space-y-6">
+          <AIProviderHint />
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to describe" />
+        </div>
       </div>
     )
   }
@@ -147,7 +131,7 @@ export function AiAltTextWriter() {
                 </div>
                 <button 
                   onClick={generateAltText}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isRunning}
                   className="px-12 py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 justify-center lg:justify-start"
                 >
                   <Sparkles className="w-6 h-6" />

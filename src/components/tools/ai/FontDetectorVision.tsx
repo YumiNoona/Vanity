@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Type, Loader2, Sparkles, ExternalLink, Info } from "lucide-react"
 import { toast } from "sonner"
-import { ApiKeyManager, useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAIVision } from "@/lib/ai-providers"
 
 interface FontMatch {
@@ -102,7 +103,7 @@ JSON Structure requirement:
          <p className="text-muted-foreground text-lg mb-8">
            Drop a screenshot of any text to heuristically determine its closest typographic family.
          </p>
-         <ApiKeyManager />
+         <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image with text" />
       </div>
     )

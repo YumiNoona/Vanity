@@ -23,6 +23,7 @@ export interface Tool {
   icon: ToolIcon;
   path: string;
   isPopular?: boolean;
+  isBulk?: boolean;
   keywords?: string[]; // For smart search
 }
 
@@ -38,23 +39,23 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "ascii", title: "ASCII Art Converter", description: "Turn any image into a text-based ASCII rendering.", icon: Type, path: "/tools/image/ascii" },
   { id: "social-resizer", title: "Social Media Resizer", description: "One-click resize for Instagram, Twitter, and LinkedIn.", icon: Smartphone, path: "/tools/image/social-resizer", keywords: ["resize", "crop", "ig", "twitter"] },
   { id: "image-to-sketch", title: "Image to Sketch", description: "Turn any photo into a pencil-sketch style illustration.", icon: Pencil, path: "/tools/image/sketch", keywords: ["draw", "pencil", "art"] },
-  { id: "sprite-slicer", title: "Sprite Sheet Slicer", description: "Cut a sprite grid into individual files in a zip.", icon: Grid, path: "/tools/image/sprite-slicer" },
+  { id: "sprite-slicer", title: "Sprite Sheet Slicer", description: "Cut a sprite grid into individual files in a zip.", icon: Grid, path: "/tools/image/sprite-slicer", isBulk: true },
   { id: "before-after", title: "Before & After Slider", description: "Create an interactive slider to compare two images side-by-side.", icon: SplitSquareHorizontal, path: "/tools/image/slider" },
   { id: "ocr", title: "OCR — Image to Text", description: "Extract text from images using AI-powered OCR.", icon: Languages, path: "/tools/image/ocr" },
   { id: "svg-to-raster", title: "SVG to PNG / JPG", description: "Convert vector SVGs to raster formats at any resolution.", icon: FileType, path: "/tools/image/svg-to-raster" },
-  { id: "format-converter", title: "Format Converter", description: "Convert images between JPG, PNG, WEBP, and more.", icon: ArrowLeftRight, path: "/tools/image/convert" },
+  { id: "format-converter", title: "Format Converter", description: "Convert images between JPG, PNG, WEBP, and more.", icon: ArrowLeftRight, path: "/tools/image/convert", isBulk: true },
   { id: "image-effects", title: "Image Effects", description: "Apply filters, adjust brightness, contrast, and more.", icon: Layers, path: "/tools/image/effects" },
-  { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", keywords: ["shrink", "size", "kb"] },
+  { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", isBulk: true, keywords: ["shrink", "size", "kb"] },
   { id: "crop-resize", title: "Crop & Resize", description: "Easily crop and resize free-hand or to specific dimensions.", icon: Crop, path: "/tools/image/crop" },
   { id: "palette", title: "Color Palette", description: "Extract design palettes from any photograph.", icon: Pipette, path: "/tools/image/palette" },
   { id: "censor", title: "Smart Censor", description: "Pixelate sensitive information and faces.", icon: ShieldAlert, path: "/tools/image/censor" },
-  { id: "exif-sanitizer", title: "EXIF Sanitizer", description: "Remove metadata for maximum privacy.", icon: ShieldCheck, path: "/tools/image/exif-sanitizer", keywords: ["metadata", "privacy", "gps"] },
+  { id: "exif-sanitizer", title: "EXIF Sanitizer", description: "Remove metadata for maximum privacy.", icon: ShieldCheck, path: "/tools/image/exif-sanitizer", isBulk: true, keywords: ["metadata", "privacy", "gps"] },
   { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
   { id: "image-diff", title: "Image Difference tool", description: "Compute exact pixel deviations via XOR overlays.", icon: Microscope, path: "/tools/image/diff", keywords: ["compare", "xor", "overlay"] },
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
-  { id: "icc-stripper", title: "ICC Profile Stripper", description: "Normalize images to sRGB spaces stripping embedded data.", icon: PaintBucket, path: "/tools/image/icc-stripper", keywords: ["color", "srgb", "profile"] },
-  { id: "bulk-resize", title: "Bulk Image Resizer", description: "Resize entire batches locally via memory-safe sequential queues.", icon: Layers, path: "/tools/image/bulk-resize", keywords: ["batch", "scale", "dimensions"] },
-  { id: "heic-to-jpg", title: "HEIC to JPG", description: "Batch convert Apple HEIC photos instantly.", icon: ImagePlus, path: "/tools/image/heic-to-jpg", keywords: ["iphone", "apple", "convert"] },
+  { id: "icc-stripper", title: "ICC Profile Stripper", description: "Normalize images to sRGB spaces stripping embedded data.", icon: PaintBucket, path: "/tools/image/icc-stripper", isBulk: true, keywords: ["color", "srgb", "profile"] },
+  { id: "bulk-resize", title: "Bulk Image Resizer", description: "Resize entire batches locally via memory-safe sequential queues.", icon: Layers, path: "/tools/image/bulk-resize", isBulk: true, keywords: ["batch", "scale", "dimensions"] },
+  { id: "heic-to-jpg", title: "HEIC to JPG", description: "Batch convert Apple HEIC photos instantly.", icon: ImagePlus, path: "/tools/image/heic-to-jpg", isBulk: true, keywords: ["iphone", "apple", "convert"] },
 ]
 
 export const PDF_TOOLS: Tool[] = [
@@ -86,7 +87,7 @@ export const AI_TOOLS: Tool[] = [
   { id: "ai-resume-reviewer", title: "AI Resume Reviewer", description: "Elite recruiter JSON evaluations and visual scorecards.", icon: Award, path: "/tools/ai/resume", isPopular: true, keywords: ["job", "audit", "cv"] },
   { id: "vision-font-detector", title: "Font Matcher (Vision)", description: "Heuristically determine typography via image layers.", icon: Type, path: "/tools/ai/font-match", keywords: ["font", "type", "scan"] },
   { id: "explain-ui", title: "Explain UI", description: "Deconstruct interface screenshots into hierarchy trees.", icon: Monitor, path: "/tools/ai/explain-ui", keywords: ["design", "ux", "layout"] },
-  { id: "alt-text-batch", title: "Batch Alt Text", description: "Mass-generate SEO descriptions queued sequentially.", icon: Images, path: "/tools/ai/alt-text-batch", keywords: ["bulk", "seo", "vision"] },
+  { id: "alt-text-batch", title: "Batch Alt Text", description: "Mass-generate SEO descriptions queued sequentially.", icon: Images, path: "/tools/ai/alt-text-batch", isBulk: true, keywords: ["bulk", "seo", "vision"] },
   { id: "caption-generator", title: "Caption Generator", description: "Generate contextual social captions securely.", icon: MessageSquare, path: "/tools/ai/caption", keywords: ["social", "instagram", "post"] },
   { id: "mock-api-generator", title: "Mock JSON Generator", description: "Synthesize strict deterministic schema arrays seamlessly.", icon: Database, path: "/tools/ai/mock-api", keywords: ["dummy", "data", "scaffold"] },
   { id: "ai-providers", title: "AI Keys", description: "Manage Gemini, Anthropic, OpenAI, and Groq keys in one place.", icon: KeyRound, path: "/tools/ai/providers", keywords: ["api", "keys", "providers"] },
@@ -110,12 +111,12 @@ export const DEV_TOOLS: Tool[] = [
 
 export const VIDEO_TOOLS: Tool[] = [
   { id: "video-compressor", title: "Video Compressor", description: "Compress MP4/WebM files locally with FFMPEG.", icon: Minimize2, path: "/tools/video/compress", isPopular: true },
-  { id: "audio-converter", title: "Audio Converter", description: "Convert between MP3, WAV, OGG, M4A via FFMPEG.", icon: Music, path: "/tools/video/audio-convert" },
-  { id: "video-to-mp3", title: "Video to MP3", description: "Strip audio tracks from any video file instantly.", icon: Mic, path: "/tools/video/video-to-mp3" },
-  { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
-  { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
-  { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
   { id: "video-trimmer", title: "Video Trimmer", description: "Slice and exact clip segments via native stream-copying.", icon: Scissors, path: "/tools/video/trimmer", keywords: ["cut", "slice", "mp4"] },
+  { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
+  { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
+  { id: "video-to-mp3", title: "Video to MP3", description: "Strip audio tracks from any video file instantly.", icon: Mic, path: "/tools/video/video-to-mp3" },
+  { id: "audio-converter", title: "Audio Converter", description: "Convert between MP3, WAV, OGG, M4A via FFMPEG.", icon: Music, path: "/tools/video/audio-convert" },
+  { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
 ]
 
 export const TEXT_TOOLS: Tool[] = [
