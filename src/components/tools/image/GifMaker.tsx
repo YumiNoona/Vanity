@@ -72,10 +72,10 @@ export function GifMaker() {
     setIsProcessing(true)
     setProgressStage("processing")
     const startTime = performance.now()
+    const frameUrls: string[] = []
 
     try {
       // 1. Process & Rezise Frames with time-budget yielding
-      const frameUrls: string[] = []
       let aggregatePixels = 0
 
       for (let i = 0; i < files.length; i++) {
@@ -178,6 +178,7 @@ export function GifMaker() {
         setProgressStage("idle")
       })
     } catch (err: any) {
+      frameUrls.forEach(u => URL.revokeObjectURL(u))
       toast.error(err.message || "Something went wrong")
       setIsProcessing(false)
       setProgressStage("idle")

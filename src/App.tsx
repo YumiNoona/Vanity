@@ -49,7 +49,6 @@ const CodeGenerator = lazy(() => import("./components/tools/image/CodeGenerator"
 const MemeGenerator = lazy(() => import("./components/tools/image/MemeGenerator").then(m => ({ default: m.MemeGenerator })))
 const AiUpscaler = lazy(() => import("./components/tools/image/AiUpscaler").then(m => ({ default: m.AiUpscaler })))
 const OcrExtractor = lazy(() => import("./components/tools/image/OcrExtractor").then(m => ({ default: m.OcrExtractor })))
-const SvgToRaster = lazy(() => import("./components/tools/image/SvgToRaster").then(m => ({ default: m.SvgToRaster })))
 const SocialResizer = lazy(() => import("./components/tools/image/SocialResizer").then(m => ({ default: m.SocialResizer })))
 const ImageToSketch = lazy(() => import("./components/tools/image/ImageToSketch").then(m => ({ default: m.ImageToSketch })))
 const NoiseGrain = lazy(() => import("./components/tools/image/NoiseGrain").then(m => ({ default: m.NoiseGrain })))
@@ -62,21 +61,18 @@ const SpriteSlicer = lazy(() => import("./components/tools/image/SpriteSlicer").
 const ImageDiff = lazy(() => import("./components/tools/image/ImageDiff").then(m => ({ default: m.ImageDiff })))
 const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
 const IccStripper = lazy(() => import("./components/tools/image/IccStripper").then(m => ({ default: m.IccStripper })))
-const ImageResizerBulk = lazy(() => import("./components/tools/image/ImageResizerBulk").then(m => ({ default: m.ImageResizerBulk })))
-const HeicToJpg = lazy(() => import("./components/tools/image/HeicToJpg").then(m => ({ default: m.HeicToJpg })))
+
 
 // PDF Tools
 const MergePdf = lazy(() => import("./components/tools/pdf/MergePdf").then(m => ({ default: m.MergePdf })))
 const SplitPdf = lazy(() => import("./components/tools/pdf/SplitPdf").then(m => ({ default: m.SplitPdf })))
-const PdfToImages = lazy(() => import("./components/tools/pdf/PdfToImages").then(m => ({ default: m.PdfToImages })))
+const PdfExporter = lazy(() => import("./components/tools/pdf/PdfExporter").then(m => ({ default: m.PdfExporter })))
 const CompressPdf = lazy(() => import("./components/tools/pdf/CompressPdf").then(m => ({ default: m.CompressPdf })))
 const PdfPassword = lazy(() => import("./components/tools/pdf/PdfPassword").then(m => ({ default: m.PdfPassword })))
 const ReorderPdf = lazy(() => import("./components/tools/pdf/ReorderPdf").then(m => ({ default: m.ReorderPdf })))
 const PdfWatermark = lazy(() => import("./components/tools/pdf/PdfWatermark").then(m => ({ default: m.PdfWatermark })))
 const PdfEditor = lazy(() => import("./components/tools/pdf/PdfEditor").then(m => ({ default: m.PdfEditor })))
 const ImagesToPdf = lazy(() => import("./components/tools/pdf/ImagesToPdf").then(m => ({ default: m.ImagesToPdf })))
-const PdfToText = lazy(() => import("./components/tools/pdf/PdfToText").then(m => ({ default: m.PdfToText })))
-const PdfToWord = lazy(() => import("./components/tools/pdf/PdfToWord").then(m => ({ default: m.PdfToWord })))
 const PdfRotate = lazy(() => import("./components/tools/pdf/PdfRotate").then(m => ({ default: m.PdfRotate })))
 const PdfFlatten = lazy(() => import("./components/tools/pdf/PdfFlatten").then(m => ({ default: m.PdfFlatten })))
 const PdfCrop = lazy(() => import("./components/tools/pdf/PdfCrop").then(m => ({ default: m.PdfCrop })))
@@ -89,7 +85,6 @@ const JsonFormatter = lazy(() => import("./components/tools/dev/JsonFormatter").
 const ColorPicker = lazy(() => import("./components/tools/dev/ColorPicker").then(m => ({ default: m.ColorPicker })))
 const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then(m => ({ default: m.CssGradient })))
 const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
-const FaviconGenerator = lazy(() => import("./components/tools/dev/FaviconGenerator").then(m => ({ default: m.FaviconGenerator })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
 const RegexTester = lazy(() => import("./components/tools/dev/RegexTester").then(m => ({ default: m.RegexTester })))
 const TimestampConverter = lazy(() => import("./components/tools/dev/TimestampConverter").then(m => ({ default: m.TimestampConverter })))
@@ -193,7 +188,6 @@ function App() {
             <Route path="/tools/image/meme" element={<MemeGenerator />} />
             <Route path="/tools/image/upscale" element={<AiUpscaler />} />
             <Route path="/tools/image/ocr" element={<OcrExtractor />} />
-            <Route path="/tools/image/svg-to-raster" element={<SvgToRaster />} />
             <Route path="/tools/image/sketch" element={<ImageToSketch />} />
             <Route path="/tools/image/social-resizer" element={<SocialResizer />} />
             <Route path="/tools/image/noise" element={<NoiseGrain />} />
@@ -206,21 +200,18 @@ function App() {
             <Route path="/tools/image/diff" element={<ImageDiff />} />
             <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
             <Route path="/tools/image/icc-stripper" element={<IccStripper />} />
-            <Route path="/tools/image/bulk-resize" element={<ImageResizerBulk />} />
-            <Route path="/tools/image/heic-to-jpg" element={<HeicToJpg />} />
+
 
             {/* PDF Tools */}
             <Route path="/tools/pdf/merge" element={<MergePdf />} />
             <Route path="/tools/pdf/split" element={<SplitPdf />} />
             <Route path="/tools/pdf/compress" element={<CompressPdf />} />
             <Route path="/tools/pdf/password" element={<PdfPassword />} />
-            <Route path="/tools/pdf/to-images" element={<PdfToImages />} />
+            <Route path="/tools/pdf/exporter" element={<PdfExporter />} />
             <Route path="/tools/pdf/images-to-pdf" element={<ImagesToPdf />} />
             <Route path="/tools/pdf/editor" element={<PdfEditor />} />
             <Route path="/tools/pdf/reorder" element={<ReorderPdf />} />
             <Route path="/tools/pdf/watermark" element={<PdfWatermark />} />
-            <Route path="/tools/pdf/to-text" element={<PdfToText />} />
-            <Route path="/tools/pdf/to-word" element={<PdfToWord />} />
             <Route path="/tools/pdf/rotate" element={<PdfRotate />} />
             <Route path="/tools/pdf/flatten" element={<PdfFlatten />} />
             <Route path="/tools/pdf/crop" element={<PdfCrop />} />
@@ -236,7 +227,6 @@ function App() {
             <Route path="/tools/dev/color" element={<ColorPicker />} />
             <Route path="/tools/dev/gradient" element={<CssGradient />} />
             <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
-            <Route path="/tools/dev/favicon" element={<FaviconGenerator />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
             <Route path="/tools/dev/regex" element={<RegexTester />} />
             <Route path="/tools/dev/timestamp" element={<TimestampConverter />} />

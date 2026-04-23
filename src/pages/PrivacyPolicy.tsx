@@ -253,7 +253,7 @@ export function PrivacyPolicy() {
             <div className="glass-panel p-6 rounded-xl mt-4 space-y-2">
               <p className="text-foreground font-bold font-syne">Vanity</p>
               <p className="text-muted-foreground text-sm">
-                Email: <span className="text-primary">privacy@vanity.tools</span>
+                Email: <span className="text-primary">privacy@vanity.venusapp.in</span>
               </p>
             </div>
           </Section>

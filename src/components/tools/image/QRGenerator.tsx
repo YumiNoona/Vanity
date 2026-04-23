@@ -7,7 +7,7 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { downloadBlob } from "@/lib/canvas"
 
 export function QRGenerator() {
-  const [text, setText] = useState("https://vanity.tools")
+  const [text, setText] = useState("https://vanity.venusapp.in")
   const [qrBlob, setQrBlob] = useState<Blob | null>(null)
   const { url: qrUrl, setUrl: setQrUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)

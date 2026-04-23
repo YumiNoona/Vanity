@@ -68,7 +68,7 @@ export function UrlEncoder() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="w-full h-[400px] bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-indigo-500/30 transition-all"
-            placeholder={mode === "encode" ? "https://vanity.tools/?search=hello world" : "https%3A%2F%2Fvanity.tools%2F%3Fsearch%3Dhello%20world"}
+            placeholder={mode === "encode" ? "https://vanity.venusapp.in/?search=hello world" : "https%3A%2F%2Fvanity.venusapp.in%2F%3Fsearch%3Dhello%20world"}
             spellCheck={false}
           />
           <button 

@@ -4,7 +4,7 @@ import { Search, AlertCircle, Copy, CheckCircle, Regex, Terminal } from "lucide-
 export function RegexTester() {
   const [pattern, setPattern] = useState("([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)\\.([a-zA-Z0-9_-]+)")
   const [flags, setFlags] = useState("gm")
-  const [testString, setTestString] = useState("Extract these emails: hello@vanity.tools\nAnd another: admin@example.com")
+  const [testString, setTestString] = useState("Extract these emails: hello@vanity.venusapp.in\nAnd another: admin@example.com")
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
   const { matches, error, highlightedText } = useMemo(() => {

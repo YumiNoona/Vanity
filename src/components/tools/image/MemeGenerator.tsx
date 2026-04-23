@@ -13,6 +13,15 @@ export function MemeGenerator() {
   const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fabricCanvas = useRef<fabric.Canvas | null>(null)
+  const cleanupRef = useRef<(() => void) | null>(null)
+  const unmountedRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true
+      if (cleanupRef.current) cleanupRef.current()
+    }
+  }, [])
 
   const [sourceData, setSourceData] = useState<{source: any, width: number, height: number} | null>(null)
   const [hasSelection, setHasSelection] = useState(false)
@@ -24,6 +33,13 @@ export function MemeGenerator() {
     setFile(uploadedFile)
     try {
       const result = await loadImage(uploadedFile)
+      if (unmountedRef.current) {
+        result.cleanup()
+        return
+      }
+      if (cleanupRef.current) cleanupRef.current()
+      cleanupRef.current = result.cleanup
+
       const { width, height } = guardDimensions(result.width, result.height)
       setSourceData({ source: result.source, width, height })
       

@@ -15,8 +15,10 @@ export const useImageProcessor = () => {
   const activeCleanupRef = useRef<(() => void) | null>(null);
   const jobIdRef = useRef(0);
   const lastUpdateRef = useRef(0);
+  const unmountedRef = useRef(false);
 
   const clearCurrent = useCallback(() => {
+    jobIdRef.current++;
     if (activeCleanupRef.current) {
       activeCleanupRef.current();
       activeCleanupRef.current = null;
@@ -47,8 +49,8 @@ export const useImageProcessor = () => {
         throw new Error("Invalid image dimensions");
       }
 
-      // Ignore stale result
-      if (jobId !== jobIdRef.current) {
+      // Ignore stale result or if component unmounted
+      if (jobId !== jobIdRef.current || unmountedRef.current) {
         loaded.cleanup();
         return null;
       }
@@ -82,7 +84,10 @@ export const useImageProcessor = () => {
   const getJobId = useCallback(() => jobIdRef.current, []);
 
   useEffect(() => {
-    return () => clearCurrent();
+    return () => {
+      unmountedRef.current = true;
+      clearCurrent();
+    };
   }, [clearCurrent]);
 
   return {

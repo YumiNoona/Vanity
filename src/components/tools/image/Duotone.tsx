@@ -12,6 +12,12 @@ export function Duotone() {
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const jobIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => { isMountedRef.current = false }
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -29,10 +35,13 @@ export function Duotone() {
 
   const applyDuotone = useCallback(() => {
     if (!file || !canvasRef.current || !previewUrl) return
+    const jobId = ++jobIdRef.current
     setIsProcessing(true)
 
     const img = new Image()
     img.onload = () => {
+      if (jobId !== jobIdRef.current || !isMountedRef.current) return
+      
       const canvas = canvasRef.current!
       canvas.width = img.width
       canvas.height = img.height
@@ -46,11 +55,8 @@ export function Duotone() {
       const [hr, hg, hb] = hexToRgb(highlightColor)
 
       for (let i = 0; i < data.length; i += 4) {
-        // 1. Get luminance (grayscale)
         const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
         const ratio = avg / 255
-        
-        // 2. Linear interpolate between shadow and highlight
         data[i] = sr + (hr - sr) * ratio
         data[i + 1] = sg + (hg - sg) * ratio
         data[i + 2] = sb + (hb - sb) * ratio
@@ -58,6 +64,9 @@ export function Duotone() {
       
       ctx.putImageData(imageData, 0, 0)
       setIsProcessing(false)
+    }
+    img.onerror = () => {
+      if (jobId === jobIdRef.current) setIsProcessing(false)
     }
     img.src = previewUrl
   }, [file, shadowColor, highlightColor, previewUrl])
@@ -160,19 +169,30 @@ export function Duotone() {
                        { s: "#4c0519", h: "#fb7185", label: "Heat" },
                        { s: "#064e3b", h: "#6ee7b7", label: "Emerald" },
                        { s: "#1e1b4b", h: "#818cf8", label: "Cobalt" }
-                    ].map(p => (
-                       <button 
-                         key={p.label}
-                         onClick={() => { setShadowColor(p.s); setHighlightColor(p.h); }}
-                         className="flex items-center gap-2 p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all group"
-                       >
-                          <div className="flex -space-x-1">
-                             <div className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: p.s }} />
-                             <div className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: p.h }} />
-                          </div>
-                          <span className="text-[10px] font-bold text-muted-foreground group-hover:text-white">{p.label}</span>
-                       </button>
-                    ))}
+                    ].map(p => {
+                      const isActive = shadowColor === p.s && highlightColor === p.h
+                      return (
+                        <button 
+                          key={p.label}
+                          onClick={() => { setShadowColor(p.s); setHighlightColor(p.h); }}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg transition-all group border",
+                            isActive ? "bg-primary/20 border-primary/30 text-primary" : "bg-white/5 border-transparent hover:bg-white/10"
+                          )}
+                        >
+                           <div className="flex -space-x-1">
+                              <div className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: p.s }} />
+                              <div className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: p.h }} />
+                           </div>
+                           <span className={cn(
+                             "text-[10px] font-bold tracking-tight",
+                             isActive ? "text-primary" : "text-muted-foreground group-hover:text-white"
+                           )}>
+                             {p.label}
+                           </span>
+                        </button>
+                      )
+                    })}
                  </div>
               </div>
 

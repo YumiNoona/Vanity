@@ -47,8 +47,10 @@ export function SocialResizer() {
   useEffect(() => {
     if (!file || !imgPreviewUrl || !canvasRef.current) return
 
+    let isMounted = true
     const img = new Image()
     img.onload = () => {
+      if (!isMounted) return
       if (fabricCanvas.current) fabricCanvas.current.dispose()
       
       const canvas = new fabric.Canvas(canvasRef.current!, {
@@ -77,6 +79,7 @@ export function SocialResizer() {
     img.src = imgPreviewUrl
 
     return () => {
+        isMounted = false
         if (fabricCanvas.current) {
           fabricCanvas.current.dispose()
           fabricCanvas.current = null
