@@ -1,30 +1,50 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { Calendar, Clock, AlertTriangle, ArrowRight } from "lucide-react"
-import cronParser from "cron-parser"
+import cronstrue from "cronstrue"
 
 export function CronBuilder() {
   const [expression, setExpression] = useState("*/15 * * * *")
+  const [nextRuns, setNextRuns] = useState<Date[]>([])
+  const [error, setError] = useState<string | null>(null)
   
-  const { nextRuns, error, parts } = useMemo(() => {
-    if (!expression.trim()) return { nextRuns: [], error: null, parts: [] }
-
+  const description = useMemo(() => {
     try {
-      // @ts-ignore - CommonJS interop masking in Vite
-      const interval = cronParser.parseExpression(expression)
-      const runs = []
-      for (let i = 0; i < 5; i++) {
-        runs.push(interval.next().toDate())
-      }
-      
-      const p = expression.trim().split(/\s+/)
-      return { 
-        nextRuns: runs, 
-        error: null,
-        parts: p.length >= 5 ? p : []
-      }
-    } catch (e: any) {
-      return { nextRuns: [], error: "Invalid CRON expression format.", parts: [] }
+      return cronstrue.toString(expression)
+    } catch (e) {
+      return null
     }
+  }, [expression])
+
+  const parts = useMemo(() => {
+    const p = expression.trim().split(/\s+/)
+    return p.length >= 5 ? p : []
+  }, [expression])
+
+  useEffect(() => {
+    if (!expression.trim()) {
+      setNextRuns([])
+      setError(null)
+      return
+    }
+
+    const calculateRuns = async () => {
+      try {
+        const cronParser: any = await import("cron-parser")
+        const interval = cronParser.parseExpression(expression)
+        const runs = []
+        for (let i = 0; i < 5; i++) {
+          runs.push(interval.next().toDate())
+        }
+        setNextRuns(runs)
+        setError(null)
+      } catch (e: any) {
+        setError("Invalid CRON expression format.")
+        setNextRuns([])
+      }
+    }
+
+    const timer = setTimeout(calculateRuns, 500)
+    return () => clearTimeout(timer)
   }, [expression])
 
   const preSets = [
@@ -62,6 +82,12 @@ export function CronBuilder() {
                {error && (
                  <div className="flex items-center gap-2 text-sm text-red-400 bg-red-500/10 p-3 rounded-lg">
                    <AlertTriangle className="w-4 h-4" /> {error}
+                 </div>
+               )}
+
+               {description && !error && (
+                 <div className="text-sm text-amber-500 font-bold bg-amber-500/5 p-4 rounded-xl border border-amber-500/10 animate-in fade-in slide-in-from-top-2">
+                   {description}
                  </div>
                )}
 

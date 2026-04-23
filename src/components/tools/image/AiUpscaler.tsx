@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import Upscaler from "upscaler"
+
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Maximize2, Sparkles } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
@@ -16,11 +16,15 @@ export function AiUpscaler() {
   const isMountedRef = React.useRef(true)
 
   React.useEffect(() => {
-    if (!upscalerRef.current) {
-      upscalerRef.current = new Upscaler()
-    }
     return () => { isMountedRef.current = false }
   }, [])
+
+  const initUpscaler = async () => {
+    if (!upscalerRef.current) {
+      const Upscaler = (await import("upscaler")).default
+      upscalerRef.current = new Upscaler()
+    }
+  }
   
   const upscalerRef = React.useRef<any>(null)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
@@ -44,9 +48,7 @@ export function AiUpscaler() {
       updateProgress(1) // Show activity immediately
       
       try {
-        if (!upscalerRef.current) {
-          upscalerRef.current = new Upscaler()
-        }
+        await initUpscaler()
 
         const upscaledDataUrl = await upscalerRef.current.upscale(result.source, {
           patchSize: 64,

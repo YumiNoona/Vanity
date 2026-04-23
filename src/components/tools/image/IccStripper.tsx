@@ -9,6 +9,8 @@ import type { QueueItem } from "@/types/bulk"
 import { downloadBlob } from "@/lib/canvas/export"
 import JSZip from "jszip"
 
+import { releaseCanvas } from "@/lib/canvas/guards"
+
 export function IccStripper() {
   const [file, setFile] = useState<File | null>(null)
   const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
@@ -30,10 +32,15 @@ export function IccStripper() {
         canvas.width = img.width
         canvas.height = img.height
         const ctx = canvas.getContext("2d")
-        if (!ctx) { reject(new Error("No canvas context")); return }
+        if (!ctx) { 
+          URL.revokeObjectURL(objectUrl)
+          reject(new Error("No canvas context"))
+          return 
+        }
         ctx.drawImage(img, 0, 0)
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(objectUrl)
+          releaseCanvas(canvas) // Release GPU memory
           if (blob) resolve(blob)
           else reject(new Error("Blob creation failed"))
         }, inputFile.type || "image/png", 1.0)

@@ -9,8 +9,22 @@ import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 export function SmartCensor() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const { isProcessing, processImage } = useImageProcessor()
+  const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (sourceImage instanceof ImageBitmap) {
+        sourceImage.close()
+      }
+    }
+  }, [sourceImage])
+
+  useEffect(() => {
+    return () => {
+      clearCurrent()
+    }
+  }, [clearCurrent])
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [rects, setRects] = useState<{x: number, y: number, w: number, h: number}[]>([])
@@ -136,7 +150,7 @@ export function SmartCensor() {
         </div>
         <div className="flex gap-4">
           <button onClick={() => setRects([])} className="text-sm font-medium text-muted-foreground hover:text-foreground">Reset All</button>
-          <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground">New Image</button>
+          <button onClick={() => { setFile(null); clearCurrent(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground">New Image</button>
         </div>
       </div>
 

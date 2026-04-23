@@ -3,9 +3,8 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Video, Download, RefreshCw, Scissors, Clock, Zap } from "lucide-react"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { useProcessingState } from "@/hooks/useProcessingState"
-import { getFFmpeg } from "@/lib/ffmpeg"
+import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { toast } from "sonner"
-import { fetchFile } from "@ffmpeg/util"
 
 export function VideoTrimmer() {
   const [file, setFile] = useState<File | null>(null)
@@ -37,43 +36,29 @@ export function VideoTrimmer() {
     const ext = file.name.split('.').pop() || "mp4"
     const inputName = `input.${ext}`
     const outputName = `output.${ext}`
-    let ffmpeg: Awaited<ReturnType<typeof getFFmpeg>> | null = null
-    let onProgress: ((event: { progress: number }) => void) | null = null
-    try {
-      ffmpeg = await getFFmpeg()
-      onProgress = ({ progress }: { progress: number }) => {
-        updateProgress(Math.round(progress * 100))
-      }
-      ffmpeg.on("progress", onProgress)
-      await ffmpeg.writeFile(inputName, await fetchFile(file))
-      
-      // -c copy allows instant trimming without re-encoding
-      await ffmpeg.exec([
-        "-i", inputName,
-        "-ss", startTime,
-        "-to", endTime,
-        "-c", "copy",
-        outputName
-      ])
 
-      const data = await ffmpeg.readFile(outputName)
-      const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: `video/${ext}` })
-      
+    try {
+      const data = await runFFmpegJob({
+        file,
+        inputName,
+        outputName,
+        args: [
+          "-i", inputName,
+          "-ss", startTime,
+          "-to", endTime,
+          "-c", "copy",
+          outputName
+        ],
+        onProgress: (p) => updateProgress(p)
+      })
+
+      const blob = new Blob([data as any], { type: `video/${ext}` })
       setResultUrl(blob)
       toast.success("Video trimmed successfully!")
     } catch (error) {
       console.error(error)
       toast.error("Trimming failed. Check timestamps.")
     } finally {
-      if (ffmpeg) {
-        if (onProgress && typeof (ffmpeg as any).off === "function") {
-          ;(ffmpeg as any).off("progress", onProgress)
-        }
-        await Promise.allSettled([
-          ffmpeg.deleteFile(inputName),
-          ffmpeg.deleteFile(outputName)
-        ])
-      }
       finishProcessing()
     }
   }

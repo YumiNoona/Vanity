@@ -73,13 +73,20 @@ export function GifMaker() {
     setProgressStage("processing")
     const startTime = performance.now()
     const frameUrls: string[] = []
+    const cleanupFrames = () => {
+      frameUrls.forEach(u => URL.revokeObjectURL(u))
+      frameUrls.length = 0
+    }
 
     try {
       // 1. Process & Rezise Frames with time-budget yielding
       let aggregatePixels = 0
 
       for (let i = 0; i < files.length; i++) {
-        if (isCancelledRef.current) return
+        if (isCancelledRef.current) {
+          cleanupFrames()
+          return
+        }
 
         const url = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader()
@@ -121,7 +128,7 @@ export function GifMaker() {
       }
 
       if (isCancelledRef.current) {
-        frameUrls.forEach(u => URL.revokeObjectURL(u))
+        cleanupFrames()
         return
       }
 
@@ -138,22 +145,17 @@ export function GifMaker() {
         numWorkers: 2,
         sampleInterval: 10, // Palette quality vs speed
       }, (obj: any) => {
-        if (generationIdRef.current !== generationId) {
-          frameUrls.forEach(u => URL.revokeObjectURL(u))
-          return
-        }
-        if (isCancelledRef.current) {
-          frameUrls.forEach(u => URL.revokeObjectURL(u))
+        // ALWAYS cleanup frames in the callback regardless of result
+        cleanupFrames()
+
+        if (generationIdRef.current !== generationId || isCancelledRef.current) {
           return
         }
 
         if (!obj.error) {
            if (performance.now() - startTime > ENCODE_TIMEOUT) {
               toast.error("Processing timeout—try fewer frames")
-              // Cleanup frame URLs
-         frameUrls.forEach(u => URL.revokeObjectURL(u))
-         
-         setIsProcessing(false)
+              setIsProcessing(false)
               return
            }
            setProgressStage("finalizing")
@@ -166,19 +168,15 @@ export function GifMaker() {
                }
                setResultGif(blob)
              })
-             .finally(() => {
-               frameUrls.forEach(u => URL.revokeObjectURL(u))
-             })
            toast.success("GIF generated!")
         } else {
            toast.error(obj.errorMsg || "GIF encoding failed")
-           frameUrls.forEach(u => URL.revokeObjectURL(u))
         }
         setIsProcessing(false)
         setProgressStage("idle")
       })
     } catch (err: any) {
-      frameUrls.forEach(u => URL.revokeObjectURL(u))
+      cleanupFrames()
       toast.error(err.message || "Something went wrong")
       setIsProcessing(false)
       setProgressStage("idle")

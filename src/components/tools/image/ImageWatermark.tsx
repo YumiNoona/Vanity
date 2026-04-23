@@ -7,20 +7,18 @@ import * as fabric from "fabric"
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
 import { cn } from "@/lib/utils"
 
-// Customize generic fabric UI controls for a modern, sleek look
 // Customize generic fabric UI controls for a modern, sleek look matching our crop tool
 fabric.Object.prototype.set({
   transparentCorners: false,
-  cornerColor: '#f59e0b',
+  cornerColor: '#f97316', // High-visibility orange
   cornerStrokeColor: '#ffffff',
-  borderColor: '#f59e0b',
+  borderColor: '#f97316',
   cornerSize: 10,
   padding: 0,
   cornerStyle: 'circle',
   borderDashArray: [0, 0],
   borderScaleFactor: 2.5,
-  hasRotatingPoint: true,
-  rotatingPointOffset: 30
+  hasRotatingPoint: false // Hide rotation point by default
 });
 
 export function ImageWatermark() {
@@ -52,8 +50,11 @@ export function ImageWatermark() {
   ]
   const COLORS = ["#ffffff", "#000000", "#f59e0b", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6", "#fb7185"]
 
+  const unmountedRef = useRef(false)
+  
   useEffect(() => {
     return () => {
+      unmountedRef.current = true
       if (sourceCleanupRef.current) sourceCleanupRef.current()
       watermarkCleanupsRef.current.forEach(c => c())
       if (fabricCanvas.current) {
@@ -184,6 +185,12 @@ export function ImageWatermark() {
     if (!file || !fabricCanvas.current) return
     try {
       const result = await loadImage(file)
+      
+      if (unmountedRef.current) {
+        result.cleanup()
+        return
+      }
+
       watermarkCleanupsRef.current.push(result.cleanup)
       if (!fabricCanvas.current) return
       const img = new fabric.FabricImage(result.source as HTMLImageElement)

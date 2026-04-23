@@ -10,8 +10,23 @@ import { guardDimensions } from "@/lib/utils"
 export function ImageEffects() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const { isProcessing, processImage } = useImageProcessor()
+  const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+
+  // Ensure sourceImage is nulled if hook clears it (e.g. on unmount or new process)
+  useEffect(() => {
+    return () => {
+      if (sourceImage instanceof ImageBitmap) {
+        sourceImage.close()
+      }
+    }
+  }, [sourceImage])
+
+  useEffect(() => {
+    return () => {
+      clearCurrent()
+    }
+  }, [clearCurrent])
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [settings, setSettings] = useState({
@@ -93,7 +108,7 @@ export function ImageEffects() {
           <h1 className="text-3xl font-bold font-syne mb-2">Edit Image</h1>
           <p className="text-muted-foreground text-sm">Editing: {file.name}</p>
         </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
+        <button onClick={() => { setFile(null); clearCurrent(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Try another image
         </button>
       </div>

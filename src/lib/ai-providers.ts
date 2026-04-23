@@ -334,16 +334,35 @@ const providers: Record<ProviderId, ProviderConfig> = {
 
 type ActiveProvider = { provider: ProviderConfig; apiKey: string | null; useProxy: boolean }
 
+let cachedProvider: ActiveProvider | null = null
+
+export const invalidateProviderCache = () => {
+  cachedProvider = null
+}
+
 export const getActiveProvider = (): ActiveProvider => {
+  if (cachedProvider) return cachedProvider
+
   const order: ProviderId[] = ["gemini", "anthropic", "openai", "groq"]
   for (const id of order) {
     const provider = providers[id]
-    const key = localStorage.getItem(provider.storageKey)?.trim()
+    const key = typeof window !== "undefined" ? localStorage.getItem(provider.storageKey)?.trim() : null
     if (key) {
-      return { provider, apiKey: key, useProxy: false }
+      cachedProvider = { provider, apiKey: key, useProxy: false }
+      return cachedProvider
     }
   }
-  return { provider: providers.gemini, apiKey: null, useProxy: true }
+  cachedProvider = { provider: providers.gemini, apiKey: null, useProxy: true }
+  return cachedProvider
+}
+
+// Watch for storage changes from other tabs
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (Object.values(providers).some(p => p.storageKey === e.key)) {
+      invalidateProviderCache()
+    }
+  })
 }
 
 const callProxyText = async (prompt: string, systemPrompt?: string, signal?: AbortSignal) => {

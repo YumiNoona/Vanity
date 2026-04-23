@@ -15,6 +15,7 @@ export function MemeGenerator() {
   const fabricCanvas = useRef<fabric.Canvas | null>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const unmountedRef = useRef(false)
+  const jobIdRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -30,13 +31,18 @@ export function MemeGenerator() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
+    const jobId = ++jobIdRef.current
     setFile(uploadedFile)
+    
     try {
       const result = await loadImage(uploadedFile)
-      if (unmountedRef.current) {
+      
+      // Guard against stale results or unmount
+      if (jobId !== jobIdRef.current || unmountedRef.current) {
         result.cleanup()
         return
       }
+
       if (cleanupRef.current) cleanupRef.current()
       cleanupRef.current = result.cleanup
 
@@ -48,7 +54,7 @@ export function MemeGenerator() {
         fabricCanvas.current = null
       }
     } catch (e) {
-      toast.error("Failed to load image")
+      if (jobId === jobIdRef.current) toast.error("Failed to load image")
     }
   }
 

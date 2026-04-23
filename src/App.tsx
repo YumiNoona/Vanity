@@ -24,13 +24,12 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy").then(m => ({ de
 // AI Tools
 const ScreenshotToCode = lazy(() => import("./components/tools/ai/ScreenshotToCode").then(m => ({ default: m.ScreenshotToCode })))
 const ScreenshotToGameCode = lazy(() => import("./components/tools/ai/ScreenshotToGameCode").then(m => ({ default: m.ScreenshotToGameCode })))
-const AiAltTextWriter = lazy(() => import("./components/tools/ai/AiAltTextWriter").then(m => ({ default: m.AiAltTextWriter })))
+const AltTextStudio = lazy(() => import("./components/tools/ai/AltTextStudio").then(m => ({ default: m.AltTextStudio })))
 const PdfSummariser = lazy(() => import("./components/tools/ai/PdfSummariser").then(m => ({ default: m.PdfSummariser })))
 const BgReplacer = lazy(() => import("./components/tools/ai/BgReplacer").then(m => ({ default: m.BgReplacer })))
 const AiResumeReviewer = lazy(() => import("./components/tools/ai/AiResumeReviewer").then(m => ({ default: m.AiResumeReviewer })))
 const FontDetectorVision = lazy(() => import("./components/tools/ai/FontDetectorVision").then(m => ({ default: m.FontDetectorVision })))
 const ExplainUi = lazy(() => import("./components/tools/ai/ExplainUi").then(m => ({ default: m.ExplainUi })))
-const AltTextBatch = lazy(() => import("./components/tools/ai/AltTextBatch").then(m => ({ default: m.AltTextBatch })))
 const ImageCaptionGenerator = lazy(() => import("./components/tools/ai/ImageCaptionGenerator").then(m => ({ default: m.ImageCaptionGenerator })))
 const MockApiGenerator = lazy(() => import("./components/tools/ai/MockApiGenerator").then(m => ({ default: m.MockApiGenerator })))
 const ApiKeysPage = lazy(() => import("./components/shared/ApiKeyManager").then(m => ({ default: m.ApiKeysPage })))
@@ -44,7 +43,7 @@ const ImageCrop = lazy(() => import("./components/tools/image/ImageCrop").then(m
 const WatermarkStudio = lazy(() => import("./components/tools/image/WatermarkStudio").then(m => ({ default: m.WatermarkStudio })))
 const ColorPalette = lazy(() => import("./components/tools/image/ColorPalette").then(m => ({ default: m.ColorPalette })))
 const SmartCensor = lazy(() => import("./components/tools/image/SmartCensor").then(m => ({ default: m.SmartCensor })))
-const ExifSanitizer = lazy(() => import("./components/tools/image/ExifSanitizer").then(m => ({ default: m.ExifSanitizer })))
+const ImagePrivacy = lazy(() => import("./components/tools/image/ImagePrivacy").then(m => ({ default: m.ImagePrivacy })))
 const CodeGenerator = lazy(() => import("./components/tools/image/CodeGenerator").then(m => ({ default: m.CodeGenerator })))
 const MemeGenerator = lazy(() => import("./components/tools/image/MemeGenerator").then(m => ({ default: m.MemeGenerator })))
 const AiUpscaler = lazy(() => import("./components/tools/image/AiUpscaler").then(m => ({ default: m.AiUpscaler })))
@@ -60,7 +59,33 @@ const GifMaker = lazy(() => import("./components/tools/image/GifMaker").then(m =
 const SpriteSlicer = lazy(() => import("./components/tools/image/SpriteSlicer").then(m => ({ default: m.SpriteSlicer })))
 const ImageDiff = lazy(() => import("./components/tools/image/ImageDiff").then(m => ({ default: m.ImageDiff })))
 const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
-const IccStripper = lazy(() => import("./components/tools/image/IccStripper").then(m => ({ default: m.IccStripper })))
+const CollageMaker = lazy(() => import("./components/tools/image/CollageMaker").then(m => ({ default: m.CollageMaker })))
+
+// Browser Tools
+const DnsLookup = lazy(() => import("./components/tools/browser/DnsLookup").then(m => ({ default: m.DnsLookup })))
+const IpLookup = lazy(() => import("./components/tools/browser/IpLookup").then(m => ({ default: m.IpLookup })))
+const SslChecker = lazy(() => import("./components/tools/browser/SslChecker").then(m => ({ default: m.SslChecker })))
+const UaParser = lazy(() => import("./components/tools/browser/UaParser").then(m => ({ default: m.UaParser })))
+const MimeLookup = lazy(() => import("./components/tools/browser/MimeLookup").then(m => ({ default: m.MimeLookup })))
+
+// Security Tools
+const TotpGen = lazy(() => import("./components/tools/security/TotpGen").then(m => ({ default: m.TotpGen })))
+const BcryptHasher = lazy(() => import("./components/tools/security/BcryptHasher").then(m => ({ default: m.BcryptHasher })))
+const RsaGen = lazy(() => import("./components/tools/security/RsaGen").then(m => ({ default: m.RsaGen })))
+const ChecksumVerify = lazy(() => import("./components/tools/security/ChecksumVerify").then(m => ({ default: m.ChecksumVerify })))
+
+// Math Tools
+const MatrixCalc = lazy(() => import("./components/tools/math/MatrixCalc").then(m => ({ default: m.MatrixCalc })))
+const UnitConverter = lazy(() => import("./components/tools/math/UnitConverter").then(m => ({ default: m.UnitConverter })))
+const ScientificCalc = lazy(() => import("./components/tools/math/ScientificCalc").then(m => ({ default: m.ScientificCalc })))
+const PercentageCalc = lazy(() => import("./components/tools/math/PercentageCalc").then(m => ({ default: m.PercentageCalc })))
+
+// Finance Tools
+const LoanEmi = lazy(() => import("./components/tools/finance/LoanEmi").then(m => ({ default: m.LoanEmi })))
+const SipCalc = lazy(() => import("./components/tools/finance/SipCalc").then(m => ({ default: m.SipCalc })))
+const CurrencyFormatter = lazy(() => import("./components/tools/finance/CurrencyFormatter").then(m => ({ default: m.CurrencyFormatter })))
+const GstCalc = lazy(() => import("./components/tools/finance/GstCalc").then(m => ({ default: m.GstCalc })))
+
 
 
 // PDF Tools
@@ -93,6 +118,11 @@ const UrlEncoder = lazy(() => import("./components/tools/dev/UrlEncoder").then(m
 const CronBuilder = lazy(() => import("./components/tools/dev/CronBuilder").then(m => ({ default: m.CronBuilder })))
 const HtmlFormatter = lazy(() => import("./components/tools/dev/HtmlFormatter").then(m => ({ default: m.HtmlFormatter })))
 const CssUnitConverter = lazy(() => import("./components/tools/dev/CssUnitConverter").then(m => ({ default: m.CssUnitConverter })))
+const EnvEditor = lazy(() => import("./components/tools/dev/EnvEditor").then(m => ({ default: m.EnvEditor })))
+const JsonToCsv = lazy(() => import("./components/tools/dev/JsonToCsv").then(m => ({ default: m.JsonToCsv })))
+const XmlFormatter = lazy(() => import("./components/tools/dev/XmlFormatter").then(m => ({ default: m.XmlFormatter })))
+const SqlFormatter = lazy(() => import("./components/tools/dev/SqlFormatter").then(m => ({ default: m.SqlFormatter })))
+
 
 // Video Tools
 const VideoCompressor = lazy(() => import("./components/tools/video/VideoCompressor").then(m => ({ default: m.VideoCompressor })))
@@ -102,6 +132,9 @@ const VideoToGif = lazy(() => import("./components/tools/video/VideoToGif").then
 const AudioWaveform = lazy(() => import("./components/tools/video/AudioWaveform").then(m => ({ default: m.AudioWaveform })))
 const VideoThumbnails = lazy(() => import("./components/tools/video/VideoThumbnails").then(m => ({ default: m.VideoThumbnails })))
 const VideoTrimmer = lazy(() => import("./components/tools/video/VideoTrimmer").then(m => ({ default: m.VideoTrimmer })))
+const VideoSpeed = lazy(() => import("./components/tools/video/VideoSpeed").then(m => ({ default: m.VideoSpeed })))
+const AudioNormalizer = lazy(() => import("./components/tools/video/AudioNormalizer").then(m => ({ default: m.AudioNormalizer })))
+
 
 // Text Tools
 const MarkdownPreview = lazy(() => import("./components/tools/text/MarkdownPreview").then(m => ({ default: m.MarkdownPreview })))
@@ -113,6 +146,12 @@ const PasswordGenerator = lazy(() => import("./components/tools/text/PasswordGen
 const StringCaseConverter = lazy(() => import("./components/tools/text/StringCaseConverter").then(m => ({ default: m.StringCaseConverter })))
 const WordFrequency = lazy(() => import("./components/tools/text/WordFrequency").then(m => ({ default: m.WordFrequency })))
 const NumberBaseConverter = lazy(() => import("./components/tools/text/NumberBaseConverter").then(m => ({ default: m.NumberBaseConverter })))
+const FakeData = lazy(() => import("./components/tools/text/FakeData").then(m => ({ default: m.FakeData })))
+const TomlJson = lazy(() => import("./components/tools/text/TomlJson").then(m => ({ default: m.TomlJson })))
+const UnicodeExplorer = lazy(() => import("./components/tools/text/UnicodeExplorer").then(m => ({ default: m.UnicodeExplorer })))
+const NameFormatter = lazy(() => import("./components/tools/text/NameFormatter").then(m => ({ default: m.NameFormatter })))
+const TableToMd = lazy(() => import("./components/tools/text/TableToMd").then(m => ({ default: m.TableToMd })))
+
 
 // Export loaders for prefetching popular tools
 export const loaders = {
@@ -163,13 +202,12 @@ function App() {
             {/* AI Tools */}
             <Route path="/tools/ai/screenshot-to-code" element={<ScreenshotToCode />} />
             <Route path="/tools/ai/screenshot-to-game-code" element={<ScreenshotToGameCode />} />
-            <Route path="/tools/ai/alt-text" element={<AiAltTextWriter />} />
+            <Route path="/tools/ai/alt-text" element={<AltTextStudio />} />
             <Route path="/tools/ai/summarizer" element={<PdfSummariser />} />
             <Route path="/tools/ai/bg-replacer" element={<BgReplacer />} />
             <Route path="/tools/ai/resume" element={<AiResumeReviewer />} />
             <Route path="/tools/ai/font-match" element={<FontDetectorVision />} />
             <Route path="/tools/ai/explain-ui" element={<ExplainUi />} />
-            <Route path="/tools/ai/alt-text-batch" element={<AltTextBatch />} />
             <Route path="/tools/ai/caption" element={<ImageCaptionGenerator />} />
             <Route path="/tools/ai/mock-api" element={<MockApiGenerator />} />
             <Route path="/tools/ai/providers" element={<ApiKeysPage />} />
@@ -183,7 +221,7 @@ function App() {
             <Route path="/tools/image/watermark-studio" element={<WatermarkStudio />} />
             <Route path="/tools/image/palette" element={<ColorPalette />} />
             <Route path="/tools/image/censor" element={<SmartCensor />} />
-            <Route path="/tools/image/exif-sanitizer" element={<ExifSanitizer />} />
+            <Route path="/tools/image/privacy" element={<ImagePrivacy />} />
             <Route path="/tools/image/code-generator" element={<CodeGenerator />} />
             <Route path="/tools/image/meme" element={<MemeGenerator />} />
             <Route path="/tools/image/upscale" element={<AiUpscaler />} />
@@ -199,7 +237,8 @@ function App() {
             <Route path="/tools/image/sprite-slicer" element={<SpriteSlicer />} />
             <Route path="/tools/image/diff" element={<ImageDiff />} />
             <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
-            <Route path="/tools/image/icc-stripper" element={<IccStripper />} />
+            <Route path="/tools/image/collage" element={<CollageMaker />} />
+
 
 
             {/* PDF Tools */}
@@ -235,6 +274,11 @@ function App() {
             <Route path="/tools/dev/cron" element={<CronBuilder />} />
             <Route path="/tools/dev/html" element={<HtmlFormatter />} />
             <Route path="/tools/dev/css-units" element={<CssUnitConverter />} />
+            <Route path="/tools/dev/env" element={<EnvEditor />} />
+            <Route path="/tools/dev/json-to-csv" element={<JsonToCsv />} />
+            <Route path="/tools/dev/xml" element={<XmlFormatter />} />
+            <Route path="/tools/dev/sql" element={<SqlFormatter />} />
+
 
             {/* Video Tools */}
             <Route path="/tools/video/compress" element={<VideoCompressor />} />
@@ -244,6 +288,9 @@ function App() {
             <Route path="/tools/video/waveform" element={<AudioWaveform />} />
             <Route path="/tools/video/thumbnails" element={<VideoThumbnails />} />
             <Route path="/tools/video/trimmer" element={<VideoTrimmer />} />
+            <Route path="/tools/video/speed" element={<VideoSpeed />} />
+            <Route path="/tools/video/normalize" element={<AudioNormalizer />} />
+
             <Route path="/tools/video/*" element={<ToolFallback />} />
 
             {/* Text Tools */}
@@ -256,6 +303,37 @@ function App() {
             <Route path="/tools/text/string-case" element={<StringCaseConverter />} />
             <Route path="/tools/text/word-frequency" element={<WordFrequency />} />
             <Route path="/tools/text/number-base" element={<NumberBaseConverter />} />
+            <Route path="/tools/text/fake-data" element={<FakeData />} />
+            <Route path="/tools/text/toml-json" element={<TomlJson />} />
+            <Route path="/tools/text/unicode" element={<UnicodeExplorer />} />
+            <Route path="/tools/text/name-case" element={<NameFormatter />} />
+            <Route path="/tools/text/table-to-md" element={<TableToMd />} />
+            
+            {/* Browser Tools */}
+            <Route path="/tools/browser/dns" element={<DnsLookup />} />
+            <Route path="/tools/browser/ip" element={<IpLookup />} />
+            <Route path="/tools/browser/ssl" element={<SslChecker />} />
+            <Route path="/tools/browser/ua" element={<UaParser />} />
+            <Route path="/tools/browser/mime" element={<MimeLookup />} />
+
+            {/* Security Tools */}
+            <Route path="/tools/security/totp" element={<TotpGen />} />
+            <Route path="/tools/security/bcrypt" element={<BcryptHasher />} />
+            <Route path="/tools/security/rsa" element={<RsaGen />} />
+            <Route path="/tools/security/checksum" element={<ChecksumVerify />} />
+
+            {/* Math Tools */}
+            <Route path="/tools/math/matrix" element={<MatrixCalc />} />
+            <Route path="/tools/math/units" element={<UnitConverter />} />
+            <Route path="/tools/math/scientific" element={<ScientificCalc />} />
+            <Route path="/tools/math/percentage" element={<PercentageCalc />} />
+
+            {/* Finance Tools */}
+            <Route path="/tools/finance/loan" element={<LoanEmi />} />
+            <Route path="/tools/finance/sip" element={<SipCalc />} />
+            <Route path="/tools/finance/currency" element={<CurrencyFormatter />} />
+            <Route path="/tools/finance/gst" element={<GstCalc />} />
+
             <Route path="/tools/text/md-to-pdf" element={<ToolFallback />} />
             
             {/* Fallback */}

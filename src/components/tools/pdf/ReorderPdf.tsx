@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, ListOrdered, GripVertical, Trash2 } from "lucide-react"
 import { PDFDocument } from "pdf-lib"
@@ -20,11 +20,13 @@ export function ReorderPdf() {
   const [pages, setPages] = useState<PageItem[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+  const jobIdRef = useRef(0)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
+    const jobId = ++jobIdRef.current
     setFile(uploadedFile)
     setIsProcessing(true)
     setResultUrl(null)
@@ -32,6 +34,9 @@ export function ReorderPdf() {
     try {
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
+      
+      if (jobId !== jobIdRef.current) return
+
       const pageCount = pdfDoc.getPageCount()
       
       const pageItems: PageItem[] = Array.from({ length: pageCount }, (_, i) => ({
@@ -42,10 +47,14 @@ export function ReorderPdf() {
       setPages(pageItems)
       toast.success(`PDF loaded with ${pageCount} pages`)
     } catch (error) {
-      toast.error("Failed to load PDF structure")
-      setFile(null)
+      if (jobId === jobIdRef.current) {
+        toast.error("Failed to load PDF structure")
+        setFile(null)
+      }
     } finally {
-      setIsProcessing(false)
+      if (jobId === jobIdRef.current) {
+        setIsProcessing(false)
+      }
     }
   }
 

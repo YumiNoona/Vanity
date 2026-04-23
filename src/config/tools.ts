@@ -10,7 +10,9 @@ import {
   Grid, Search, Diff, Key, BrainCircuit, Mic, Music, Eye, FileCheck,
   ImagePlus, Sigma, Globe, Code2, PenTool,
   Terminal, Clock, Link2, Calendar, Code, AlignLeft, KeyRound, BarChart3,
-  Microscope, EyeOff, PaintBucket, ImagePlay, FastForward, Award, Database, FileSearch
+  Microscope, EyeOff, PaintBucket, ImagePlay, FastForward, Award, Database, FileSearch,
+  Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
+  Percent, Coins, Wallet, Landmark, Receipt, Repeat, HelpCircle, Table, ClipboardList
 } from "lucide-react"
 
 // Types to allow easier custom icons
@@ -28,7 +30,7 @@ export interface Tool {
 }
 
 export const IMAGE_TOOLS: Tool[] = [
-  { id: "format-converter", title: "Image Converter", description: "Convert between WEBP, PNG, JPG, GIF, SVG, HEIC, and ICO.", icon: ArrowLeftRight, path: "/tools/image/convert", isBulk: true, isPopular: true, keywords: ["heic", "svg", "favicon", "ico"] },
+  { id: "format-converter", title: "Image Converter", description: "Convert between WEBP, PNG, JPG, GIF, PDF, SVG, HEIC, ICO, TIFF, BMP, TGA, AVIF, and EPS.", icon: ArrowLeftRight, path: "/tools/image/convert", isBulk: true, isPopular: true, keywords: ["heic", "svg", "pdf", "favicon", "ico", "avif", "webp", "tiff"] },
   { id: "remove-bg", title: "Remove Background", description: "AI-powered background removal running locally in your browser.", icon: Image, path: "/tools/image/remove-bg", isPopular: true, keywords: ["bg", "transparent", "cutout"] },
   { id: "upscale", title: "Image Upscaler", description: "Enhance resolution by 2x or 4x using actual AI super-resolution.", icon: Maximize2, path: "/tools/image/upscale", isPopular: true, keywords: ["enlarge", "resolution", "4k"] },
   { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", isBulk: true, isPopular: true, keywords: ["shrink", "size", "kb"] },
@@ -48,12 +50,12 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "before-after", title: "Before & After Slider", description: "Create an interactive slider to compare two images side-by-side.", icon: SplitSquareHorizontal, path: "/tools/image/slider" },
   { id: "palette", title: "Color Palette", description: "Extract design palettes from any photograph.", icon: Pipette, path: "/tools/image/palette" },
   { id: "censor", title: "Smart Censor", description: "Pixelate sensitive information and faces.", icon: ShieldAlert, path: "/tools/image/censor" },
-  { id: "exif-sanitizer", title: "EXIF Sanitizer", description: "Remove metadata for maximum privacy.", icon: ShieldCheck, path: "/tools/image/exif-sanitizer", isBulk: true, keywords: ["metadata", "privacy", "gps"] },
+  { id: "image-privacy", title: "Image Privacy", description: "Sanitize EXIF metadata and strip ICC color profiles for maximum security.", icon: ShieldCheck, path: "/tools/image/privacy", isBulk: true, keywords: ["metadata", "privacy", "gps", "icc", "srgb"] },
   { id: "ascii", title: "ASCII Art Converter", description: "Turn any image into a text-based ASCII rendering.", icon: Type, path: "/tools/image/ascii" },
   { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
   { id: "image-diff", title: "Image Difference tool", description: "Compute exact pixel deviations via XOR overlays.", icon: Microscope, path: "/tools/image/diff", keywords: ["compare", "xor", "overlay"] },
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
-  { id: "icc-stripper", title: "ICC Profile Stripper", description: "Normalize images to sRGB spaces stripping embedded data.", icon: PaintBucket, path: "/tools/image/icc-stripper", isBulk: true, keywords: ["color", "srgb", "profile"] },
+  { id: "collage-maker", title: "Collage Maker", description: "Arrange multiple images into grids or masonry layouts.", icon: Layout, path: "/tools/image/collage", keywords: ["grid", "masonry", "layout"] },
 ]
 
 export const PDF_TOOLS: Tool[] = [
@@ -80,8 +82,7 @@ export const AI_TOOLS: Tool[] = [
   { id: "ai-summarizer", title: "AI PDF Summarizer", description: "Extract and summarize PDF content using Claude.", icon: Sigma, path: "/tools/ai/summarizer", isPopular: true, keywords: ["tl;dr", "reading", "study"] },
   { id: "ai-resume-reviewer", title: "AI Resume Reviewer", description: "Elite recruiter JSON evaluations and visual scorecards.", icon: Award, path: "/tools/ai/resume", isPopular: true, keywords: ["job", "audit", "cv"] },
   { id: "ai-bg-replacer", title: "AI Background Replacer", description: "Remove BG and describe a new scene to Claude.", icon: ImagePlus, path: "/tools/ai/bg-replacer", keywords: ["generative", "creative", "edit"] },
-  { id: "ai-alt-text", title: "AI Alt-Text Writer", description: "Generate accessibility alt text for any image automatically.", icon: BrainCircuit, path: "/tools/ai/alt-text", keywords: ["seo", "accessibility", "description"] },
-  { id: "alt-text-batch", title: "Batch Alt Text", description: "Mass-generate SEO descriptions queued sequentially.", icon: Images, path: "/tools/ai/alt-text-batch", isBulk: true, keywords: ["bulk", "seo", "vision"] },
+  { id: "ai-alt-text", title: "AI Alt-Text Studio", description: "Generate accessibility alt text for images (Single or Batch).", icon: BrainCircuit, path: "/tools/ai/alt-text", keywords: ["seo", "accessibility", "description", "bulk", "vision"] },
   { id: "caption-generator", title: "Caption Generator", description: "Generate contextual social captions securely.", icon: MessageSquare, path: "/tools/ai/caption", keywords: ["social", "instagram", "post"] },
   { id: "vision-font-detector", title: "Font Matcher (Vision)", description: "Heuristically determine typography via image layers.", icon: Type, path: "/tools/ai/font-match", keywords: ["font", "type", "scan"] },
   { id: "explain-ui", title: "Explain UI", description: "Deconstruct interface screenshots into hierarchy trees.", icon: Monitor, path: "/tools/ai/explain-ui", keywords: ["design", "ux", "layout"] },
@@ -102,6 +103,10 @@ export const DEV_TOOLS: Tool[] = [
   { id: "cron-builder", title: "CRON Expression Tester", description: "Validate CRON strings and preview immediate run times.", icon: Calendar, path: "/tools/dev/cron", keywords: ["schedule", "time", "job"] },
   { id: "html-formatter", title: "HTML Formatter", description: "Prettify or minify raw HTML structures instantly.", icon: Code, path: "/tools/dev/html", keywords: ["minify", "prettify", "indent"] },
   { id: "css-unit-converter", title: "CSS Unit Converter", description: "Convert px to rem, em, vw, vh instantly based on rules.", icon: Scissors, path: "/tools/dev/css-units", keywords: ["size", "font", "rem"] },
+  { id: "env-editor", title: "ENV File Editor", description: "Upload and edit .env files in a clean table UI locally.", icon: FileCode, path: "/tools/dev/env", keywords: ["config", "environment", "dotenv"] },
+  { id: "json-to-csv", title: "JSON to CSV / Excel", description: "Convert JSON arrays or objects into CSV or spreadsheet formats.", icon: FileSpreadsheet, path: "/tools/dev/json-to-csv", keywords: ["export", "excel", "table"] },
+  { id: "xml-formatter", title: "XML Formatter", description: "Prettify, minify, and validate XML data structures.", icon: FileJson, path: "/tools/dev/xml", keywords: ["soap", "pretty", "validate"] },
+  { id: "sql-formatter", title: "SQL Formatter", description: "Prettify and indent raw SQL queries with keyword casing.", icon: Database, path: "/tools/dev/sql", keywords: ["query", "mysql", "postgres"] },
 ]
 
 export const VIDEO_TOOLS: Tool[] = [
@@ -112,6 +117,8 @@ export const VIDEO_TOOLS: Tool[] = [
   { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
   { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
   { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
+  { id: "video-speed", title: "Video Speed Changer", description: "Speed up or slow down video (0.25x-4x) with pitch correction.", icon: FastForward, path: "/tools/video/speed", keywords: ["slowmo", "fast", "ffmpeg"] },
+  { id: "audio-normalizer", title: "Audio Normalizer", description: "Loudness-normalize audio files to target LUFS standards.", icon: Music, path: "/tools/video/normalize", keywords: ["lufs", "spotify", "podcast"] },
 ]
 
 export const TEXT_TOOLS: Tool[] = [
@@ -124,6 +131,40 @@ export const TEXT_TOOLS: Tool[] = [
   { id: "lorem-ipsum", title: "Lorem Ipsum Generator", description: "Customizable placeholder text generator natively.", icon: AlignLeft, path: "/tools/text/lorem" },
   { id: "word-frequency", title: "Word Frequency Counter", description: "Analyze text and visualize word percentages dynamically.", icon: BarChart3, path: "/tools/text/word-frequency" },
   { id: "number-base", title: "Number Base Converter", description: "Live conversions between decimal, binary, hex, and octal.", icon: Hash, path: "/tools/text/number-base" },
+  { id: "fake-data", title: "Fake Data Generator", description: "Generate realistic datasets: names, emails, addresses, IPs.", icon: Database, path: "/tools/text/fake-data", keywords: ["mock", "dummy", "csv", "json"] },
+  { id: "toml-json", title: "TOML ↔ JSON", description: "Bidirectional conversion between TOML and JSON formats.", icon: Repeat, path: "/tools/text/toml-json", keywords: ["config", "cargo", "rust"] },
+  { id: "unicode-explorer", title: "Unicode Explorer", description: "Inspect code points, categories, and bytes for any character.", icon: Languages, path: "/tools/text/unicode", keywords: ["utf8", "entity", "hex"] },
+  { id: "name-formatter", title: "Name Case Formatter", description: "Bulk-fix name casing (JOHN DOE → John Doe) with prefix support.", icon: Type, path: "/tools/text/name-case", keywords: ["cleanup", "list", "format"] },
+  { id: "table-to-md", title: "Table to Markdown / HTML", description: "Convert spreadsheet selections or CSV into Markdown or HTML tables.", icon: Table, path: "/tools/text/table-to-md", keywords: ["convert", "excel", "spreadsheet"] },
+]
+
+export const BROWSER_TOOLS: Tool[] = [
+  { id: "dns-lookup", title: "DNS Lookup", description: "Check A, AAAA, MX, TXT records via Cloudflare DNS.", icon: Globe2, path: "/tools/browser/dns", keywords: ["records", "domain", "dig"] },
+  { id: "ip-info", title: "IP Lookup", description: "Get geolocation, ASN, and ISP info for any IP address.", icon: MapPin, path: "/tools/browser/ip", keywords: ["geo", "location", "whois"] },
+  { id: "ssl-checker", title: "SSL Checker", description: "Verify SSL certificates, expiry dates, and issuers.", icon: Shield, path: "/tools/browser/ssl", keywords: ["cert", "https", "security"] },
+  { id: "ua-parser", title: "User Agent Parser", description: "Break down any UA string into browser, OS, and device.", icon: MonitorSmartphone, path: "/tools/browser/ua", keywords: ["header", "detect", "client"] },
+  { id: "mime-types", title: "MIME Type Lookup", description: "Find mappings between file extensions and MIME types.", icon: FileSearch, path: "/tools/browser/mime", keywords: ["content-type", "extension", "mapping"] },
+]
+
+export const SECURITY_TOOLS: Tool[] = [
+  { id: "totp-gen", title: "TOTP Generator", description: "Generate 2FA codes locally from a secret key.", icon: KeyRound, path: "/tools/security/totp", keywords: ["2fa", "mfa", "authenticator"] },
+  { id: "bcrypt-hasher", title: "Bcrypt Hasher", description: "Hash and verify passwords using the bcrypt algorithm.", icon: Fingerprint, path: "/tools/security/bcrypt", keywords: ["auth", "crypto", "salt"] },
+  { id: "rsa-gen", title: "RSA Key Generator", description: "Generate RSA public/private key pairs in PEM format.", icon: KeySquare, path: "/tools/security/rsa", keywords: ["pem", "openssl", "asymmetric"] },
+  { id: "checksum-verify", title: "Checksum Verifier", description: "Verify file integrity via MD5, SHA-1, or SHA-256.", icon: FileCheck, path: "/tools/security/checksum", keywords: ["hash", "integrity", "verify"] },
+]
+
+export const MATH_TOOLS: Tool[] = [
+  { id: "matrix-calc", title: "Matrix Calculator", description: "Add, multiply, and find determinants for 2x2 to 5x5 matrices.", icon: Calculator, path: "/tools/math/matrix", keywords: ["linear", "algebra", "transpose"] },
+  { id: "unit-converter", title: "Unit Converter", description: "Convert length, weight, temperature, and more.", icon: ArrowLeftRight, path: "/tools/math/units", keywords: ["measure", "imperial", "metric"] },
+  { id: "scientific-calc", title: "Scientific Calculator", description: "Advanced math functions including trig and logs.", icon: Calculator, path: "/tools/math/scientific", keywords: ["trig", "log", "math"] },
+  { id: "percentage-calc", title: "Percentage Calculator", description: "Calculate % change, % of, and common ratios.", icon: Percent, path: "/tools/math/percentage" },
+]
+
+export const FINANCE_TOOLS: Tool[] = [
+  { id: "loan-emi", title: "Loan / EMI Calculator", description: "Calculate monthly payments and total interest for loans.", icon: Landmark, path: "/tools/finance/loan", keywords: ["mortgage", "bank", "interest"] },
+  { id: "sip-calc", title: "SIP / Investment", description: "Project maturity amounts for recurring investments.", icon: Coins, path: "/tools/finance/sip", keywords: ["mutual", "fund", "growth"] },
+  { id: "currency-formatter", title: "Currency Formatter", description: "Format numbers into any world currency locale correctly.", icon: Wallet, path: "/tools/finance/currency", keywords: ["intl", "money", "lakhs"] },
+  { id: "gst-calc", title: "GST Calculator", description: "Compute tax-inclusive and tax-exclusive prices.", icon: Receipt, path: "/tools/finance/gst", keywords: ["vat", "tax", "india"] },
 ]
 
 export const CATEGORIES = [
@@ -133,6 +174,14 @@ export const CATEGORIES = [
   { id: "dev", title: "Developer Tools", tools: DEV_TOOLS, color: "blue-500" },
   { id: "video", title: "Video & Audio", tools: VIDEO_TOOLS, color: "purple-500" },
   { id: "text", title: "Text & Data", tools: TEXT_TOOLS, color: "green-500" },
+  { id: "browser", title: "Browser & Network", tools: BROWSER_TOOLS, color: "orange-500" },
+  { id: "security", title: "Security & Crypto", tools: SECURITY_TOOLS, color: "red-500" },
+  { id: "math", title: "Math & Science", tools: MATH_TOOLS, color: "yellow-500" },
+  { id: "finance", title: "Finance Tools", tools: FINANCE_TOOLS, color: "cyan-500" },
 ]
 
-export const ALL_TOOLS = [...AI_TOOLS, ...IMAGE_TOOLS, ...PDF_TOOLS, ...DEV_TOOLS, ...VIDEO_TOOLS, ...TEXT_TOOLS]
+export const ALL_TOOLS = [
+  ...AI_TOOLS, ...IMAGE_TOOLS, ...PDF_TOOLS, 
+  ...DEV_TOOLS, ...VIDEO_TOOLS, ...TEXT_TOOLS,
+  ...BROWSER_TOOLS, ...SECURITY_TOOLS, ...MATH_TOOLS, ...FINANCE_TOOLS
+]

@@ -24,9 +24,24 @@ export function ImageCrop() {
   
   // Single Mode State
   const [singleFile, setSingleFile] = useState<File | null>(null)
-  const { isProcessing: isSingleProcessing, processImage, getJobId } = useImageProcessor()
+  const { isProcessing: isSingleProcessing, processImage, getJobId, clearCurrent } = useImageProcessor()
   const { url: preview, setUrl: setPreview, clear: clearPreview } = useObjectUrl()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+
+  // Cleanup effect for sourceImage (ImageBitmap must be closed manually)
+  useEffect(() => {
+    return () => {
+      if (sourceImage instanceof ImageBitmap) {
+        sourceImage.close()
+      }
+    }
+  }, [sourceImage])
+
+  useEffect(() => {
+    return () => {
+      clearCurrent()
+    }
+  }, [clearCurrent])
   const containerRef = useRef<HTMLDivElement>(null)
   const previewRef = useRef<HTMLImageElement>(null)
   const [crop, setCrop] = useState({ x: 10, y: 10, width: 80, height: 80 }) 
@@ -264,7 +279,7 @@ export function ImageCrop() {
                   <button onClick={() => setCrop({ x: 10, y: 10, width: 80, height: 80 })} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">
                     <RefreshCcw className="w-4 h-4" /> Reset
                   </button>
-                  <button onClick={() => { setSingleFile(null); clearPreview(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">
+                  <button onClick={() => { setSingleFile(null); clearPreview(); clearCurrent(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">
                     <ArrowLeft className="w-4 h-4" /> New Image
                   </button>
                 </div>

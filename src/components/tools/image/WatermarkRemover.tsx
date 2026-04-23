@@ -12,7 +12,24 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 export function WatermarkRemover() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const { isProcessing, progress, processImage, updateProgress, getJobId } = useImageProcessor()
+  const { isProcessing, progress, processImage, updateProgress, getJobId, clearCurrent } = useImageProcessor()
+
+  const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (sourceImage instanceof ImageBitmap) {
+        sourceImage.close()
+      }
+    }
+  }, [sourceImage])
+
+  useEffect(() => {
+    return () => {
+      clearCurrent()
+    }
+  }, [clearCurrent])
+
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   
@@ -20,7 +37,6 @@ export function WatermarkRemover() {
   const maskCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [brushSize, setBrushSize] = useState(30)
-  const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -141,6 +157,7 @@ export function WatermarkRemover() {
     releaseCanvas(maskCanvasRef.current)
     setFile(null)
     clearResultUrl()
+    clearCurrent()
     updateProgress(0)
   }
 

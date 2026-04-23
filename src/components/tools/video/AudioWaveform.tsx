@@ -14,6 +14,7 @@ export function AudioWaveform() {
   const [isDecoding, setIsDecoding] = useState(false)
   const [isTrimming, setIsTrimming] = useState(false)
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null)
+  const jobIdRef = useRef(0)
   
   // Trimming State (0 to 1 range representing percentage)
   const [trimStart, setTrimStart] = useState(0)
@@ -37,6 +38,7 @@ export function AudioWaveform() {
 
   // Non-blocking decode via OfflineAudioContext
   const decodeAudio = async (tgtFile: File) => {
+    const jobId = ++jobIdRef.current
     setIsDecoding(true)
     try {
       const buffer = await tgtFile.arrayBuffer()
@@ -46,16 +48,28 @@ export function AudioWaveform() {
         await audioCtxRef.current.close()
       }
 
+      if (jobId !== jobIdRef.current) return
+
       const ctx = new window.AudioContext()
       audioCtxRef.current = ctx
       
       const decoded = await ctx.decodeAudioData(buffer)
+      
+      if (jobId !== jobIdRef.current) {
+        ctx.close()
+        return
+      }
+
       setAudioBuffer(decoded)
       drawWaveform(decoded)
     } catch (err) {
-      toast.error("Failed to decode audio. The file might be corrupted or unsupported.")
+      if (jobId === jobIdRef.current) {
+        toast.error("Failed to decode audio. The file might be corrupted or unsupported.")
+      }
     } finally {
-      setIsDecoding(false)
+      if (jobId === jobIdRef.current) {
+        setIsDecoding(false)
+      }
     }
   }
 
