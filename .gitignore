@@ -32,6 +32,8 @@ pnpm-debug.log*
 vanity-*.pdf
 vanity-*.png
 vanity-*.jpg
+vanity-*.zip
+vanity-*.docx
 *.crdownload
 
 # --- Backend Server ---
@@ -46,6 +48,7 @@ scratch/
 implementation_plan*.md
 task.md
 walkthrough.md
+migration_progress.md
 
 # --- Lockfiles & Misc ---
 yarn.lock

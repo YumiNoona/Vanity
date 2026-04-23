@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
@@ -180,7 +180,9 @@ export function FormatConverter() {
           unit: "px",
           format: [canvas.width, canvas.height]
         })
-        pdf.addImage(canvas, "JPEG", 0, 0, canvas.width, canvas.height)
+        // jsPDF v4 no longer accepts HTMLCanvasElement directly — must use data URL
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.92)
+        pdf.addImage(dataUrl, "JPEG", 0, 0, canvas.width, canvas.height)
         const blob = pdf.output("blob")
         result.cleanup()
         return blob
@@ -266,7 +268,10 @@ showpage
         setResultUrl(blob)
         toast.success(`Converted to ${targetFormat.toUpperCase()}!`)
       } catch (error) {
-        toast.error("Conversion failed")
+        console.error("Conversion error:", error)
+        toast.error("Conversion failed", {
+          description: error instanceof Error ? error.message : "Unknown error — check browser console for details."
+        })
       } finally {
         setIsEncoding(false)
       }
@@ -281,7 +286,7 @@ showpage
     }
   }
 
-  const processBatch = async () => {
+  const processBatch = useCallback(async () => {
     if (isBatchProcessing) return
     setIsBatchProcessing(true)
     const pending = queue.filter(i => i.status === 'pending')
@@ -295,13 +300,13 @@ showpage
       }
     }
     setIsBatchProcessing(false)
-  }
+  }, [isBatchProcessing, queue, targetFormat])
 
   useEffect(() => {
     if (processMode === 'batch' && !isBatchProcessing && queue.some(i => i.status === 'pending')) {
       processBatch()
     }
-  }, [queue, processMode, isBatchProcessing])
+  }, [queue, processMode, isBatchProcessing, processBatch])
 
   const handleDownload = () => {
     if (!resultUrl) return

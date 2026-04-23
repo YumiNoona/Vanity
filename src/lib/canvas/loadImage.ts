@@ -28,7 +28,7 @@ export const loadImage = async (file: File): Promise<LoadedImage> => {
       },
     };
   } catch (error) {
-    // 2. Fallback: Standand Image with decode()
+    // 2. Fallback: Standard Image with decode()
     console.warn("ImageBitmap failed, falling back to img.decode", error);
     
     return new Promise((resolve, reject) => {
@@ -45,11 +45,15 @@ export const loadImage = async (file: File): Promise<LoadedImage> => {
             cleanup: () => URL.revokeObjectURL(objectUrl),
           });
         } catch (e) {
+          URL.revokeObjectURL(objectUrl) // prevent memory leak on decode failure
           reject(new Error("Image decode failed"));
         }
       };
 
-      img.onerror = () => reject(new Error("Image load failed"));
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl) // prevent memory leak on load failure
+        reject(new Error("Image load failed"))
+      };
       img.src = objectUrl;
     });
   }

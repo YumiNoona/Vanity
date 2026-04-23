@@ -32,11 +32,12 @@
 
 ### 🏗️ Architecture Highlights
 
-- **Hybrid Processing** — 95% client-side; high-security PDF encryption via a local qpdf-powered micro-server
-- **Industrial Dimensions Guard** — Mobile-aware (10MP) vs Desktop (20MP) scaling protects against OOM crashes
-- **Time-Budgeted Yielding** — 10ms `maybeYield` loops maintain 60fps during heavy pixel manipulations
-- **Lazy-Loaded Modules** — Heavy libraries (`pdf-lib`, `ffmpeg.wasm`) load on-demand with idle pre-warming
-- **Bulletproof Memory Hygiene** — Tracked Object URL lifecycles and recursive canvas disposal (`safeRevoke`)
+- **Standardized Tool Architecture** — All 100+ tools migrated to a unified `ToolLayout` and `ToolUploadLayout` system for consistent UX and responsive design.
+- **Hybrid Processing** — 95% client-side; high-security PDF encryption via a local qpdf-powered micro-server.
+- **Industrial Dimensions Guard** — Mobile-aware (10MP) vs Desktop (20MP) scaling protects against OOM crashes.
+- **Time-Budgeted Yielding** — 10ms `maybeYield` loops maintain 60fps during heavy pixel manipulations.
+- **Bulletproof Memory Hygiene** — Tracked Object URL lifecycles via `useObjectUrl` and recursive canvas disposal.
+- **Smooth Micro-Animations** — Standardized `PillToggle` and `ModeToggle` components for fluid mode transitions.
 
 ---
 
@@ -45,36 +46,28 @@
 ### 🖼️ Image Tools
 | Tool | Description |
 |---|---|
-| **Social Media Resizer** | One-click resize for IG, TikTok, YouTube with safe-area overlays and aspect locking |
-| **GIF Maker** | Combine images into animated GIFs with frame delay control and aggregate pixel guards |
-| **Sprite Sheet Slicer** | Canvas-based grid slicer with pixel-art modes and JSZip chunked archiving |
-| **Remove Background (AI)** | ML-powered background removal running locally via WebAssembly (`@imgly/background-removal`) |
-| **Asset Compressor** | Resize and compress to WebP/JPEG using lossy or lossless degradation |
-| **Format Converter** | Convert between WebP, PNG, JPEG, and GIF instantly |
-| **Meme Generator** | Fabric.js canvas editor with draggable text layers and layer deletion |
-| **Before/After Slider** | Interactive comparison deck with smooth touch-masking |
+| **EXIF Sanitizer** | Strip GPS and device metadata locally; batch mode supported. |
+| **ICC Profile Stripper** | Normalize colors to sRGB by removing embedded color profiles. |
+| **Image Compressor** | Iterative smart encoding to hit target file sizes in KB. |
+| **Format Converter** | Professional transcoding between 12+ formats including AVIF and HEIC. |
+| **Social Media Resizer** | One-click resize for IG, TikTok, YouTube with safe-area overlays. |
+| **GIF Maker** | Combine images into animated GIFs with frame control. |
+| **Before/After Slider** | Interactive comparison deck with smooth touch-masking. |
 
 ### 📄 PDF Tools
 | Tool | Description |
 |---|---|
-| **Merge & Split** | Drag, arrange, and seamlessly combine or extract PDF files |
-| **PDF to Images** | Convert each page to high-quality PNG with per-page progress |
-| **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend |
-| **Remove Blank Pages** | Smart pixel-density analysis to auto-sanitize documents |
-
-### 🎬 Video & Audio Tools (FFMPEG.wasm)
-| Tool | Description |
-|---|---|
-| **Video Compressor** | High-performance MP4/WebM compression with CRF control |
-| **Audio Converter** | Transcode between MP3, WAV, OGG, and M4A losslessly |
-| **Video to MP3** | One-click audio extraction from video sources |
+| **Merge & Split** | Drag, arrange, and seamlessly combine or extract PDF files. |
+| **PDF to Images** | Convert each page to high-quality PNG with per-page progress. |
+| **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend. |
+| **Remove Blank Pages** | Smart pixel-density analysis to auto-sanitize documents. |
 
 ### 🤖 AI Utilities (Anthropic BYOK)
 | Tool | Description |
 |---|---|
-| **Screenshot to Code** | Convert UI mockups into clean **Tailwind CSS + HTML** code |
-| **AI PDF Summariser** | Intelligent recursive summarisation for large documents |
-| **AI Alt-Text Writer** | Accurate accessibility descriptions from any image |
+| **Screenshot to Code** | Convert UI mockups into clean **Tailwind CSS + HTML** code. |
+| **AI PDF Summariser** | Intelligent recursive summarisation for large documents. |
+| **AI Alt-Text Writer** | Accurate accessibility descriptions from any image. |
 
 ---
 
@@ -84,12 +77,11 @@
 |---|---|---|
 | **Runtime** | React 19, TypeScript 6 | Type-safe component architecture |
 | **Build** | Vite 8 | Sub-second HMR, optimized code splitting |
+| **Animation** | Framer Motion | Smooth layout transitions and interactive toggles |
 | **Canvas Engine** | Fabric.js 7 | Rich interactive canvas editing & composition |
 | **Video Engine** | `ffmpeg.wasm` v0.12 | Multi-threaded browser video processing |
-| **GIF Engine** | `gifshot` | High-performance GIF encoding & palette optimization |
 | **Archiver** | `jszip` | Chunked client-side ZIP generation |
 | **Icons** | Lucide React | Consistent icon system across all tools |
-| **Monetization** | None | Donor-supported model |
 
 ---
 
@@ -97,36 +89,20 @@
 
 ```text
 ├── server/                          # Local PDF encryption backend
-│   ├── uploads/                     # Temporary processing buffer
 │   ├── server.js                    # Express + qpdf bridge
-│   └── package.json                 # Backend dependencies
 ├── src/
 │   ├── components/
-│   │   ├── layout/                  # AppLayout, Navbar, Sidebar
-│   │   ├── shared/                  # DropZone, AdSlot
-│   │   ├── tools/
-│   │   │   ├── image/               # All image tool components
-│   │   │   └── pdf/                 # All PDF tool components
+│   │   ├── layout/                  # ToolLayout, ToolUploadLayout, Navbar
+│   │   ├── shared/                  # PillToggle, ModeToggle, DropZone
+│   │   ├── tools/                   # 100+ Categorized tools
 │   │   └── ui/                      # shadcn/ui primitives
-│   ├── config/
-│   │   └── tools.ts                 # Tool registry (icons, routes, metadata)
 │   ├── hooks/
-│   │   ├── useImageProcessor.ts     # Job-tracked processing hub
-│   │   └── usePremium.ts            # Legacy state (all features unlocked)
+│   │   ├── useObjectUrl.ts          # Centralized memory management
+│   │   └── useImageProcessor.ts     # Heavy task orchestration
 │   ├── lib/
-│   │   ├── canvas/
-│   │   │   ├── index.ts             # loadImage, drawToCanvas, exportCanvas
-│   │   │   └── guards.ts            # runYieldedTask, releaseCanvas, dimension guards
-│   │   └── utils.ts                 # Tailwind merge helpers
-│   ├── pages/
-│   │   └── Home.tsx                 # Animated tool grid
-│   ├── App.tsx                      # Router setup
-│   ├── index.css                    # Global dark tokens + glass effects
+│   │   ├── canvas/                  # draw, export, guards, loadImage
+│   │   └── utils.ts                 # cn, maybeYield, safeRevoke
 │   └── main.tsx                     # React DOM mount
-├── tailwind.config.js
-├── vite.config.ts
-├── tsconfig.app.json
-├── package.json
 ```
 
 ---
@@ -194,8 +170,6 @@ If you find these tools useful, please consider supporting us:
 - **Goal**: Keep Vanity forever free for everyone.
 
 Every donation, no matter how small, makes a huge difference!
-
----
 
 ---
 

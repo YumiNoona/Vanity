@@ -34,11 +34,18 @@ export const useImageProcessor = () => {
   }, []);
 
   const processImage = useCallback(async (file: File): Promise<ImageProcessResult | null> => {
+    // Cancel any previous job's cleanup WITHOUT incrementing jobIdRef again.
+    // clearCurrent() also does jobIdRef.current++ which would immediately stale
+    // the jobId we just captured on the next line — so we inline just the cleanup part.
+    if (activeCleanupRef.current) {
+      activeCleanupRef.current();
+      activeCleanupRef.current = null;
+    }
+
     const jobId = ++jobIdRef.current;
-    
+
     setIsProcessing(true);
     updateProgress(0);
-    clearCurrent();
 
     try {
       const loaded = await loadImage(file);

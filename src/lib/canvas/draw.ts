@@ -38,9 +38,6 @@ export const drawToCanvas = async (
     ctx.filter = options.filter;
   }
   
-  // RAF sync to ensure context is ready
-  await new Promise(requestAnimationFrame);
-  
   ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
   
   // Reset filter for next usage

@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react"
 import { toast } from "sonner"
-
-const PREMIUM_KEY = "vanity_premium_status"
 
 export function usePremium() {
   const isPremium = true
