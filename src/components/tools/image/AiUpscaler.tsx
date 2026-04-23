@@ -22,7 +22,7 @@ export function AiUpscaler() {
     return () => { isMountedRef.current = false }
   }, [])
   
-  const upscalerRef = React.useRef<Upscaler | null>(null)
+  const upscalerRef = React.useRef<any>(null)
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [scale, setScale] = useState(2)
@@ -51,7 +51,7 @@ export function AiUpscaler() {
         const upscaledDataUrl = await upscalerRef.current.upscale(result.source, {
           patchSize: 64,
           padding: 2,
-          progress: (percent) => {
+          progress: (percent: number) => {
             if (jobId === getJobId()) {
               updateProgress(Math.max(1, Math.round(percent * 100)))
             }
