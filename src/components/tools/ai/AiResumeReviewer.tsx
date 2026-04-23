@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, FileText, Loader2, Award, Zap, AlertCircle, Sparkles, Target, CheckCircle2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import * as pdfjsLib from "pdfjs-dist"
 
@@ -73,9 +74,9 @@ export function AiResumeReviewer() {
          rawText = await file.text()
       }
 
-      setLoadingStep("Analyzing semantics via Claude 3.5...")
+      setLoadingStep("Analyzing semantics...")
       
-      const systemPrompt = `You are an elite Silicon Valley tech recruiter and resume evaluator. 
+      const systemPrompt = `You are an elite recruiter and resume evaluator. 
 Analyze the provided resume text thoroughly. 
 You MUST return ONLY a strictly valid JSON object representing your review, with NO markdown formatting, NO markdown code blocks (do not wrap in \`\`\`json), and NO explanatory text before or after.
 Your response must exactly match this JSON structure:
@@ -92,13 +93,12 @@ Your response must exactly match this JSON structure:
          signal: controller.signal
       })
 
-      // Ensure clean parsing if Claude still injects backticks despite strict prompt
       const cleaned = responseText.replace(/```json/gi, "").replace(/```/gi, "").trim()
       
       const parsed = JSON.parse(cleaned) as ReviewResult
       
       if (typeof parsed.score !== "number" || !Array.isArray(parsed.strengths)) {
-         throw new Error("Claude returned an invalid structure.")
+         throw new Error("Invalid structure returned.")
       }
 
       setResult(parsed)
@@ -129,47 +129,41 @@ Your response must exactly match this JSON structure:
      return "text-red-400"
   }
 
+  const handleBack = () => {
+    setFile(null)
+    setResult(null)
+  }
+
   if (!file) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-6 text-blue-500">
-            <Sparkles className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Resume Reviewer</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Get an elite recruiter's actionable breakdown completely privately without uploading to third-party databases.
-         </p>
+       <ToolUploadLayout 
+        title="Resume Reviewer" 
+        description="Get an elite recruiter's actionable breakdown completely privately without uploading to third-party databases." 
+        icon={Sparkles}
+      >
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"], "text/plain": [".txt"] }} label="Drop PDF/TXT Resume" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Award className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">Executive Scorecard</h1>
-            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
-           </div>
-        </div>
-        <button onClick={() => {setFile(null); setResult(null)}} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Analyze Another
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Executive Scorecard" 
+      description={`${file.name} · ${activeProvider}`} 
+      icon={Award} 
+      onBack={handleBack} 
+      backLabel="Analyze Another" 
+      maxWidth="max-w-6xl"
+    >
       {!result && !isProcessing && (
          <div className="glass-panel p-12 rounded-3xl text-center border-blue-500/20 shadow-[0_0_50px_rgba(59,130,246,0.05)] text-white flex flex-col items-center">
             <Sparkles className="w-12 h-12 text-blue-400 mb-6" />
             <h2 className="text-2xl font-black font-syne mb-2">Ready to Evaluate</h2>
-            <p className="text-muted-foreground mb-8 max-w-md">Claude 3.5 will read your resume locally and extract strategic insights across impact, syntax, and hiring frameworks.</p>
+            <p className="text-muted-foreground mb-8 max-w-md">AI will read your resume locally and extract strategic insights across impact, syntax, and hiring frameworks.</p>
             <button 
               onClick={handleReview}
-              className="py-4 px-8 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-1"
+              className="py-4 px-8 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-1 active:scale-95"
             >
               Begin Comprehensive Review
             </button>
@@ -238,7 +232,7 @@ Your response must exactly match this JSON structure:
             {/* Sidebar Weaknesses & Suggestions */}
             <div className="lg:col-span-4 space-y-8">
                <div className="glass-panel p-8 rounded-3xl border-red-500/20 bg-gradient-to-b from-red-500/10 to-transparent">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-400 flex items-center gap-2 mb-6">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-400 flex items-center gap-2 mb-6 text-white/90">
                      <AlertCircle className="w-4 h-4" /> Critical Gaps
                   </h4>
                   <ul className="space-y-4">
@@ -251,7 +245,7 @@ Your response must exactly match this JSON structure:
                </div>
 
                <div className="glass-panel p-8 rounded-3xl border-amber-500/20 bg-gradient-to-b from-amber-500/10 to-transparent">
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-6">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-6 text-white/90">
                      <Zap className="w-4 h-4" /> Action Items
                   </h4>
                   <ul className="space-y-4">
@@ -265,6 +259,6 @@ Your response must exactly match this JSON structure:
             </div>
          </div>
       )}
-    </div>
+    </ToolLayout>
   )
 }

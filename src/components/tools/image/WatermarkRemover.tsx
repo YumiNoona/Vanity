@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Sparkles, Eraser, RefreshCw, Layers } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
@@ -81,8 +82,11 @@ export function WatermarkRemover() {
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
     
-    const x = ((e.clientX || e.touches[0].clientX) - rect.left) * scaleX
-    const y = ((e.clientY || e.touches[0].clientY) - rect.top) * scaleY
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX)
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY)
+    
+    const x = (clientX - rect.left) * scaleX
+    const y = (clientY - rect.top) * scaleY
 
     ctx.lineWidth = brushSize
     ctx.lineCap = "round"
@@ -118,7 +122,7 @@ export function WatermarkRemover() {
       
       for (let i = processed; i < end; i += 4) {
         if (maskPixels[i + 3] > 0) {
-          // Simple local reconstruction: borrow from left neighbor
+          // Simple local reconstruction
           const idx = i
           data[idx] = data[idx - 40] || data[idx]
           data[idx + 1] = data[idx + 1 - 40] || data[idx + 1]
@@ -152,7 +156,7 @@ export function WatermarkRemover() {
     }
   }
 
-  const handleStartNew = async () => {
+  const handleBack = async () => {
     releaseCanvas(canvasRef.current)
     releaseCanvas(maskCanvasRef.current)
     setFile(null)
@@ -163,31 +167,14 @@ export function WatermarkRemover() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Eraser className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Watermark Remover</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Upload an image and brush over the watermark to remove it using local AI.
-        </p>
+      <ToolUploadLayout title="Watermark Remover" description="Upload an image and brush over the watermark to remove it using local AI." icon={Eraser}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Smart Remover</h1>
-          <p className="text-muted-foreground text-sm">Brush over unwanted watermarks or objects.</p>
-        </div>
-        <button onClick={handleStartNew} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
+    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." onBack={handleBack} backLabel="Start New" maxWidth="max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-6 rounded-xl space-y-6">
@@ -292,6 +279,6 @@ export function WatermarkRemover() {
           )}
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

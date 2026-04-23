@@ -139,7 +139,7 @@ export function ImageCompressor() {
         {!file && queue.length === 0 ? (
           <div className="space-y-8 animate-in fade-in duration-500">
              <div className="flex justify-center">
-                <ModeToggle mode={processMode} onChange={setProcessMode} />
+                <ModeToggle id="compressor" mode={processMode} onChange={setProcessMode} />
              </div>
 
              <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-8">

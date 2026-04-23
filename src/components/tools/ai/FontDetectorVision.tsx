@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Type, Loader2, Sparkles, ExternalLink, Info } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -93,39 +94,30 @@ JSON Structure requirement:
     }
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearImgUrl()
+    setMatches(null)
+  }
+
   if (!file || !imgUrl) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-violet-500/10 rounded-full mb-6 text-violet-500">
-            <Type className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Font Matcher (Vision)</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Drop a screenshot of any text to heuristically determine its closest typographic family.
-         </p>
+       <ToolUploadLayout title="Font Matcher (Vision)" description="Drop a screenshot of any text to heuristically determine its closest typographic family." icon={Type}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image with text" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-violet-500/10 rounded-lg text-violet-500">
-             <Type className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">Typography Analysis</h1>
-            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
-           </div>
-        </div>
-        <button onClick={() => { setFile(null); clearImgUrl(); setMatches(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Load Different
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Typography Analysis" 
+      description={`${file.name} · ${activeProvider}`} 
+      icon={Type} 
+      onBack={handleBack} 
+      backLabel="Load Different" 
+      maxWidth="max-w-5xl"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
          <div className="space-y-6">
             <div className="glass-panel p-4 rounded-3xl border-white/5 relative overflow-hidden bg-black/40 flex items-center justify-center min-h-[300px]">
@@ -135,7 +127,7 @@ JSON Structure requirement:
             {!isProcessing && !matches && (
                <button 
                  onClick={analyzeTypography}
-                 className="w-full py-4 bg-violet-500 hover:bg-violet-400 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(139,92,246,0.3)] transition-all flex items-center justify-center gap-2"
+                 className="w-full py-4 bg-violet-500 hover:bg-violet-400 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(139,92,246,0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
                >
                  <Sparkles className="w-5 h-5" /> Analyze Font Families Visually
                </button>
@@ -187,6 +179,6 @@ JSON Structure requirement:
             )}
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

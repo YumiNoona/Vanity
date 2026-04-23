@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Maximize, Smartphone, Share2, Share, Briefcase, ImageIcon, RefreshCw, AlertCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -146,35 +147,14 @@ export function SocialResizer() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Maximize className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Social Resizer</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          One-click resize for Instagram, Twitter, LinkedIn, and more.
-        </p>
+      <ToolUploadLayout title="Social Resizer" description="One-click resize for Instagram, Twitter, LinkedIn, and more." icon={Maximize}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <activePreset.icon className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Social Resize</h1>
-            <p className="text-muted-foreground text-sm">Drag to reposition. Export at target resolution.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearImgPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
+    <ToolLayout title="Social Resize" description="Drag to reposition. Export at target resolution." onBack={() => { setFile(null); clearImgPreviewUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Column 1: Platform Selection */}
@@ -291,6 +271,6 @@ export function SocialResizer() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

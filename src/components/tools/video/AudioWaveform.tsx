@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Mic, Scissors, Download, Loader2, FastForward } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { fetchFile } from "@ffmpeg/util"
 import { toast } from "sonner"
 
@@ -201,16 +202,9 @@ export function AudioWaveform() {
 
   if (!file) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-6 text-purple-500">
-            <Mic className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Audio Waveform Visualizer</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Visually inspect tracks and precision-trim segments locally without uploading.
-         </p>
+       <ToolUploadLayout title="Audio Waveform Visualizer" description="Visually inspect tracks and precision-trim segments locally without uploading." icon={Mic}>
          <DropZone onDrop={handleDrop} accept={{ "audio/*": [] }} label="Drop MP3/WAV/AAC file" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 

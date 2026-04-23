@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -62,7 +63,7 @@ export function ColorBlindness() {
     if (!imgRef.current || !canvasRef.current || !imgUrl) return
     setIsProcessing(true)
 
-    // Using setTimeout to yield main thread briefly so UI doesn't completely lock instantly before loader renders
+    // Using setTimeout to yield main thread briefly
     processingTimeoutRef.current = window.setTimeout(() => {
       try {
         if (!isMountedRef.current || runId !== runIdRef.current) return
@@ -118,49 +119,40 @@ export function ColorBlindness() {
     a.click()
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearImgUrl()
+    clearOutputUrl()
+  }
+
   if (!file || !imgUrl) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-6 text-purple-500">
-            <EyeOff className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Color Blindness Simulator</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Apply mathematically precise pixel matrices to rigorously test UI/UX color accessibility.
-         </p>
-         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      <ToolUploadLayout title="Color Blindness Simulator" description="Apply mathematically precise pixel matrices to rigorously test UI/UX color accessibility." icon={EyeOff}>
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
+    <ToolLayout 
+      title="Accessibility Preview" 
+      description={`Visualizing ${mode.toUpperCase()} matrices directly against RGB pipelines locally.`} 
+      icon={Eye} 
+      onBack={handleBack} 
+      backLabel="Go Back" 
+      maxWidth="max-w-6xl"
+    >
       {/* Hidden processing resources */}
       <img ref={imgRef} src={imgUrl} className="hidden" crossOrigin="anonymous" alt="Original" />
       <canvas ref={canvasRef} className="hidden" />
-
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-             <Eye className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Accessibility Preview</h1>
-            <p className="text-muted-foreground text-sm">Visualizing {mode.toUpperCase()} matrices directly against RGB pipelines locally.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearImgUrl(); clearOutputUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Go Back
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
          <div className="lg:col-span-3">
              <div className="relative aspect-video rounded-3xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center shadow-2xl">
                 {isProcessing ? (
                    <div className="flex flex-col items-center">
-                     <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
-                     <p className="font-mono text-sm text-muted-foreground">Applying matrix transformation...</p>
+                      <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
+                      <p className="font-mono text-sm text-muted-foreground">Applying matrix transformation...</p>
                    </div>
                 ) : (
                    (outputUrl || imgUrl) && <img src={outputUrl || imgUrl || ""} className="max-w-full max-h-full object-contain pointer-events-none" alt="Simulated" />
@@ -216,13 +208,13 @@ export function ColorBlindness() {
 
             <button 
               onClick={handleDownload}
-              disabled={isProcessing || !outputUrl}
+              disabled={isProcessing || (!outputUrl && mode !== "original")}
               className="w-full py-4 mt-8 bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors disabled:opacity-50"
             >
                <Download className="w-5 h-5" /> Download Render
             </button>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

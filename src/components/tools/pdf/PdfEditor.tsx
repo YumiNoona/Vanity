@@ -93,21 +93,19 @@ export function PdfEditor() {
         await page.render({
           canvasContext: ctx,
           viewport,
-          // @ts-ignore — pdfjs types require canvas but it's optional at runtime
+          // @ts-ignore
           canvas: canvas,
         }).promise
 
         const blob = await new Promise<Blob>((resolve) =>
           canvas.toBlob((b) => resolve(b!), "image/png")
         )
-          images.push(addUrl(blob))
+        addUrl(blob)
 
-          canvas.width = 0
-          canvas.height = 0
-          setProgress(15 + Math.floor((i / count) * 80))
-        }
-
-        // setPageImages(images) is no longer needed as addUrl updates hook state
+        canvas.width = 0
+        canvas.height = 0
+        setProgress(15 + Math.floor((i / count) * 80))
+      }
 
       setProgress(100)
       toast.success(`Loaded ${count} pages for editing`)
@@ -286,6 +284,14 @@ export function PdfEditor() {
     downloadBlob(resultBlob, `vanity-edited-${file?.name || "document.pdf"}`)
   }
 
+  const handleBack = () => {
+    clearUrls()
+    setFile(null)
+    setTextAnnotations([])
+    setDrawStrokes([])
+    setResultBlob(null)
+  }
+
   if (!file) {
     return (
       <ToolUploadLayout
@@ -311,13 +317,7 @@ export function PdfEditor() {
       title="PDF Editor"
       description={`Editing: ${file.name} — Page ${currentPage + 1} of ${pageImages.length}`}
       icon={FileEdit}
-      onBack={() => {
-        clearUrls()
-        setFile(null)
-        setTextAnnotations([])
-        setDrawStrokes([])
-        setResultBlob(null)
-      }}
+      onBack={handleBack}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 pb-20">

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { ArrowLeft, Diff, SplitSquareHorizontal, Layout, Trash2, Copy, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { diff_match_patch } from "diff-match-patch"
 import { toast } from "sonner"
 
@@ -25,23 +26,19 @@ export function TextDiff() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Diff className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Diff Checker</h1>
-            <p className="text-muted-foreground text-sm">Compare two versions of text side-by-side.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Diff Checker" 
+      description="Compare two versions of text side-by-side." 
+      icon={Diff} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-7xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 sm:px-0">
         {/* Input Text A */}
         <div className="space-y-4">
@@ -81,7 +78,7 @@ export function TextDiff() {
       </div>
 
       {/* Diff Result Area */}
-      <div className="space-y-4 px-4 sm:px-0">
+      <div className="space-y-4 px-4 sm:px-0 mt-8">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
              Comparison Results
@@ -128,6 +125,6 @@ export function TextDiff() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

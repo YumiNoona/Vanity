@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Sparkles, SlidersHorizontal, RefreshCw, ImageIcon } from "lucide-react"
-import { usePremium } from "@/hooks/usePremium"
-import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { Download, Sparkles, SlidersHorizontal, RefreshCw, ImageIcon } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -11,22 +10,22 @@ export function NoiseGrain() {
   const [intensity, setIntensity] = useState(20)
   const [mono, setMono] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
-  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    setPreviewUrl(uploadedFile)
   }
 
   const applyNoise = useCallback(() => {
     if (!file || !canvasRef.current) return
     setIsProcessing(true)
 
+    const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
+      URL.revokeObjectURL(localUrl)
       const canvas = canvasRef.current!
       canvas.width = img.width
       canvas.height = img.height
@@ -54,8 +53,9 @@ export function NoiseGrain() {
       ctx.putImageData(imageData, 0, 0)
       setIsProcessing(false)
     }
-    img.src = previewUrl!
-  }, [file, intensity, mono, previewUrl])
+    img.onerror = () => URL.revokeObjectURL(localUrl)
+    img.src = localUrl
+  }, [file, intensity, mono])
 
   useEffect(() => {
     if (file) applyNoise()
@@ -71,38 +71,27 @@ export function NoiseGrain() {
     toast.success("Grainy image exported!")
   }
 
+  const handleBack = () => {
+    setFile(null)
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <ImageIcon className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Noise & Grain</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Add authentic film grain, digital noise, or vintage textures to any photograph.
-        </p>
+      <ToolUploadLayout title="Noise & Grain" description="Add authentic film grain, digital noise, or vintage textures to any photograph." icon={ImageIcon}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to add textures" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Grain Studio</h1>
-            <p className="text-muted-foreground text-sm">Fine-tune the analog look and feel.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> New Photo
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Grain Studio" 
+      description="Fine-tune the analog look and feel." 
+      icon={Sparkles} 
+      onBack={handleBack} 
+      backLabel="New Photo" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
           <div className="glass-panel p-4 rounded-3xl flex items-center justify-center min-h-[500px] bg-black/40 overflow-hidden relative shadow-2xl">
@@ -154,7 +143,7 @@ export function NoiseGrain() {
               </div>
 
               <div className="p-4 bg-primary/5 rounded-xl text-[10px] text-muted-foreground leading-relaxed italic border border-primary/10">
-                Grain is generated using a high-performance recursive bitwise randomization algorithm. Processing happens locally in your browser.
+                Grain is generated using a high-performance randomization algorithm. Processing happens locally in your browser.
               </div>
 
               <button 
@@ -168,6 +157,6 @@ export function NoiseGrain() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
@@ -13,7 +14,6 @@ export function ImageEffects() {
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
 
-  // Ensure sourceImage is nulled if hook clears it (e.g. on unmount or new process)
   useEffect(() => {
     return () => {
       if (sourceImage instanceof ImageBitmap) {
@@ -27,6 +27,7 @@ export function ImageEffects() {
       clearCurrent()
     }
   }, [clearCurrent])
+  
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [settings, setSettings] = useState({
@@ -91,28 +92,28 @@ export function ImageEffects() {
       toast.error("Export failed")
     }
   }
+
+  const handleBack = () => {
+    setFile(null)
+    clearCurrent()
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12">
-        <h1 className="text-3xl font-bold font-syne mb-2">Image Effects</h1>
-        <p className="text-muted-foreground mb-8">Apply beautiful filters and adjust colors directly in your browser.</p>
+      <ToolUploadLayout title="Filter Studio" description="Apply filters, adjustments, and effects to any photograph." icon={SlidersHorizontal}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Edit Image</h1>
-          <p className="text-muted-foreground text-sm">Editing: {file.name}</p>
-        </div>
-        <button onClick={() => { setFile(null); clearCurrent(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Try another image
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Edit Image" 
+      description={`Editing: ${file.name}`} 
+      onBack={handleBack} 
+      backLabel="Try another image" 
+      maxWidth="max-w-7xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">
           <div className="flex items-center gap-2 font-bold font-syne text-lg border-b border-border/50 pb-4">
@@ -163,6 +164,6 @@ export function ImageEffects() {
           />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

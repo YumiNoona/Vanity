@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Sparkles } from "lucide-react"
+import { Download, ArrowLeft, Loader2, Sparkles, Image } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -83,33 +84,23 @@ export function RemoveBg() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Sparkles className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-4">Background Removal</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Upload an image and instantly remove its background. Powered by AI, perfectly free, and processes entirely in your browser.
-        </p>
+      <ToolUploadLayout
+        title="Background Removal"
+        description="Upload an image and instantly remove its background. Powered by AI, perfectly free, and processes entirely in your browser."
+        icon={Image}
+      >
         <DropZone onDrop={handleProcess} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Remove Background</h1>
-          <p className="text-muted-foreground text-sm">File: {file.name}</p>
-        </div>
-        <button 
-          onClick={handleStartNew} 
-          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
+    <ToolLayout
+      title="Remove Background"
+      description={`File: ${file.name}`}
+      icon={Image}
+      onBack={handleStartNew}
+    >
 
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+Cgo8cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMzMzMzMzMiLz4KPHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzIyMjIyMiIvPgo8cmVjdCB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMjIyMjIyIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMzMzMzMzIi8+Cjwvc3ZnPg==')]">
         
@@ -145,6 +136,6 @@ export function RemoveBg() {
           </button>
         </div>
       )}
-    </div>
+    </ToolLayout>
   )
 }

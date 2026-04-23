@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { Code, Minimize2, Maximize2, Copy, Trash2, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function HtmlFormatter() {
   const [input, setInput] = useState("")
@@ -70,16 +71,7 @@ export function HtmlFormatter() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-orange-500/10 text-orange-500 rounded-xl">
-           <Code className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">HTML Formatter</h1>
-          <p className="text-muted-foreground text-sm">Prettify or minify raw HTML code locally.</p>
-        </div>
-      </div>
+    <ToolLayout title="HTML Formatter" description="Prettify or minify raw HTML code locally." icon={Code} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 sm:px-0">
          <div className="space-y-4">
@@ -139,6 +131,6 @@ export function HtmlFormatter() {
             />
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

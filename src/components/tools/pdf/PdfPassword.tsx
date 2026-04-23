@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Lock, Unlock, FileText, ShieldCheck } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 type Mode = "add" | "remove"
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000"
-
-import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function PdfPassword() {
   const { validateFiles } = usePremium()
@@ -22,7 +23,6 @@ export function PdfPassword() {
   const [isDone, setIsDone] = useState(false)
   const [serverOnline, setServerOnline] = useState<boolean | null>(null)
 
-  // Check if backend is running
   useEffect(() => {
     fetch(`${API_BASE}/health`)
       .then(r => r.json())
@@ -34,14 +34,13 @@ export function PdfPassword() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
 
-    // Manual file type validation
     if (!uploadedFile.type.includes("pdf") && !uploadedFile.name.toLowerCase().endsWith(".pdf")) {
       toast.error("Please upload a valid PDF file")
       return
     }
 
     setFile(uploadedFile)
-    setResultUrl(null)
+    clearResultUrl()
     setIsDone(false)
     setProgress(0)
   }
@@ -56,15 +55,7 @@ export function PdfPassword() {
       formData.append("file", file)
       formData.append("password", password)
 
-      setProgress(40)
-
-      const res = await fetch(`${API_BASE}/protect`, {
-        method: "POST",
-        body: formData,
-      })
-
-      setProgress(80)
-
+      const res = await fetch(`${API_BASE}/protect`, { method: "POST", body: formData })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Server error" }))
         throw new Error(err.error || "Failed to encrypt PDF")
@@ -77,7 +68,6 @@ export function PdfPassword() {
       setPassword("")
       toast.success("PDF encrypted with AES-256!")
     } catch (error: any) {
-      console.error(error)
       toast.error(error.message || "Failed to protect PDF")
       setProgress(0)
     } finally {
@@ -95,15 +85,7 @@ export function PdfPassword() {
       formData.append("file", file)
       if (password) formData.append("password", password)
 
-      setProgress(40)
-
-      const res = await fetch(`${API_BASE}/unlock`, {
-        method: "POST",
-        body: formData,
-      })
-
-      setProgress(80)
-
+      const res = await fetch(`${API_BASE}/unlock`, { method: "POST", body: formData })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Decryption failed" }))
         throw new Error(err.error || "Failed to unlock PDF")
@@ -116,7 +98,6 @@ export function PdfPassword() {
       setPassword("")
       toast.success("Password removed! PDF is now unlocked.")
     } catch (error: any) {
-      console.error(error)
       if (error.message?.includes("password") || error.message?.includes("Wrong")) {
         toast.error("Wrong password or unsupported encryption format")
       } else {
@@ -132,13 +113,10 @@ export function PdfPassword() {
     if (!resultUrl) return
     const suffix = mode === "add" ? "protected" : "unlocked"
     const baseName = file?.name.replace(/\.pdf$/i, "") || "document"
-    const a = document.createElement("a")
-    a.href = resultUrl
-    a.download = `vanity-${suffix}-${baseName}.pdf`
-    a.click()
+    downloadBlob(resultUrl as any, `vanity-${suffix}-${baseName}.pdf`)
   }
 
-  const handleStartNew = () => {
+  const handleBack = () => {
     setFile(null)
     clearResultUrl()
     setIsDone(false)
@@ -146,75 +124,48 @@ export function PdfPassword() {
     setPassword("")
   }
 
+  const renderToggle = () => (
+    <PillToggle
+      id="pdf-password"
+      activeId={mode}
+      onChange={setMode}
+      options={[
+        { id: "add", label: "Add Password", icon: Lock },
+        { id: "remove", label: "Remove Password", icon: Unlock }
+      ]}
+    />
+  )
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Lock className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">PDF Password Manager</h1>
-        <p className="text-muted-foreground text-lg mb-4">
-          Add or remove password protection from your PDF files.
-        </p>
-
+      <ToolUploadLayout title="PDF Password Manager" description="Add or remove password protection from your PDF files using AES-256 encryption." icon={Lock}>
         {serverOnline === false && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-            ⚠️ PDF Password Service is offline. Run <code className="bg-white/10 px-2 py-0.5 rounded">node server/server.js</code> locally to enable encryption.
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm animate-in fade-in slide-in-from-top-2">
+            ⚠️ PDF Password Service is offline. Run <code className="bg-white/10 px-2 py-0.5 rounded text-white">node server/server.js</code> locally to enable encryption.
           </div>
         )}
-
         {serverOnline === true && (
-          <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-xs flex items-center justify-center gap-2">
+          <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-xs flex items-center justify-center gap-2 animate-in fade-in">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             AES-256 Encryption Engine Online (qpdf)
           </div>
         )}
-
-        {/* Mode toggle */}
-        <div className="flex justify-center gap-2 mb-8">
-          <button
-            onClick={() => setMode("add")}
-            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-              mode === "add"
-                ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(245,158,11,0.3)]"
-                : "bg-white/5 hover:bg-white/10 text-muted-foreground"
-            }`}
-          >
-            <Lock className="w-4 h-4" /> Add Password
-          </button>
-          <button
-            onClick={() => setMode("remove")}
-            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-              mode === "remove"
-                ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(245,158,11,0.3)]"
-                : "bg-white/5 hover:bg-white/10 text-muted-foreground"
-            }`}
-          >
-            <Unlock className="w-4 h-4" /> Remove Password
-          </button>
-        </div>
-
+        {renderToggle()}
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">
-            {mode === "add" ? "Protect PDF" : "Unlock PDF"}
-          </h1>
-          <p className="text-muted-foreground text-sm">File: {file.name}</p>
-        </div>
-        <button onClick={handleStartNew} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
-      <div className="glass-panel p-8 rounded-xl space-y-8 relative overflow-hidden min-h-[300px]">
-        {/* Processing overlay */}
+    <ToolLayout
+      title={mode === "add" ? "Protect PDF" : "Unlock PDF"}
+      description={file.name}
+      icon={mode === "add" ? Lock : Unlock}
+      onBack={handleBack}
+      backLabel="Start Over"
+      maxWidth="max-w-4xl"
+    >
+      <div className="glass-panel p-8 rounded-3xl space-y-8 relative overflow-hidden min-h-[400px] border-white/5 bg-black/40 flex flex-col items-center justify-center">
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur z-20 flex flex-col items-center justify-center">
             <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
@@ -224,35 +175,30 @@ export function PdfPassword() {
             <div className="w-64 h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden">
               <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
-            <p className="text-xs text-muted-foreground mt-4">Using AES-256 encryption via qpdf</p>
+            <p className="text-xs text-muted-foreground mt-4 uppercase tracking-widest font-black">Using AES-256 encryption via qpdf</p>
           </div>
         )}
 
-        {/* Input form */}
         {!isDone && !isProcessing && (
-          <div className="max-w-md mx-auto space-y-6 py-8 text-center">
-            <div className="p-4 bg-white/5 rounded-2xl inline-block mb-2">
-              {mode === "add" ? (
-                <Lock className="w-12 h-12 text-primary opacity-60" />
-              ) : (
-                <Unlock className="w-12 h-12 text-primary opacity-60" />
-              )}
+          <div className="max-w-md w-full mx-auto space-y-8 py-8 text-center animate-in zoom-in-95 duration-500">
+            <div className="p-6 bg-primary/10 rounded-full inline-block mb-2 text-primary border border-primary/20 shadow-2xl">
+              {mode === "add" ? <Lock className="w-12 h-12" /> : <Unlock className="w-12 h-12" />}
             </div>
 
             <div className="space-y-4">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {mode === "add" ? "Set Encryption Password" : "Enter Current Password (if known)"}
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                {mode === "add" ? "Set Encryption Password" : "Enter Current Password"}
               </label>
               <input
                 type="password"
                 placeholder={mode === "add" ? "Choose a strong password..." : "Enter password to unlock..."}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:ring-2 focus:ring-primary outline-none transition-all text-center text-xl font-bold font-syne"
+                className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-5 focus:border-primary/50 outline-none transition-all text-center text-2xl font-bold font-syne tracking-tighter"
               />
               {mode === "remove" && (
-                <p className="text-xs text-muted-foreground">
-                  Leave blank to try unlocking without a password (works for owner-only restrictions).
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-relaxed">
+                  Leave blank to try unlocking without a password (owner-only restrictions).
                 </p>
               )}
             </div>
@@ -260,46 +206,45 @@ export function PdfPassword() {
             <button
               onClick={mode === "add" ? applyProtection : removeProtection}
               disabled={(mode === "add" && !password) || isProcessing || serverOnline === false}
-              className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+              className="w-full py-5 bg-primary text-primary-foreground font-black rounded-2xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 uppercase tracking-widest text-sm"
             >
               {mode === "add" ? (
-                <><ShieldCheck className="w-5 h-5" /> Encrypt with AES-256</>
+                <><ShieldCheck className="w-5 h-5" /> Encrypt Document</>
               ) : (
-                <><Unlock className="w-5 h-5" /> Remove Password</>
+                <><Unlock className="w-5 h-5" /> Unlock Document</>
               )}
             </button>
 
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              Files are sent to your local server, encrypted via qpdf, then immediately deleted.
+            <p className="text-[9px] text-muted-foreground leading-relaxed uppercase tracking-widest">
+              Processing occurs on your local instance. Files are removed immediately after encryption.
             </p>
           </div>
         )}
 
-        {/* Success state */}
         {isDone && resultUrl && (
-          <div className="text-center space-y-8 py-12 animate-in zoom-in-95">
-            <div className="p-8 bg-green-500/10 border border-green-500/20 rounded-2xl inline-block">
+          <div className="text-center space-y-8 py-12 animate-in zoom-in-95 duration-500">
+            <div className="p-8 bg-green-500/10 border border-green-500/20 rounded-3xl inline-block shadow-2xl">
               <FileText className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold font-syne text-white">
+              <h3 className="text-3xl font-bold font-syne text-white">
                 {mode === "add" ? "PDF Encrypted!" : "PDF Unlocked!"}
               </h3>
-              <p className="text-muted-foreground text-sm mt-2">
+              <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
                 {mode === "add"
-                  ? "AES-256 password protection has been applied."
-                  : "Password restrictions have been removed from your PDF."}
+                  ? "AES-256 password protection has been applied successfully."
+                  : "Security restrictions have been removed from your document."}
               </p>
             </div>
 
             <button
               onClick={handleDownload}
-              className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto"
+              className="px-12 py-5 bg-primary text-primary-foreground font-black rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto uppercase tracking-widest text-sm active:scale-95"
             >
               <Download className="w-6 h-6" />
-              {mode === "add" ? "Download Encrypted PDF" : "Download Unlocked PDF"}
+              Download Result
             </button>
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   )
 }

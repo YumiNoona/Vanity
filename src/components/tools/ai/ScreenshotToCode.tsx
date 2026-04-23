@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Monitor, Code, ShieldCheck, Copy, CheckCircle, Smartphone } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAIVision } from "@/lib/ai-providers"
@@ -76,48 +77,40 @@ export function ScreenshotToCode() {
     toast.success("HTML copied!")
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearPreviewUrl()
+    setCode("")
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-               <Monitor className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">Screenshot to Code</h1>
-            <p className="text-muted-foreground text-lg mb-8">
-               Convert any UI mockup or screenshot into clean Tailwind CSS + HTML code.
-            </p>
-         </div>
-
-         <div className="space-y-6">
-            <AIProviderHint />
-            <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop screenshot here" />
-         </div>
-      </div>
+      <ToolUploadLayout 
+        title="Screenshot to Code" 
+        description="Translate pixels to responsive HTML using AI Vision." 
+        icon={Code}
+      >
+        <div className="space-y-6">
+          <AIProviderHint />
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop screenshot here" />
+        </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
-             <Code className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Visual Coder</h1>
-            <p className="text-muted-foreground text-sm">Translating pixels to responsive HTML · {activeProvider}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); setCode(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> New Screenshot
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Visual Coder" 
+      description={`Translating pixels to responsive HTML · ${activeProvider}`} 
+      icon={Code} 
+      onBack={handleBack} 
+      backLabel="New Screenshot" 
+      maxWidth="max-w-7xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-12 xl:col-span-4 space-y-8">
            <div className="glass-panel p-4 rounded-[2rem] overflow-hidden bg-black/40 border-white/5 shadow-2xl relative group">
-              <img src={previewUrl!} className="w-full h-auto rounded-3xl opacity-80 group-hover:opacity-100 transition-opacity" alt="Preview" />
+              {previewUrl && <img src={previewUrl} className="w-full h-auto rounded-3xl opacity-80 group-hover:opacity-100 transition-opacity" alt="Preview" />}
               {isProcessing && (
                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
                     <RefreshCw className="w-12 h-12 text-emerald-500 animate-spin" />
@@ -131,9 +124,9 @@ export function ScreenshotToCode() {
                 <button 
                   onClick={generateCode}
                   disabled={isProcessing}
-                  className="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                  className="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                  <Sparkles className="w-6 h-6" />
+                  {isProcessing ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6" />}
                   Generate Tailwind Code
                 </button>
               )}
@@ -203,6 +196,6 @@ export function ScreenshotToCode() {
            )}
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

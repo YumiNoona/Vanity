@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { ArrowLeft, Copy, CheckCircle, Zap, RefreshCw, MoveRight } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -26,23 +27,12 @@ export function CssGradient() {
     setAngle(Math.floor(Math.random() * 361))
   }
 
-  return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-pink-500/10 rounded-lg text-pink-500">
-             <Zap className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Gradient Builder</h1>
-            <p className="text-muted-foreground text-sm">Visual CSS linear gradient generator.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout title="Gradient Builder" description="Visual CSS linear gradient generator." icon={Zap} onBack={handleBack} backLabel="Back" maxWidth="max-w-5xl">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Preview & Controls */}
         <div className="md:col-span-8 space-y-6">
@@ -82,7 +72,7 @@ export function CssGradient() {
                         type="text" 
                         value={color1}
                         onChange={(e) => setColor1(e.target.value)}
-                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30"
+                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30 text-white/90"
                       />
                    </div>
                 </div>
@@ -102,7 +92,7 @@ export function CssGradient() {
                         type="text" 
                         value={color2}
                         onChange={(e) => setColor2(e.target.value)}
-                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30"
+                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30 text-white/90"
                       />
                    </div>
                 </div>
@@ -128,7 +118,7 @@ export function CssGradient() {
         {/* Output Panel */}
         <div className="md:col-span-4 space-y-6">
            <div className="glass-panel p-6 rounded-2xl flex flex-col h-full bg-pink-500/[0.02] border-pink-500/10">
-              <h3 className="font-bold font-syne text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6">
+              <h3 className="font-bold font-syne text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6 text-white/90">
                  <Copy className="w-4 h-4" /> CSS Snippet
               </h3>
               
@@ -167,6 +157,6 @@ export function CssGradient() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

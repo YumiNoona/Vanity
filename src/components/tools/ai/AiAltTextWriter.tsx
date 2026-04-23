@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { useAIVisionTask } from "@/hooks/useAIVisionTask"
@@ -57,46 +58,40 @@ export function AiAltTextWriter() {
     toast.success("Copied!")
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearPreviewUrl()
+    setAltText("")
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-        <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-          <Eye className="w-8 h-8" />
-        </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI Alt-Text Writer</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Generate professional accessibility descriptions for your images using Claude Vision.
-        </p>
-
+      <ToolUploadLayout 
+        title="AI Alt-Text Writer" 
+        description="Generate professional accessibility descriptions for your images using AI Vision." 
+        icon={Eye}
+      >
         <div className="space-y-6">
           <AIProviderHint />
           <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to describe" />
         </div>
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
-             <BrainCircuit className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Accessibility Engine</h1>
-            <p className="text-muted-foreground text-sm">Provider: {activeProvider}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); setAltText(""); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Image
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Accessibility Engine" 
+      description={`Provider: ${activeProvider}`} 
+      icon={BrainCircuit} 
+      onBack={handleBack} 
+      backLabel="Change Image" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-6">
            <div className="aspect-square glass-panel rounded-[2.5rem] overflow-hidden bg-black/40 border-white/5 shadow-2xl relative group">
-              <img src={previewUrl!} className="w-full h-full object-cover transition-transform group-hover:scale-[1.02] duration-700" alt="Preview" />
+              {previewUrl && <img src={previewUrl} className="w-full h-full object-cover transition-transform group-hover:scale-[1.02] duration-700" alt="Preview" />}
               {isProcessing && (
                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center space-y-4">
                     <RefreshCw className="w-12 h-12 text-emerald-500 animate-spin" />
@@ -112,7 +107,7 @@ export function AiAltTextWriter() {
                 <div className="space-y-3">
                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Generated Description</h3>
                    <div className="p-8 bg-white/5 border border-white/5 rounded-3xl text-lg text-white/90 leading-relaxed font-syne">
-                      "{altText}"
+                      &quot;{altText}&quot;
                    </div>
                 </div>
                 <button 
@@ -127,12 +122,12 @@ export function AiAltTextWriter() {
              <div className="space-y-8 text-center lg:text-left">
                 <div className="space-y-2">
                    <h2 className="text-3xl font-bold font-syne text-white">Ready to describe.</h2>
-                   <p className="text-muted-foreground">Claude will analyse the lighting, composition, and subjects to write a perfect screen-reader description.</p>
+                   <p className="text-muted-foreground">AI will analyse the lighting, composition, and subjects to write a perfect screen-reader description.</p>
                 </div>
                 <button 
                   onClick={generateAltText}
                   disabled={isProcessing || isRunning}
-                  className="px-12 py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 justify-center lg:justify-start"
+                  className="px-12 py-5 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 justify-center lg:justify-start disabled:opacity-50"
                 >
                   <Sparkles className="w-6 h-6" />
                   Generate Description
@@ -143,11 +138,11 @@ export function AiAltTextWriter() {
            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Your image is transmitted over HTTPS directly to Anthropic's vision API. No intermediate servers are used, satisfying our commitment to maximum privacy.
+                  Your image is transmitted securely to the AI provider. No intermediate servers are used, satisfying our commitment to maximum privacy.
                </p>
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

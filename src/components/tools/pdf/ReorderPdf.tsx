@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, ListOrdered, GripVertical, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -98,35 +99,14 @@ export function ReorderPdf() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <ListOrdered className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Reorder PDF</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Drag and drop to rearrange pages or remove unwanted ones before recompiling.
-        </p>
+      <ToolUploadLayout title="Reorder PDF" description="Drag and drop to rearrange pages or remove unwanted ones before recompiling." icon={ListOrdered} iconColor="accent">
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent border border-accent/20">
-             <ListOrdered className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-foreground">Reorder PDF</h1>
-            <p className="text-muted-foreground text-sm">{file?.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start Over
-        </button>
-      </div>
+    <ToolLayout title="Reorder PDF" description={file?.name} icon={ListOrdered} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Start Over">
 
       <div className="glass-panel p-6 rounded-xl min-h-[400px]">
         <Reorder.Group axis="y" values={pages} onReorder={setPages} className="space-y-3">
@@ -184,6 +164,6 @@ export function ReorderPdf() {
           </button>
         )}
       </div>
-    </div>
+    </ToolLayout>
   )
 }

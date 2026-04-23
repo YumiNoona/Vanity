@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, ArrowLeftRight, Trash2, FileSpreadsheet, Download, RefreshCw } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -64,7 +65,7 @@ export function CsvJsonConverter() {
       setResultUrl(new Blob([result], { type: "text/csv" }))
       toast.success("Converted to CSV!")
     }
-  }, [input, mode])
+  }, [input, mode, setResultUrl])
 
   const handleCopy = () => {
     if (!output) return
@@ -91,23 +92,19 @@ export function CsvJsonConverter() {
     }
   }
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
-             <FileSpreadsheet className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Data Converter</h1>
-            <p className="text-muted-foreground text-sm">Switch between CSV and JSON formats effortlessly.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Data Converter" 
+      description="Switch between CSV and JSON formats effortlessly." 
+      icon={FileSpreadsheet} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}
         <div className="lg:col-span-12 xl:col-span-5 space-y-4">
@@ -126,7 +123,7 @@ export function CsvJsonConverter() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={mode === "csv-to-json" ? "Header1,Header2\nValue1,Value2" : '[{"id": 1, "name": "Tool"}]'}
-            className="w-full h-96 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-green-500/30 transition-all"
+            className="w-full h-96 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-green-500/30 transition-all text-white/90"
           />
           <div className="flex gap-4">
             <button 
@@ -166,7 +163,8 @@ export function CsvJsonConverter() {
                 disabled={!output || output.startsWith("Error")}
                 className="px-4 py-2 bg-white/5 border border-white/10 text-xs font-bold rounded-lg flex items-center gap-2 hover:bg-white/10 disabled:opacity-30 transition-all font-syne"
                 >
-                <Copy className="w-3 h-3" /> Copy
+                {copied ? <CheckCircle className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                Copy
                 </button>
                 <button 
                 onClick={handleDownload}
@@ -181,12 +179,12 @@ export function CsvJsonConverter() {
             readOnly
             value={output}
             className={cn(
-              "w-full h-96 bg-black/20 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none overflow-auto",
+              "w-full h-96 bg-black/20 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none overflow-auto text-white/90",
               output.startsWith("Error") && "text-red-400 border-red-500/20"
             )}
           />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

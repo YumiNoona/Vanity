@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, Braces, AlignLeft, Minimize, Trash2, AlertCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -61,23 +62,19 @@ export function JsonFormatter() {
     })
   }
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Braces className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">JSON Formatter</h1>
-            <p className="text-muted-foreground text-sm">Prettify, minify, and validate locally.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="JSON Formatter" 
+      description="Prettify, minify, and validate locally." 
+      icon={Braces} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}
         <div className="space-y-4">
@@ -101,7 +98,7 @@ export function JsonFormatter() {
               onChange={(e) => setInput(e.target.value)}
               placeholder='Paste your JSON here... {"example": "text"}'
               className={cn(
-                "w-full h-[500px] bg-black/40 border rounded-xl p-6 font-mono text-sm resize-none outline-none transition-all focus:ring-2 focus:ring-blue-500/20",
+                "w-full h-[500px] bg-black/40 border rounded-xl p-6 font-mono text-sm resize-none outline-none transition-all focus:ring-2 focus:ring-blue-500/20 text-white/90",
                 error ? "border-red-500/50" : "border-white/10 group-hover:border-white/20"
               )}
             />
@@ -149,7 +146,7 @@ export function JsonFormatter() {
             <div className="w-full h-[500px] bg-black/20 border border-white/10 rounded-xl overflow-auto p-6 scrollbar-thin scrollbar-thumb-white/10">
               {output ? (
                 <pre 
-                  className="font-mono text-sm leading-relaxed whitespace-pre"
+                  className="font-mono text-sm leading-relaxed whitespace-pre text-white/90"
                   dangerouslySetInnerHTML={{ __html: highlightJson(output) || "" }}
                 />
               ) : (
@@ -170,6 +167,6 @@ export function JsonFormatter() {
           </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -35,7 +36,6 @@ export function MockApiGenerator() {
     requestControllerRef.current = controller
 
     try {
-      // Extremely strict system prompt based on user specs to avoid Markdown pollution
       const systemPrompt = `You are a strict data generation API. You emit NOTHING but raw, valid JSON arrays.
 CRITICAL INSTRUCTION: You MUST NOT use markdown code formatting. Do NOT wrap the JSON in \`\`\`json or \`\`\`.
 Do not output any explanation. If the prompt fails, return an empty array [].
@@ -51,7 +51,6 @@ ${schema}`
          signal: controller.signal
       })
 
-      // Attempt parsing to guarantee it's valid JSON before displaying
       let cleaned = responseText.trim()
       if (cleaned.startsWith("```json")) cleaned = cleaned.replace(/^```json/, "")
       if (cleaned.startsWith("```")) cleaned = cleaned.replace(/^```/, "")
@@ -59,7 +58,6 @@ ${schema}`
       cleaned = cleaned.trim()
 
       try {
-         // Validate JSON syntax directly
          const parsed = JSON.parse(cleaned)
          setResultJson(JSON.stringify(parsed, null, 2))
          setResultUrl(new Blob([JSON.stringify(parsed, null, 2)], { type: "application/json" }))
@@ -101,20 +99,19 @@ ${schema}`
      a.click()
   }
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
-             <Database className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">API Scaffold</h1>
-            <p className="text-muted-foreground text-sm font-mono">Synthesize data structures accurately · {activeProvider}</p>
-           </div>
-        </div>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="API Scaffold" 
+      description={`Synthesize data structures accurately · ${activeProvider}`} 
+      icon={Database} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel p-6 rounded-3xl border-red-500/20 bg-black/40 space-y-6">
@@ -162,7 +159,7 @@ ${schema}`
                <button 
                  onClick={generateMockData}
                  disabled={isProcessing || !schema.trim()}
-                 className="w-full py-4 bg-red-500 hover:bg-red-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
+                 className="w-full py-4 bg-red-500 hover:bg-red-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4 active:scale-95"
                >
                  {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Fetching Dataset...</> : <><Database className="w-5 h-5" /> Generate Seed Data</>}
                </button>
@@ -170,9 +167,9 @@ ${schema}`
          </div>
 
          <div className="lg:col-span-8">
-            <div className="h-full flex flex-col relative glass-panel rounded-3xl border-white/5 bg-black/40 overflow-hidden">
+            <div className="h-full min-h-[500px] flex flex-col relative glass-panel rounded-3xl border-white/5 bg-black/40 overflow-hidden">
                {isProcessing ? (
-                  <div className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                  <div className="flex-1 flex flex-col items-center justify-center">
                      <Loader2 className="w-10 h-10 animate-spin text-red-500 mb-4" />
                      <p className="font-mono text-sm text-red-200">Enforcing generic JSON strict boundaries...</p>
                   </div>
@@ -202,7 +199,7 @@ ${schema}`
                      />
                   </div>
                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-muted-foreground/50">
+                  <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/50">
                      <Database className="w-12 h-12 mb-4 opacity-50" />
                      <p className="font-mono text-sm px-8 text-center">Describe your data structure and hit generate to populate a valid API dummy JSON array.</p>
                   </div>
@@ -210,6 +207,6 @@ ${schema}`
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

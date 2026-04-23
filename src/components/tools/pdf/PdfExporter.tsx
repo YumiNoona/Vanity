@@ -1,20 +1,12 @@
-import React, { useState, useCallback } from "react"
+import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Images, FileText, FileSearch, ShieldCheck, RefreshCw, Copy, CheckCircle } from "lucide-react"
+import { Download, Images, FileText, FileSearch, ShieldCheck, RefreshCw, Copy, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import JSZip from "jszip"
-import * as pdfjsLib from "pdfjs-dist"
-import { Document, Packer, Paragraph, TextRun } from "docx"
 import { extractPdfText } from "@/lib/pdf-text"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { cn } from "@/lib/utils"
-
-// Set up worker
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-}
 
 type ExportMode = "images" | "text" | "word"
 
@@ -26,17 +18,9 @@ export function PdfExporter() {
   const [progress, setProgress] = useState(0)
   const [pageCount, setPageCount] = useState(0)
   
-  // Results
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [extractedText, setExtractedText] = useState<string>("")
   const [copied, setCopied] = useState(false)
-
-  const handleDrop = async (files: File[]) => {
-    const uploadedFile = files[0]
-    if (!uploadedFile || !validateFiles([uploadedFile])) return
-    setFile(uploadedFile)
-    resetState()
-  }
 
   const resetState = () => {
     setIsProcessing(false)
@@ -45,6 +29,13 @@ export function PdfExporter() {
     setExtractedText("")
     clearResultUrl()
     setCopied(false)
+  }
+
+  const handleDrop = async (files: File[]) => {
+    const uploadedFile = files[0]
+    if (!uploadedFile || !validateFiles([uploadedFile])) return
+    setFile(uploadedFile)
+    resetState()
   }
 
   const changeMode = (newMode: ExportMode) => {
@@ -58,19 +49,25 @@ export function PdfExporter() {
     resetState()
   }
 
-  // --- Logic: Images ---
   const processToImages = async () => {
     if (!file) return
     setIsProcessing(true)
     setProgress(5)
     
-    let loadingTask: ReturnType<typeof pdfjsLib.getDocument> | null = null
-    let pdf: pdfjsLib.PDFDocumentProxy | null = null
-
     try {
+      const pdfjsLib = await import("pdfjs-dist")
+      const JSZipModule = await import("jszip")
+      const JSZip = JSZipModule.default
+      
+      // @ts-ignore
+      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        // @ts-ignore
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+      }
+
       const arrayBuffer = await file.arrayBuffer()
-      loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
-      pdf = await loadingTask.promise
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
+      const pdf = await loadingTask.promise
       const count = pdf.numPages
       setPageCount(count)
       setProgress(10)
@@ -89,8 +86,7 @@ export function PdfExporter() {
         await page.render({
           canvasContext: context,
           viewport,
-          // @ts-ignore
-          canvas: canvas,
+          canvas: canvas as any,
         }).promise
 
         const blob = await new Promise<Blob>((resolve) => {
@@ -100,7 +96,6 @@ export function PdfExporter() {
         zip.file(`page-${i}.png`, blob)
         setProgress(Math.floor((i / count) * 85) + 10)
 
-        // Release Memory
         canvas.width = 0
         canvas.height = 0
       }
@@ -109,20 +104,15 @@ export function PdfExporter() {
       setResultUrl(content)
       setProgress(100)
       toast.success(`Converted ${count} pages to images!`)
+      await pdf.destroy()
     } catch (error: any) {
       console.error(error)
       toast.error("Failed to convert PDF: " + (error?.message || "Unknown error"))
     } finally {
       setIsProcessing(false)
-      if (pdf) {
-        await pdf.destroy()
-      } else if (loadingTask) {
-        await loadingTask.destroy()
-      }
     }
   }
 
-  // --- Logic: Text ---
   const processToText = async () => {
     if (!file) return
     setIsProcessing(true)
@@ -144,15 +134,23 @@ export function PdfExporter() {
     }
   }
 
-  // --- Logic: Word ---
   const processToWord = async () => {
     if (!file) return
     setIsProcessing(true)
     setProgress(0)
     try {
+      const pdfjsLib = await import("pdfjs-dist")
+      const { Document, Packer, Paragraph, TextRun } = await import("docx")
+      
+      // @ts-ignore
+      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        // @ts-ignore
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+      }
+
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-      const paragraphs: Paragraph[] = []
+      const docParagraphs: any[] = []
 
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i)
@@ -168,13 +166,13 @@ export function PdfExporter() {
         const sortedYs = Object.keys(lines).map(Number).sort((a, b) => b - a)
         
         sortedYs.forEach(y => {
-          paragraphs.push(new Paragraph({
+          docParagraphs.push(new Paragraph({
             children: [new TextRun(lines[y].join(" "))],
           }))
         })
 
         if (i < pdf.numPages) {
-          paragraphs.push(new Paragraph({
+          docParagraphs.push(new Paragraph({
              children: [new TextRun({ text: "", break: 1 })],
           }))
         }
@@ -182,12 +180,13 @@ export function PdfExporter() {
       }
 
       const doc = new Document({
-        sections: [{ properties: {}, children: paragraphs }],
+        sections: [{ properties: {}, children: docParagraphs }],
       })
 
       const blob = await Packer.toBlob(doc)
       setResultUrl(blob)
       toast.success("Conversion to .docx complete!")
+      await pdf.destroy()
     } catch (error) {
       console.error(error)
       toast.error("Failed to convert PDF to Word.")
@@ -223,38 +222,25 @@ export function PdfExporter() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <FileSearch className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">PDF Exporter Suite</h1>
-        <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
-          Extract contents from your PDF document securely in your browser. Export into PNG Images, raw Text, or an editable Word Docx.
-        </p>
+      <ToolUploadLayout 
+        title="PDF Exporter Suite" 
+        description="Extract contents from your PDF document securely in your browser. Export into PNG Images, raw Text, or an editable Word Docx." 
+        icon={FileSearch}
+      >
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-             <FileSearch className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Export Hub</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={handleStartNew} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
-      {/* Target Format Selector */}
-      <div className="glass-panel p-3 rounded-2xl flex justify-center gap-2 flex-wrap">
+    <ToolLayout 
+      title="Export Hub" 
+      description={file.name} 
+      icon={FileSearch} 
+      onBack={handleStartNew} 
+      maxWidth="max-w-6xl"
+    >
+      <div className="glass-panel p-3 rounded-2xl flex justify-center gap-2 flex-wrap mb-8">
          <button onClick={() => changeMode("images")} disabled={isProcessing} className={cn("px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", mode === "images" ? "bg-accent text-accent-foreground" : "hover:bg-white/5 opacity-50 hover:opacity-100")}>
             <Images className="w-4 h-4" /> Export to Images (ZIP)
          </button>
@@ -267,7 +253,6 @@ export function PdfExporter() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Canvas / Viewer */}
         <div className="lg:col-span-8">
           <div className="glass-panel p-8 rounded-[2rem] flex flex-col items-center justify-center min-h-[500px] bg-black/40 border-white/5 shadow-2xl relative overflow-hidden">
              
@@ -302,7 +287,6 @@ export function PdfExporter() {
                 </div>
              ) : null}
 
-             {/* Result Previews */}
              {mode === "images" && resultUrl && !isProcessing && (
                 <div className="text-center space-y-6 animate-in zoom-in-95 duration-500">
                   <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-full mb-2">
@@ -330,17 +314,15 @@ export function PdfExporter() {
                    </div>
                    <h2 className="text-4xl font-bold font-syne text-white mb-2">Docx Export Ready</h2>
                    <p className="text-muted-foreground mx-auto text-sm">
-                     Verification of structure complete. Downlaod below.
+                     Verification of structure complete. Download below.
                    </p>
                 </div>
              )}
           </div>
         </div>
 
-        {/* Sidebar Controls */}
         <div className="lg:col-span-4 space-y-6">
            <div className="glass-panel p-8 rounded-2xl space-y-8 border-white/10">
-              
               {mode === "text" && extractedText && (
                  <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Stats</h4>
@@ -356,7 +338,7 @@ export function PdfExporter() {
                    </div>
                    <button 
                      onClick={handleCopyText}
-                     className="w-full mt-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2"
+                     className="w-full mt-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 active:scale-95"
                    >
                      {copied ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                      Copy to Clipboard
@@ -395,6 +377,6 @@ export function PdfExporter() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

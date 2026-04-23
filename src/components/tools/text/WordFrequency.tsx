@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { BarChart3, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function WordFrequency() {
   const [text, setText] = useState("")
@@ -32,16 +33,7 @@ export function WordFrequency() {
   }, [text])
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-sky-500/10 text-sky-500 rounded-xl">
-           <BarChart3 className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">Word Frequency Counter</h1>
-          <p className="text-muted-foreground text-sm">Analyze text blocks to parse density patterns visually.</p>
-        </div>
-      </div>
+    <ToolLayout title="Word Frequency Counter" description="Analyze text blocks to parse density patterns visually." icon={BarChart3} maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
          <div className="space-y-4">
@@ -104,6 +96,6 @@ export function WordFrequency() {
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, ImagePlay, Loader2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 
 import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
@@ -140,40 +141,14 @@ export function VideoThumbnails() {
 
   if (!file || !videoUrl) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-full mb-6 text-indigo-500">
-            <ImagePlay className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Video Grid Extractor</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Rapidly pull high-resolution thumbnail grids from any local video file securely.
-         </p>
+       <ToolUploadLayout title="Video Grid Extractor" description="Rapidly pull high-resolution thumbnail grids from any local video file securely." icon={ImagePlay}>
          <DropZone onDrop={handleDrop} accept={{ "video/*": [] }} label="Drop MP4, WebM, MOV" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      
-      {/* Hidden processing buffers */}
-      <video ref={videoRef} src={videoUrl} preload="auto" muted className="hidden" crossOrigin="anonymous" playsInline />
-      <canvas ref={canvasRef} className="hidden" />
-
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500">
-             <ImagePlay className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">Contact Sheet</h1>
-             <p className="text-muted-foreground text-sm font-mono">{file.name}</p>
-           </div>
-        </div>
-        <button onClick={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Load Different
-        </button>
-      </div>
+    <ToolLayout title="Contact Sheet" description={file.name} icon={ImagePlay} onBack={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} backLabel="Load Different" maxWidth="max-w-6xl">
 
       <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-8 border-indigo-500/10">
          
@@ -244,6 +219,6 @@ export function VideoThumbnails() {
          </div>
 
       </div>
-    </div>
+    </ToolLayout>
   )
 }

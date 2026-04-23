@@ -5,6 +5,7 @@ import {
   Settings2, Smartphone, Monitor, Maximize2, AlertCircle, Info,
   ChevronRight, List
 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument, rgb } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -232,35 +233,14 @@ export function PdfNup() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-full mb-6 text-indigo-500">
-            <Layout className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">N-up Imposition</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Arrange multiple pages per sheet for efficient printing.
-        </p>
+      <ToolUploadLayout title="N-up Imposition" description="Arrange multiple pages per sheet for efficient printing." icon={Layout}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to impose" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500">
-             <FileText className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white uppercase tracking-tight">Imposition Engine</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change File
-        </button>
-      </div>
+    <ToolLayout title="Imposition Engine" description={file.name} icon={FileText} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          {/* Sidebar Controls */}
@@ -453,6 +433,6 @@ export function PdfNup() {
             )}
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

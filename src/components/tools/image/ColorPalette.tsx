@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Pipette, Copy, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -44,11 +45,10 @@ export function ColorPalette() {
     const imageData = ctx.getImageData(0, 0, width, height)
     const data = imageData.data
     
-    // Safety check: verify pixels exist
     if (!data.length) return []
     
     const colorCount: { [key: string]: number } = {}
-    const step = 16 // Jump 16 pixels for performance as per "Golden Pattern"
+    const step = 16 
     
     for (let i = 0; i < data.length; i += 4 * step) {
       const r = data[i]
@@ -67,38 +67,24 @@ export function ColorPalette() {
   const rgbToHex = (r: number, g: number, b: number) => 
     "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')
 
-
+  const handleBack = () => {
+    setFile(null)
+    clearPreview()
+  }
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Pipette className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Color Palette</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Extract the core color story from any image for your design projects.
-        </p>
+      <ToolUploadLayout title="Color Palette" description="Extract the core color story from any image for your design projects." icon={Pipette}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Palette Extracted</h1>
-          <p className="text-muted-foreground text-sm">Derived from {file.name}</p>
-        </div>
-        <button onClick={() => { setFile(null); clearPreview(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> New Image
-        </button>
-      </div>
-
+    <ToolLayout title="Palette Extracted" description={`Derived from ${file.name}`} onBack={handleBack} backLabel="New Image">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="glass-panel p-4 rounded-xl flex items-center justify-center bg-black/40">
-           <img src={preview!} alt="Original" className="max-h-[400px] object-contain rounded" />
+           {preview && <img src={preview} alt="Original" className="max-h-[400px] object-contain rounded" />}
            <canvas ref={canvasRef} className="hidden" />
         </div>
 
@@ -108,7 +94,7 @@ export function ColorPalette() {
               {palette.map(color => (
                 <button 
                   key={color}
-                  onClick={() => copy(color, `Copied ${color}`)}
+                  onClick={() => copy(color)}
                   className="group relative h-24 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95 overflow-hidden"
                   style={{ backgroundColor: color }}
                 >
@@ -124,6 +110,6 @@ export function ColorPalette() {
            </p>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

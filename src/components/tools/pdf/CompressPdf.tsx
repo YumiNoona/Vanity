@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Minimize2, CheckCircle, AlertTriangle, ShieldCheck, Info, Gauge, Zap } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -219,16 +220,9 @@ export function CompressPdf() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <Minimize2 className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Smart PDF Compressor</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          The most intelligent PDF optimizer. Analyzes content to choose the best strategy.
-        </p>
+      <ToolUploadLayout title="Smart PDF Compressor" description="The most intelligent PDF optimizer. Analyzes content to choose the best strategy." icon={Minimize2} iconColor="accent">
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 

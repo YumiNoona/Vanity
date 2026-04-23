@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, RotateCw, Download, RefreshCw, Layers, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument, degrees } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -56,35 +57,14 @@ export function PdfRotate() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-6 text-blue-500">
-            <RotateCw className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Rotate PDF Pages</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Quickly rotate all pages in your PDF document by 90, 180, or 270 degrees.
-        </p>
+      <ToolUploadLayout title="Rotate PDF Pages" description="Quickly rotate all pages in your PDF document by 90, 180, or 270 degrees." icon={RotateCw}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to rotate" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Layers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Rotation Deck</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change File
-        </button>
-      </div>
+    <ToolLayout title="Rotation Deck" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File">
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
          <div className="md:col-span-12 xl:col-span-12">
@@ -144,6 +124,6 @@ export function PdfRotate() {
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

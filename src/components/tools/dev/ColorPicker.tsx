@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { ArrowLeft, Copy, CheckCircle, Palette, RefreshCw } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -58,23 +59,12 @@ export function ColorPicker() {
     updateFromHex(newHex)
   }
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Palette className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Color Picker</h1>
-            <p className="text-muted-foreground text-sm">Convert between HEX, RGB, and HSL.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout title="Color Picker" description="Convert between HEX, RGB, and HSL." icon={Palette} onBack={handleBack} backLabel="Back">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Visual Picker */}
         <div className="space-y-6">
@@ -122,7 +112,7 @@ export function ColorPicker() {
                 type="text" 
                 value={hex.toUpperCase()} 
                 onChange={(e) => updateFromHex(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-sm outline-none focus:border-primary/40"
+                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-sm outline-none focus:border-primary/40 text-white/90"
               />
            </div>
 
@@ -137,15 +127,15 @@ export function ColorPicker() {
               <div className="grid grid-cols-3 gap-3">
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">R</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{rgb.r}</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.r}</div>
                  </div>
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">G</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{rgb.g}</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.g}</div>
                  </div>
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">B</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{rgb.b}</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.b}</div>
                  </div>
               </div>
            </div>
@@ -161,20 +151,20 @@ export function ColorPicker() {
               <div className="grid grid-cols-3 gap-3">
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">H</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{hsl.h}°</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.h}°</div>
                  </div>
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">S</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{hsl.s}%</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.s}%</div>
                  </div>
                  <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground font-mono">L</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm">{hsl.l}%</div>
+                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.l}%</div>
                  </div>
               </div>
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

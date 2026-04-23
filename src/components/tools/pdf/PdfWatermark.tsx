@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Stamp, Type, Settings2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -22,7 +23,7 @@ export function PdfWatermark() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
-    setResultUrl(null)
+    clearResultUrl()
   }
 
   const hexToRgb = (hex: string) => {
@@ -76,33 +77,27 @@ export function PdfWatermark() {
     a.click()
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearResultUrl()
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <Stamp className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">PDF Watermark</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Add a persistent text stamp across all pages of your PDF.
-        </p>
+      <ToolUploadLayout title="PDF Watermark" description="Add a persistent text stamp across all pages of your PDF." icon={Stamp}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Configure Stamp</h1>
-          <p className="text-muted-foreground text-sm">Target: {file.name}</p>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start Over
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Configure Stamp" 
+      description={`Target: ${file.name}`} 
+      onBack={handleBack} 
+      backLabel="Start Over" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1 glass-panel p-6 rounded-xl space-y-6">
            <div className="flex items-center gap-2 text-accent mb-4">
@@ -198,6 +193,6 @@ export function PdfWatermark() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

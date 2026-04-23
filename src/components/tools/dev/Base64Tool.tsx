@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, Hash, ArrowLeftRight, Trash2, FileCode, Upload } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -66,23 +67,19 @@ export function Base64Tool() {
     reader.readAsDataURL(file)
   }
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Hash className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Base64 Tool</h1>
-            <p className="text-muted-foreground text-sm">Encode or decode strings and files instantly.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Base64 Tool" 
+      description="Encode or decode strings and files instantly." 
+      icon={Hash} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}
         <div className="space-y-4">
@@ -108,7 +105,7 @@ export function Base64Tool() {
             value={input}
             onChange={handleInputChange}
             placeholder={mode === "encode" ? "Enter text here..." : "Enter Base64 here..."}
-            className="w-full h-80 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-blue-500/30 transition-all"
+            className="w-full h-80 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-blue-500/30 transition-all text-white/90"
           />
           <button 
             onClick={toggleMode}
@@ -139,7 +136,7 @@ export function Base64Tool() {
               readOnly
               value={output}
               className={cn(
-                "w-full h-80 bg-black/20 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none break-all",
+                "w-full h-80 bg-black/20 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none break-all text-white/90",
                 output.startsWith("Error") && "text-red-400 border-red-500/20"
               )}
             />
@@ -149,6 +146,6 @@ export function Base64Tool() {
           </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

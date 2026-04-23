@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Monitor, Loader2, Glasses, ListTree, MousePointer2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -94,39 +95,30 @@ JSON Structure requirement:
     }
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearImgUrl()
+    setBreakdown(null)
+  }
+
   if (!file || !imgUrl) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-teal-500/10 rounded-full mb-6 text-teal-500">
-            <Monitor className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Explain UI</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Upload a screenshot of any application and let Claude reverse-engineer its UX hierarchy.
-         </p>
+       <ToolUploadLayout title="Explain UI" description="Upload a screenshot of any application and let AI reverse-engineer its UX hierarchy." icon={Monitor}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop UI Screenshot" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-teal-500/10 rounded-lg text-teal-500">
-             <Monitor className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">UX Architecture</h1>
-            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
-           </div>
-        </div>
-        <button onClick={() => { setFile(null); clearImgUrl(); setBreakdown(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Load Different
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="UX Architecture" 
+      description={`${file.name} · ${activeProvider}`} 
+      icon={Monitor} 
+      onBack={handleBack} 
+      backLabel="Load Different" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
          <div className="space-y-6">
             <div className="glass-panel p-4 rounded-3xl border-white/5 relative overflow-hidden bg-black/40 flex items-center justify-center min-h-[400px]">
@@ -136,7 +128,7 @@ JSON Structure requirement:
             {!isProcessing && !breakdown && (
                <button 
                  onClick={analyzeInterface}
-                 className="w-full py-4 bg-teal-500 text-black font-bold rounded-xl shadow-[0_0_25px_rgba(20,184,166,0.3)] hover:bg-teal-400 transition-all flex items-center justify-center gap-2"
+                 className="w-full py-4 bg-teal-500 text-black font-bold rounded-xl shadow-[0_0_25px_rgba(20,184,166,0.3)] hover:bg-teal-400 transition-all flex items-center justify-center gap-2 active:scale-95"
                >
                  <Glasses className="w-5 h-5" /> Deconstruct Layout & Interactions
                </button>
@@ -200,6 +192,6 @@ JSON Structure requirement:
             )}
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

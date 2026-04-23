@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { ShieldCheck, AlertTriangle, Key, Code2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function JwtDecoder() {
   const [token, setToken] = useState("")
@@ -45,16 +46,7 @@ export function JwtDecoder() {
   }, [token])
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-xl">
-           <ShieldCheck className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">JWT Decoder</h1>
-          <p className="text-muted-foreground text-sm">Decode JSON Web Tokens locally. No data leaves your browser.</p>
-        </div>
-      </div>
+    <ToolLayout title="JWT Decoder" description="Decode JSON Web Tokens locally. No data leaves your browser." icon={ShieldCheck} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
         <div className="space-y-4">
@@ -110,6 +102,6 @@ export function JwtDecoder() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Video, Download, ShieldCheck, Zap } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 
@@ -67,38 +68,28 @@ export function VideoCompressor() {
     a.click()
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearResultUrl()
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-6 text-purple-500">
-            <Video className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Video Compressor</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Shrink MP4, WebM, or MOV files locally using high-performance <strong>FFMPEG.wasm</strong>.
-        </p>
+      <ToolUploadLayout title="Video Compressor" description="Shrink MP4, WebM, or MOV files locally using high-performance FFMPEG.wasm." icon={Video}>
         <DropZone onDrop={handleDrop} accept={{ "video/*": [] }} label="Drop video to compress" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-             <Zap className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Encoding Engine</h1>
-            <p className="text-muted-foreground text-sm">{file.name} ({Math.round(file.size / 1024 / 1024)} MB)</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Video
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Encoding Engine" 
+      description={`${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`} 
+      icon={Zap} 
+      onBack={handleBack} 
+      backLabel="Change Video" 
+      maxWidth="max-w-5xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
            <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center min-h-[400px] bg-black/40 border-white/5 shadow-2xl relative overflow-hidden">
@@ -173,14 +164,14 @@ export function VideoCompressor() {
               </div>
 
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 space-y-1">
-                 <h5 className="text-[10px] font-bold text-white uppercase tracking-widest">Platform Status</h5>
+                 <h5 className="text-[10px] font-bold text-white uppercase tracking-widest">Security Protocol</h5>
                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                   <strong>SharedArrayBuffer</strong> {window.crossOriginIsolated ? '✅ Enabled' : '❌ Disabled'}. Multi-threading is {window.crossOriginIsolated ? 'active' : 'inactive'}.
+                   Processing is conducted entirely in local volatile memory via FFMPEG.wasm. Your video data never touches a server.
                  </p>
               </div>
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

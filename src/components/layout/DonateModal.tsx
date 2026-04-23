@@ -1,6 +1,7 @@
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Heart, Copy, CheckCircle, ExternalLink } from "lucide-react"
+import { X, Heart, Copy, CheckCircle, ExternalLink, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface DonateModalProps {
@@ -10,6 +11,7 @@ interface DonateModalProps {
 
 export function DonateModal({ isOpen, onClose }: DonateModalProps) {
   const [copied, setCopied] = useState(false)
+  const [isImageLoading, setIsImageLoading] = useState(true)
   const upiId = "rushikeshingale2001@okicici"
 
   const handleCopy = () => {
@@ -62,11 +64,20 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
               {/* QR Code Container */}
               <div className="relative group">
                 <div className="absolute -inset-4 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
-                <div className="relative p-3 bg-white rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative p-3 bg-white rounded-3xl overflow-hidden shadow-2xl min-h-[288px] min-w-[288px] flex items-center justify-center">
+                  {isImageLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[2px] z-10">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  )}
                   <img 
                     src="/Donate.jpeg" 
                     alt="Donate QR Code" 
-                    className="w-72 h-72 object-contain"
+                    className={cn(
+                      "w-72 h-72 object-contain transition-opacity duration-300",
+                      isImageLoading ? "opacity-0" : "opacity-100"
+                    )}
+                    onLoad={() => setIsImageLoading(false)}
                   />
                 </div>
               </div>
@@ -95,8 +106,6 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
                   Thank you for your kindness!
                 </p>
               </div>
-
-
             </div>
           </motion.div>
         </div>

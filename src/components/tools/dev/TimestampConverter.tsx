@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Clock, Copy, CheckCircle, RefreshCcw, Calendar, Globe } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function TimestampConverter() {
   const [epoch, setEpoch] = useState(Math.floor(Date.now() / 1000).toString())
@@ -28,16 +29,7 @@ export function TimestampConverter() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
-           <Clock className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">Timestamp Converter</h1>
-          <p className="text-muted-foreground text-sm">Convert Unix epoch to human-readable date and back.</p>
-        </div>
-      </div>
+    <ToolLayout title="Timestamp Converter" description="Convert Unix epoch to human-readable date and back." icon={Clock}>
 
       <div className="glass-panel p-8 rounded-2xl mx-4 sm:mx-0 space-y-8">
          <div className="space-y-4">
@@ -127,6 +119,6 @@ export function TimestampConverter() {
              </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { Search, AlertCircle, Copy, CheckCircle, Regex, Terminal } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function RegexTester() {
   const [pattern, setPattern] = useState("([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)\\.([a-zA-Z0-9_-]+)")
@@ -72,16 +73,7 @@ export function RegexTester() {
   ]
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0">
-        <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
-           <Terminal className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">Regex Tester</h1>
-          <p className="text-muted-foreground text-sm">Live evaluate regular expressions with highlighting and group capture.</p>
-        </div>
-      </div>
+    <ToolLayout title="Regex Tester" description="Live evaluate regular expressions with highlighting and group capture." icon={Terminal} maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-0">
         <div className="lg:col-span-2 space-y-6">
@@ -201,6 +193,6 @@ export function RegexTester() {
           )}
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

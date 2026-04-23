@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Music, Download, Zap, Headphones } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -58,35 +59,14 @@ export function AudioConverter() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-6 text-purple-500">
-            <Music className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Audio Converter</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Convert between any audio format (MP3, WAV, M4A) locally in your browser.
-        </p>
+      <ToolUploadLayout title="Audio Converter" description="Convert between any audio format (MP3, WAV, M4A) locally in your browser." icon={Music}>
         <DropZone onDrop={handleDrop} accept={{ "audio/*": [] }} label="Drop audio file to convert" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-             <Headphones className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Transcoding Hub</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change File
-        </button>
-      </div>
+    <ToolLayout title="Transcoding Hub" description={file.name} icon={Headphones} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -146,6 +126,6 @@ export function AudioConverter() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

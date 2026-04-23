@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { Calendar, Clock, AlertTriangle, ArrowRight } from "lucide-react"
-import cronstrue from "cronstrue"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 
 export function CronBuilder() {
   const [expression, setExpression] = useState("*/15 * * * *")
   const [nextRuns, setNextRuns] = useState<Date[]>([])
   const [error, setError] = useState<string | null>(null)
   
-  const description = useMemo(() => {
-    try {
-      return cronstrue.toString(expression)
-    } catch (e) {
-      return null
-    }
-  }, [expression])
+  const [description, setDescription] = useState<string | null>(null)
 
   const parts = useMemo(() => {
     const p = expression.trim().split(/\s+/)
@@ -29,7 +23,21 @@ export function CronBuilder() {
 
     const calculateRuns = async () => {
       try {
-        const cronParser: any = await import("cron-parser")
+        const [cronParserModule, cronstrueModule] = await Promise.all([
+          import("cron-parser"),
+          import("cronstrue")
+        ])
+        
+        const cronParser = (cronParserModule as any).default || cronParserModule
+        const cronstrue = (cronstrueModule as any).default || cronstrueModule
+        
+        // Update description
+        try {
+          setDescription(cronstrue.toString(expression))
+        } catch (e) {
+          setDescription(null)
+        }
+
         const interval = cronParser.parseExpression(expression)
         const runs = []
         for (let i = 0; i < 5; i++) {
@@ -56,16 +64,7 @@ export function CronBuilder() {
   ]
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl">
-           <Calendar className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">CRON Expression Tester</h1>
-          <p className="text-muted-foreground text-sm">Validate expressions and visualize the next 5 precision run times.</p>
-        </div>
-      </div>
+    <ToolLayout title="CRON Expression Tester" description="Validate expressions and visualize the next 5 precision run times." icon={Calendar} maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
          <div className="space-y-6">
@@ -135,7 +134,7 @@ export function CronBuilder() {
 
          <div className="glass-panel p-6 rounded-2xl">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-6">
-              <Clock className="w-4 h-4" /> Next 5 Run Times
+               <Clock className="w-4 h-4" /> Next 5 Run Times
             </label>
 
             <div className="space-y-3">
@@ -164,6 +163,6 @@ export function CronBuilder() {
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

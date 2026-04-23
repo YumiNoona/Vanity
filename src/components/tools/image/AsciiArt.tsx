@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Type, RefreshCw, Copy, CheckCircle } from "lucide-react"
+import { Download, Type, RefreshCw, Copy, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -19,7 +20,6 @@ export function AsciiArt() {
   const [resolution, setResolution] = useState(100)
   const [ascii, setAscii] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [copied, setCopied] = useState(false)
 
@@ -27,21 +27,22 @@ export function AsciiArt() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
-    setPreviewUrl(uploadedFile)
   }
 
   const generateAscii = useCallback(() => {
-    if (!file || !previewUrl) return
+    if (!file) return
     setIsProcessing(true)
 
+    const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
+      URL.revokeObjectURL(localUrl)
       const canvas = document.createElement("canvas")
       const ctx = canvas.getContext("2d", { willReadFrequently: true })!
       
       const aspect = img.height / img.width
       const w = resolution
-      const h = Math.round(w * aspect * 0.5) // Characters are half as tall as they are wide roughly
+      const h = Math.round(w * aspect * 0.5)
       
       canvas.width = w
       canvas.height = h
@@ -68,8 +69,9 @@ export function AsciiArt() {
       setResultUrl(new Blob([result], { type: "text/plain" }))
       setIsProcessing(false)
     }
-    img.src = previewUrl
-  }, [file, charSet, resolution, previewUrl])
+    img.onerror = () => URL.revokeObjectURL(localUrl)
+    img.src = localUrl
+  }, [file, charSet, resolution])
 
   useEffect(() => {
     if (file) generateAscii()
@@ -92,35 +94,14 @@ export function AsciiArt() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Type className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">ASCII Art Converter</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Turn any photograph into a text-based ASCII masterpiece for coding comments or profile art.
-        </p>
+      <ToolUploadLayout title="ASCII Art Converter" description="Turn any photograph into a text-based ASCII masterpiece for coding comments or profile art." icon={Type}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to convert to characters" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Type className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Character Studio</h1>
-            <p className="text-muted-foreground text-sm">Fine-tune resolution and character sets.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start Over
-        </button>
-      </div>
+    <ToolLayout title="Character Studio" description="Fine-tune resolution and character sets." icon={Type} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Start Over" maxWidth="max-w-7xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -198,6 +179,6 @@ export function AsciiArt() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

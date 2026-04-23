@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Download, Contrast, RefreshCw, Palette } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function Duotone() {
   const [file, setFile] = useState<File | null>(null)
   const [shadowColor, setShadowColor] = useState("#2e1065") // Deep Purple
   const [highlightColor, setHighlightColor] = useState("#bef264") // Lime
   const [isProcessing, setIsProcessing] = useState(false)
-  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const jobIdRef = useRef(0)
   const isMountedRef = useRef(true)
@@ -23,7 +22,6 @@ export function Duotone() {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    setPreviewUrl(uploadedFile)
   }
 
   const hexToRgb = (hex: string) => {
@@ -34,12 +32,15 @@ export function Duotone() {
   }
 
   const applyDuotone = useCallback(() => {
-    if (!file || !canvasRef.current || !previewUrl) return
+    if (!file || !canvasRef.current) return
     const jobId = ++jobIdRef.current
     setIsProcessing(true)
 
+    // Load directly from File — no dependency on previewUrl state
+    const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
+      URL.revokeObjectURL(localUrl)
       if (jobId !== jobIdRef.current || !isMountedRef.current) return
       
       const canvas = canvasRef.current!
@@ -66,10 +67,11 @@ export function Duotone() {
       setIsProcessing(false)
     }
     img.onerror = () => {
+      URL.revokeObjectURL(localUrl)
       if (jobId === jobIdRef.current) setIsProcessing(false)
     }
-    img.src = previewUrl
-  }, [file, shadowColor, highlightColor, previewUrl])
+    img.src = localUrl
+  }, [file, shadowColor, highlightColor])
 
   useEffect(() => {
     if (file) applyDuotone()
@@ -87,37 +89,26 @@ export function Duotone() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Contrast className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Duotone Tint</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Map shadows and highlights to two custom colors for a striking Spotify-esque aesthetic.
-        </p>
+      <ToolUploadLayout
+        title="Duotone Tint"
+        description="Map shadows and highlights to two custom colors for a striking Spotify-esque aesthetic."
+        icon={Contrast}
+      >
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to apply tint" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Contrast className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Duotone Studio</h1>
-            <p className="text-muted-foreground text-sm">Create bold, high-contrast artistic styles.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Image
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <ToolLayout
+      title="Duotone Studio"
+      description="Create bold, high-contrast artistic styles."
+      icon={Contrast}
+      onBack={() => setFile(null)}
+      backLabel="Change Image"
+      maxWidth="max-w-6xl"
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         <div className="lg:col-span-8">
           <div className="glass-panel p-4 rounded-3xl flex items-center justify-center min-h-[500px] bg-black/40 overflow-hidden relative shadow-2xl border-white/5">
              <canvas ref={canvasRef} className={cn("max-w-full max-h-[600px] rounded-lg shadow-inner", isProcessing && "opacity-50")} />
@@ -207,6 +198,6 @@ export function Duotone() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

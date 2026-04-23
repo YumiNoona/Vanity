@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Binary, SlidersHorizontal, RefreshCw, Grid } from "lucide-react"
-import { usePremium } from "@/hooks/usePremium"
-import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { Download, Binary, RefreshCw, Grid } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -10,28 +9,27 @@ export function PixelArt() {
   const [file, setFile] = useState<File | null>(null)
   const [pixelSize, setPixelSize] = useState(16)
   const [isProcessing, setIsProcessing] = useState(false)
-  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
-    setPreviewUrl(uploadedFile)
   }
 
   const applyPixelEffect = useCallback(() => {
-    if (!file || !canvasRef.current || !previewUrl) return
+    if (!file || !canvasRef.current) return
     setIsProcessing(true)
 
+    const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
+      URL.revokeObjectURL(localUrl)
       const canvas = canvasRef.current!
       canvas.width = img.width
       canvas.height = img.height
       const ctx = canvas.getContext("2d", { willReadFrequently: true })!
       
-      // 1. Scale down
       const w = Math.ceil(img.width / pixelSize)
       const h = Math.ceil(img.height / pixelSize)
       
@@ -41,14 +39,14 @@ export function PixelArt() {
       const tCtx = tempCanvas.getContext("2d")!
       tCtx.drawImage(img, 0, 0, w, h)
       
-      // 2. Scale back up with crisp pixels
       ctx.imageSmoothingEnabled = false
       ctx.drawImage(tempCanvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height)
       
       setIsProcessing(false)
     }
-    img.src = previewUrl
-  }, [file, pixelSize, previewUrl])
+    img.onerror = () => URL.revokeObjectURL(localUrl)
+    img.src = localUrl
+  }, [file, pixelSize])
 
   useEffect(() => {
     if (file) applyPixelEffect()
@@ -66,35 +64,25 @@ export function PixelArt() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Binary className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Pixel Art Converter</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Instantly transform any photo into 8-bit or 16-bit chunky retro pixel art.
-        </p>
+      <ToolUploadLayout
+        title="Pixel Art Converter"
+        description="Instantly transform any photo into 8-bit or 16-bit chunky retro pixel art."
+        icon={Binary}
+      >
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to pixelate" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Binary className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Pixel Studio</h1>
-            <p className="text-muted-foreground text-sm">Control the resolution for maximum crunch.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start Over
-        </button>
-      </div>
+    <ToolLayout
+      title="Pixel Studio"
+      description="Control the resolution for maximum crunch."
+      icon={Binary}
+      onBack={() => setFile(null)}
+      backLabel="Start Over"
+      maxWidth="max-w-6xl"
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -161,6 +149,6 @@ export function PixelArt() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

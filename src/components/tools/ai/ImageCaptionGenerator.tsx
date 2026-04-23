@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Sparkles, MessageSquare, Copy, CheckCircle, SlidersHorizontal } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -79,39 +80,30 @@ JSON Structure requirement:
      setTimeout(() => setCopiedIndex(null), 2000)
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearImgUrl()
+    setCaptions([])
+  }
+
   if (!file || !imgUrl) {
     return (
-       <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-fuchsia-500/10 rounded-full mb-6 text-fuchsia-500">
-            <MessageSquare className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Caption Generator</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Upload any image and let Claude write engaging, platform-perfect captions in seconds.
-         </p>
+       <ToolUploadLayout title="Caption Generator" description="Upload any image and let Claude write engaging, platform-perfect captions in seconds." icon={MessageSquare}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to caption" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-           <div className="p-2 bg-fuchsia-500/10 rounded-lg text-fuchsia-500">
-             <MessageSquare className="w-6 h-6" />
-           </div>
-           <div>
-             <h1 className="text-2xl font-bold font-syne text-white">Content Studio</h1>
-            <p className="text-muted-foreground text-sm font-mono">{file.name} · {activeProvider}</p>
-           </div>
-        </div>
-        <button onClick={() => { setFile(null); clearImgUrl(); setCaptions([]); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Try Another
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Content Studio" 
+      description={`${file.name} · ${activeProvider}`} 
+      icon={MessageSquare} 
+      onBack={handleBack} 
+      backLabel="Try Another" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel p-4 rounded-3xl border-white/5 relative bg-black/40 h-[300px] flex items-center justify-center">
@@ -156,7 +148,7 @@ JSON Structure requirement:
                <button 
                  onClick={generateCaptions}
                    disabled={isProcessing || isRunning}
-                 className="w-full mt-4 py-4 bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                 className="w-full mt-4 py-4 bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                >
                  {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Drafting...</> : <><Sparkles className="w-5 h-5" /> Generate Options</>}
                </button>
@@ -194,6 +186,6 @@ JSON Structure requirement:
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { ArrowLeft, Search, FileText, Clock, Hash, TrendingUp, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function TextAnalyser() {
   const [input, setInput] = useState("")
@@ -33,23 +34,19 @@ export function TextAnalyser() {
     }
   }, [input])
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
-             <Search className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Text Analyser</h1>
-            <p className="text-muted-foreground text-sm">Deep statistics and word frequency analysis.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Text Analyser" 
+      description="Deep statistics and word frequency analysis." 
+      icon={Search} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}
         <div className="lg:col-span-12 xl:col-span-7 space-y-4">
@@ -142,6 +139,6 @@ export function TextAnalyser() {
           )}
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

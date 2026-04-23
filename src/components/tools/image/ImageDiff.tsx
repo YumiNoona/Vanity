@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2, Microscope, Loader2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -137,24 +138,14 @@ export function ImageDiff() {
 
   if (!file1 || !file2) {
     return (
-      <div className="max-w-4xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-rose-500/10 rounded-full mb-6 text-rose-500">
-               <Microscope className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">Image Difference Tool</h1>
-            <p className="text-muted-foreground text-lg mb-12">
-               Upload two images to compute the exact pixel deviations mapped visually via neon overlay.
-            </p>
-         </div>
-
+      <ToolUploadLayout title="Image Difference Tool" description="Detect pixel-perfect differences between two images." icon={Microscope}>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Version A (Base)</label>
                {imgUrl1 ? (
                  <div className="relative aspect-video rounded-3xl overflow-hidden group border border-white/10">
                     <img src={imgUrl1} className="w-full h-full object-cover" />
-                    <button onClick={() => setFile1(null)} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setFile1(null); clearImgUrl1(); }} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
                        <Trash2 className="w-4 h-4" />
                     </button>
                  </div>
@@ -167,7 +158,7 @@ export function ImageDiff() {
                {imgUrl2 ? (
                  <div className="relative aspect-video rounded-3xl overflow-hidden group border border-white/10">
                     <img src={imgUrl2} className="w-full h-full object-cover" />
-                    <button onClick={() => setFile2(null)} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setFile2(null); clearImgUrl2(); }} className="absolute top-4 right-4 p-2 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-all">
                        <Trash2 className="w-4 h-4" />
                     </button>
                  </div>
@@ -176,27 +167,19 @@ export function ImageDiff() {
                )}
             </div>
          </div>
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500">
-             <SplitSquareHorizontal className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Visual Differential</h1>
-            <p className="text-muted-foreground text-sm">Review absolute bit-differences directly below.</p>
-          </div>
-        </div>
-        <button onClick={reset} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
+    <ToolLayout
+      title="Visual Differential"
+      description="Review absolute bit-differences directly below."
+      icon={Microscope}
+      onBack={reset}
+      backLabel="Start New"
+      maxWidth="max-w-6xl"
+    >
       {isProcessing || !diffUrl ? (
         <div className="w-full aspect-video rounded-[2.5rem] bg-black/50 border border-white/5 flex flex-col items-center justify-center">
            <Loader2 className="w-8 h-8 animate-spin text-rose-500 mb-4" />
@@ -244,7 +227,7 @@ export function ImageDiff() {
         </div>
       )}
 
-      <div className="p-8 glass-panel rounded-3xl flex items-center gap-8 border-white/5 shadow-lg">
+      <div className="p-8 glass-panel rounded-3xl flex items-center gap-8 border-white/5 shadow-lg mt-8">
          <div className="p-4 bg-rose-500/10 rounded-2xl text-rose-500">
             <Microscope className="w-8 h-8" />
          </div>
@@ -255,6 +238,6 @@ export function ImageDiff() {
             </p>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

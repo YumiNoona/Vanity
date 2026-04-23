@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Sparkles, Type, Plus } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
@@ -144,33 +145,20 @@ export function MemeGenerator() {
     }
   }
 
+  const handleBack = () => {
+    setFile(null)
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Sparkles className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Meme Generator</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Upload a template and create viral memes instantly in your browser.
-        </p>
+      <ToolUploadLayout title="Meme Generator" description="Upload a template and create viral memes instantly in your browser." icon={Sparkles}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Meme Station</h1>
-          <p className="text-muted-foreground text-sm">Double click text to edit. Drag to reposition.</p>
-        </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Template
-        </button>
-      </div>
-
+    <ToolLayout title="Meme Station" description="Double click text to edit. Drag to reposition." onBack={handleBack} backLabel="Change Template" maxWidth="max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
            <div className="glass-panel p-6 rounded-xl space-y-4">
@@ -195,7 +183,7 @@ export function MemeGenerator() {
               <button 
                 onClick={handleDownload}
                 disabled={isProcessing}
-                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] transition-all"
+                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
               >
                 {isProcessing ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
                 Download Meme
@@ -207,6 +195,6 @@ export function MemeGenerator() {
            <canvas ref={canvasRef} />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

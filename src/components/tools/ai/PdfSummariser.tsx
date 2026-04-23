@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAI } from "@/lib/ai-providers"
@@ -50,7 +51,7 @@ export function PdfSummariser() {
         },
       })
 
-      // Chunking strategy: Summarise in batches of 4 pages to stay within token limits
+      // Chunking strategy: Summarise in batches of 4 pages
       const chunkSize = 4
       const summaries: string[] = []
 
@@ -70,7 +71,6 @@ export function PdfSummariser() {
         setProgress(currentCompletion)
       }
 
-      // Final aggregation if it was a multi-chunk document
       if (!isMountedRef.current || runId !== runIdRef.current) return
       if (summaries.length > 1) {
          setSummary("### Executive Summary (Aggregated)\n\n" + summaries.join("\n\n---\n\n"))
@@ -95,42 +95,36 @@ export function PdfSummariser() {
     }
   }
 
+  const handleBack = () => {
+    setFile(null)
+    setSummary("")
+    setProgress(0)
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-        <div className="inline-flex items-center justify-center p-3 bg-emerald-500/10 rounded-full mb-6 text-emerald-500 border border-emerald-500/20">
-          <BrainCircuit className="w-8 h-8" />
-        </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">AI PDF Summariser</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Upload a PDF to get private, AI-powered insights.
-        </p>
-
+      <ToolUploadLayout 
+        title="AI PDF Summariser" 
+        description="Upload a PDF to get private, AI-powered insights." 
+        icon={BrainCircuit}
+      >
         <div className="space-y-6">
           <AIProviderHint />
           <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to summarise" />
         </div>
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
-             <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Insight Engine</h1>
-            <p className="text-muted-foreground text-sm">{file.name} ({progress}% processed) · {activeProvider}</p>
-          </div>
-        </div>
-        <button onClick={() => setFile(null)} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> New File
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Insight Engine" 
+      description={`${file.name} (${progress}% processed) · ${activeProvider}`} 
+      icon={Sparkles} 
+      onBack={handleBack} 
+      backLabel="New File" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
            <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center min-h-[500px] bg-black/40 border-white/5 shadow-2xl relative overflow-hidden">
@@ -143,8 +137,8 @@ export function PdfSummariser() {
                       </div>
                    </div>
                    <div className="space-y-1">
-                      <p className="text-lg font-bold text-white font-syne tracking-tight">Consulting Claude...</p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest text-[10px]">Processing chunk by chunk for context accuracy</p>
+                      <p className="text-lg font-bold text-white font-syne tracking-tight">Processing...</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest text-[10px]">Analyzing document context</p>
                    </div>
                 </div>
               ) : summary ? (
@@ -174,15 +168,15 @@ export function PdfSummariser() {
             <div className="p-8 glass-panel rounded-3xl space-y-4 border-white/5 shadow-lg">
                <h4 className="text-[10px] font-bold text-white uppercase tracking-widest">Token Safety</h4>
                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Large PDFs often exceed AI context limits. We use a <strong>Multi-Chunk Recursive Summary</strong> approach to ensure Claude digests every page without forgetting the beginning.
+                  Large PDFs often exceed AI context limits. We use a <strong>Multi-Chunk Recursive Summary</strong> approach to ensure every page is digested without forgetting the beginning.
                </p>
                <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20 flex gap-3">
                   <ShieldAlert className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-orange-400">Processing large files will incur higher token costs on your Anthropic account.</p>
+                  <p className="text-[10px] text-orange-400">Processing large files will incur higher token costs on your AI account.</p>
                </div>
             </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

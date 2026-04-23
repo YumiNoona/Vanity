@@ -7,9 +7,10 @@ interface ModeToggleProps {
   mode: 'single' | 'batch'
   onChange: (mode: 'single' | 'batch') => void
   disabled?: boolean
+  id?: string
 }
 
-export function ModeToggle({ mode, onChange, disabled }: ModeToggleProps) {
+export function ModeToggle({ mode, onChange, disabled, id = "default" }: ModeToggleProps) {
   return (
     <div className="flex justify-center mb-8">
       <div className="relative flex items-center p-1.5 rounded-2xl bg-black/40 border border-white/5 shadow-2xl backdrop-blur-sm isolate">
@@ -27,7 +28,7 @@ export function ModeToggle({ mode, onChange, disabled }: ModeToggleProps) {
           </span>
           {mode === 'single' && (
             <motion.div
-              layoutId="modeToggleBackground"
+              layoutId={`modeToggleBackground-${id}`}
               className="absolute inset-0 bg-primary rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)]"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               style={{ zIndex: 0 }}
@@ -49,7 +50,7 @@ export function ModeToggle({ mode, onChange, disabled }: ModeToggleProps) {
           </span>
           {mode === 'batch' && (
             <motion.div
-              layoutId="modeToggleBackground"
+              layoutId={`modeToggleBackground-${id}`}
               className="absolute inset-0 bg-primary rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)]"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               style={{ zIndex: 0 }}

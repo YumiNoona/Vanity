@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, CheckCircle, Type, Image as ImageIcon, Trash2, Plus, Sparkles, Palette, ALargeSmall, Bold, Italic, ChevronDown } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
@@ -233,37 +234,14 @@ export function ImageWatermark() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Sparkles className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Deep Watermark</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Add interactive text, images, or branded watermarks with full control.
-        </p>
+      <ToolUploadLayout title="Deep Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Watermark Editor</h1>
-          <p className="text-muted-foreground text-sm">Rotate, scale, and place watermarks anywhere.</p>
-        </div>
-        <button onClick={() => { 
-          setFile(null); setSourceData(null); 
-          if (sourceCleanupRef.current) sourceCleanupRef.current();
-          watermarkCleanupsRef.current.forEach(c => c());
-          watermarkCleanupsRef.current = [];
-          sourceCleanupRef.current = null;
-          if (fabricCanvas.current) { fabricCanvas.current.dispose(); fabricCanvas.current = null; }
-        }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Image
-        </button>
-      </div>
+    <ToolLayout title="Watermark Editor" description="Rotate, scale, and place watermarks anywhere." maxWidth="max-w-7xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Editor sidebar */}
@@ -453,6 +431,6 @@ export function ImageWatermark() {
           </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

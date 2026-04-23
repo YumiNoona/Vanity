@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, SplitSquareHorizontal, FileText } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import JSZip from "jszip"
 import { usePremium } from "@/hooks/usePremium"
@@ -21,6 +22,7 @@ export function SplitPdf() {
     
     setFile(uploadedFile)
     setIsProcessing(true)
+    clearResultZipUrl()
 
     try {
       const arrayBuffer = await uploadedFile.arrayBuffer()
@@ -48,9 +50,6 @@ export function SplitPdf() {
       toast.error("Failed to split PDF")
     } finally {
       setIsProcessing(false)
-      // Help GC
-      // @ts-ignore
-      if (typeof content !== 'undefined') content = null
     }
   }
 
@@ -62,36 +61,21 @@ export function SplitPdf() {
     a.click()
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearResultZipUrl()
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-full mb-6 text-accent">
-            <SplitSquareHorizontal className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Split PDF</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Extract every page of your PDF as a separate file.
-        </p>
+      <ToolUploadLayout title="Split PDF" description="Extract every page of your PDF as a separate file." icon={SplitSquareHorizontal}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Split PDF</h1>
-          <p className="text-muted-foreground text-sm">File: {file.name}</p>
-        </div>
-        <button 
-          onClick={() => { setFile(null); clearResultZipUrl(); }} 
-          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
+    <ToolLayout title="Split PDF" description={`File: ${file.name}`} onBack={handleBack}>
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden">
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur flex flex-col items-center justify-center z-10 transition-opacity">
@@ -120,6 +104,6 @@ export function SplitPdf() {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   )
 }

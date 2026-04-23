@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { Type, Copy, CheckCircle, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function StringCaseConverter() {
   const [input, setInput] = useState("hello world, make this camelCase")
@@ -70,16 +71,7 @@ export function StringCaseConverter() {
   ]
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
-           <Type className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">String Case Converter</h1>
-          <p className="text-muted-foreground text-sm">Convert text to camelCase, snake_case, PascalCase, and more simultaneously.</p>
-        </div>
-      </div>
+    <ToolLayout title="String Case Converter" description="Convert text to camelCase, snake_case, PascalCase, and more simultaneously." icon={Type}>
 
       <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-8">
          <div className="space-y-4">
@@ -123,6 +115,6 @@ export function StringCaseConverter() {
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

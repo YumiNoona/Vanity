@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, ShieldAlert, Square, Circle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
@@ -126,32 +127,31 @@ export function SmartCensor() {
     }
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearCurrent()
+    setRects([])
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <ShieldAlert className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Smart Censor</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Protect privacy by pixelating sensitive areas in your photos.
-        </p>
+      <ToolUploadLayout title="Smart Censor" description="Protect privacy by pixelating sensitive areas in your photos." icon={ShieldAlert}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Smart Censor</h1>
-          <p className="text-muted-foreground text-sm">Drag to draw pixelated boxes over sensitive info.</p>
-        </div>
-        <div className="flex gap-4">
-          <button onClick={() => setRects([])} className="text-sm font-medium text-muted-foreground hover:text-foreground">Reset All</button>
-          <button onClick={() => { setFile(null); clearCurrent(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground">New Image</button>
-        </div>
+    <ToolLayout
+      title="Smart Censor"
+      description="Drag to draw pixelated boxes over sensitive info."
+      icon={ShieldAlert}
+      onBack={handleBack}
+      backLabel="Start Over"
+      maxWidth="max-w-6xl"
+    >
+      <div className="flex gap-4 mb-6">
+        <button onClick={() => setRects([])} className="text-sm font-medium text-muted-foreground hover:text-foreground">Reset All</button>
       </div>
 
       <div className="glass-panel p-4 rounded-2xl flex flex-col items-center bg-black/50">
@@ -170,6 +170,6 @@ export function SmartCensor() {
             <Download className="w-5 h-5" /> Export Safe Image
           </button>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

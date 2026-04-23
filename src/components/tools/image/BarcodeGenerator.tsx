@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Download, ArrowLeft, Barcode as BarcodeIcon } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import JsBarcode from "jsbarcode"
 import { toast } from "sonner"
 
@@ -79,13 +80,7 @@ export function BarcodeGenerator() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Barcode Generator</h1>
-          <p className="text-muted-foreground text-sm">Generate commercial-grade barcodes instantly.</p>
-        </div>
-      </div>
+    <ToolLayout title="Barcode Generator" description="Generate commercial-grade barcodes instantly.">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">
@@ -118,6 +113,6 @@ export function BarcodeGenerator() {
            </button>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

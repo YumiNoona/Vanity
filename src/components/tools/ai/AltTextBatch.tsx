@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Loader2, Download, Layers, CheckCircle, Image as ImageIcon, Trash2, Eye } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -67,7 +68,6 @@ export function AltTextBatch() {
     const controller = new AbortController()
     requestControllerRef.current = controller
     
-    // Reset any previously processed or errored state before beginning
     const currentResults = [...results]
     currentResults.forEach(r => {
        if (r.status === "error") r.status = "pending"
@@ -89,7 +89,6 @@ Return ONLY the raw string. No markdown.`
         const resultIndex = currentResults.findIndex(r => r.filename === file.name)
         if (resultIndex === -1) continue
         
-        // Skip items already successfully processed in a previous partial run
         if (currentResults[resultIndex].status === "done") {
            completed++
            if (isMountedRef.current && runId === runIdRef.current) {
@@ -98,7 +97,6 @@ Return ONLY the raw string. No markdown.`
            continue
         }
 
-        // Mark as processing
         currentResults[resultIndex].status = "processing"
         if (isMountedRef.current && runId === runIdRef.current) {
           setResults([...currentResults])
@@ -112,7 +110,7 @@ Return ONLY the raw string. No markdown.`
               signal: controller.signal
            })
 
-           currentResults[resultIndex].alt = response.trim().replace(/^"/, "").replace(/"$/, "") // Handle if Claude quotes it
+           currentResults[resultIndex].alt = response.trim().replace(/^"/, "").replace(/"$/, "") 
            currentResults[resultIndex].status = "done"
            completed++
         } catch (err: any) {
@@ -124,7 +122,6 @@ Return ONLY the raw string. No markdown.`
            if (isMountedRef.current && runId === runIdRef.current) {
              toast.error(`Error on ${file.name}: ${currentResults[resultIndex].alt}`)
            }
-           // We intentionally do not throw to allow the bulk sequence to continue.
         }
 
         if (isMountedRef.current && runId === runIdRef.current) {
@@ -177,54 +174,45 @@ Return ONLY the raw string. No markdown.`
     URL.revokeObjectURL(tempUrl)
   }
 
+  const handleBack = () => {
+    setQueue([])
+    setResults([])
+    clearUrls()
+    clearResultUrl()
+  }
+
   if (queue.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-pink-500/10 rounded-full mb-6 text-pink-500">
-            <Layers className="w-8 h-8" />
-         </div>
-         <h1 className="text-4xl font-bold font-syne mb-1 text-white">Batch Alt Text Generator</h1>
-         <p className="text-muted-foreground text-lg mb-8">
-           Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV.
-         </p>
+      <ToolUploadLayout title="Batch Alt Text Generator" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-pink-500/10 rounded-lg text-pink-500">
-             <Layers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Queue Manager</h1>
-            <p className="text-muted-foreground text-sm font-mono">{queue.length} items loaded · {activeProvider}</p>
-          </div>
-        </div>
-        <button onClick={() => { setQueue([]); setResults([]); clearUrls(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start Fresh
-        </button>
-      </div>
-
+    <ToolLayout 
+      title="Queue Manager" 
+      description={`${queue.length} items loaded · ${activeProvider}`} 
+      icon={Layers} 
+      onBack={handleBack} 
+      backLabel="Start Fresh" 
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-white/5 pt-6">
-         
          {/* Command Panel */}
          <div className="lg:col-span-4 space-y-6">
             <div className="glass-panel p-6 rounded-3xl space-y-6 border-pink-500/20 bg-black/40">
                <h3 className="text-lg font-bold text-white font-syne mb-2">Sequential Processing</h3>
                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                  Images are processed individually by Claude exactly in order to maintain completely predictable token costs uniformly.
+                  Images are processed individually by AI sequentially to maintain predictable token usage.
                </p>
 
                <div className="pt-2">
                   <button 
                      onClick={processBatchSequentially}
                      disabled={isProcessing || results.every(r => r.status === "done")}
-                     className="w-full py-4 bg-pink-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:bg-pink-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                     className="w-full py-4 bg-pink-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:bg-pink-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
                   >
                      {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing Queue...</> : "Generate Alt Texts"}
                   </button>
@@ -233,7 +221,7 @@ Return ONLY the raw string. No markdown.`
                <button 
                   onClick={downloadCsv}
                   disabled={isProcessing || !results.some(r => r.status === "done")}
-                  className="w-full py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30"
+                  className="w-full py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30 active:scale-95"
                >
                   <Download className="w-5 h-5" /> Export to CSV
                </button>
@@ -258,7 +246,7 @@ Return ONLY the raw string. No markdown.`
                 <div className="p-4 bg-pink-500/10 border-b border-pink-500/20 text-pink-400 flex flex-col gap-2 relative">
                    <div className="absolute top-0 bottom-0 left-0 bg-pink-500/20 transition-all duration-300" style={{ width: `${progress}%` }} />
                    <div className="relative z-10 flex items-center justify-between text-xs font-bold">
-                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Claude 3.5 evaluating...</span>
+                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> AI evaluating...</span>
                       <span>{results.filter(r => r.status === "done").length} / {queue.length} Done ({progress}%)</span>
                    </div>
                 </div>
@@ -270,7 +258,7 @@ Return ONLY the raw string. No markdown.`
                      <div className="flex justify-between items-start gap-4">
                         <div className="flex items-center gap-4 flex-1">
                            <img src={result.url} alt="Preview" className="w-12 h-12 rounded object-cover border border-white/10" />
-                           <div className="flex col min-w-0 flex-1">
+                           <div className="flex flex-col min-w-0 flex-1">
                               <span className="text-sm font-bold text-white truncate">{result.filename}</span>
                               <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                                  {result.status === "pending" && "Waiting"}
@@ -298,6 +286,6 @@ Return ONLY the raw string. No markdown.`
              </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

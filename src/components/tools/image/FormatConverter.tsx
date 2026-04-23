@@ -12,8 +12,11 @@ import { ModeToggle } from "@/components/shared/ModeToggle"
 import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
 import type { QueueItem } from "@/types/bulk"
 import { cn } from "@/lib/utils"
-import { downloadBlob } from "@/lib/canvas/export"
-import JSZip from "jszip"
+import { downloadBlob, canvasSupportsMime } from "@/lib/canvas/export"
+// Removed static import for JSZip
+
+// Formats that use custom binary encoders (not canvas.toBlob) are always supported
+const CUSTOM_ENCODER_FORMATS = new Set(["pdf", "svg", "ico", "tga", "eps"])
 
 
 const FORMATS = [
@@ -54,6 +57,20 @@ export function FormatConverter() {
     }
   }, [targetFormat, processMode])
 
+  // Detect browser support for canvas-based export formats
+  const [unsupportedFormats, setUnsupportedFormats] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    const unsupported = new Set<string>()
+    for (const f of FORMATS) {
+      if (CUSTOM_ENCODER_FORMATS.has(f.id)) continue // always supported
+      const mime = `image/${f.id === "jpeg" ? "jpeg" : f.id}`
+      if (!canvasSupportsMime(mime)) {
+        unsupported.add(f.id)
+      }
+    }
+    setUnsupportedFormats(unsupported)
+  }, [])
+
   const preprocessIfHeic = async (sourceFile: File): Promise<File> => {
     if (sourceFile.name.toLowerCase().endsWith(".heic")) {
        const heic2any = (await import("heic2any")).default
@@ -74,6 +91,7 @@ export function FormatConverter() {
     if (!result) throw new Error("Processing failed")
 
     try {
+      const JSZip = (await import("jszip")).default
       const zip = new JSZip()
       const canvas = document.createElement("canvas")
       const ctx = canvas.getContext("2d")!
@@ -302,26 +320,34 @@ showpage
       <div className="space-y-8">
         {!file && queue.length === 0 ? (
           <div className="space-y-8 animate-in fade-in duration-500">
-             <div className="flex justify-center">
-                <ModeToggle mode={processMode} onChange={setProcessMode} />
-             </div>
+              <div className="flex justify-center">
+                <ModeToggle id="format" mode={processMode} onChange={setProcessMode} />
+              </div>
 
              <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Target Format</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                   {FORMATS.map(f => (
+                   {FORMATS.map(f => {
+                     const isUnsupported = unsupportedFormats.has(f.id)
+                     return (
                      <button
                        key={f.id}
-                       onClick={() => setTargetFormat(f.id)}
+                       onClick={() => !isUnsupported && setTargetFormat(f.id)}
+                       disabled={isUnsupported}
                        className={cn(
                          "p-4 rounded-2xl border text-left transition-all group",
-                         targetFormat === f.id ? "bg-primary/20 border-primary shadow-lg" : "bg-white/5 border-white/5 hover:bg-white/10"
+                         isUnsupported
+                           ? "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
+                           : targetFormat === f.id ? "bg-primary/20 border-primary shadow-lg" : "bg-white/5 border-white/5 hover:bg-white/10"
                        )}
                      >
-                        <p className={cn("text-xs font-black uppercase tracking-widest mb-1", targetFormat === f.id ? "text-primary" : "text-white")}>{f.label}</p>
-                        <p className="text-[10px] text-muted-foreground leading-tight">{f.desc}</p>
+                        <p className={cn("text-xs font-black uppercase tracking-widest mb-1", isUnsupported ? "text-muted-foreground" : targetFormat === f.id ? "text-primary" : "text-white")}>{f.label}</p>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          {isUnsupported ? "Not supported in your browser" : f.desc}
+                        </p>
                      </button>
-                   ))}
+                     )
+                   })}
                 </div>
              </div>
 
@@ -362,6 +388,7 @@ showpage
                    <div className="flex justify-center">
                       <button 
                         onClick={async () => {
+                           const JSZip = (await import("jszip")).default
                            const zip = new JSZip()
                            queue.filter(i => i.resultBlob).forEach(i => zip.file(i.file.name.split(".")[0] + "." + targetFormat, i.resultBlob!))
                            const blob = await zip.generateAsync({ type: "blob" })

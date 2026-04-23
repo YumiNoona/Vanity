@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function BeforeAfterSlider() {
@@ -80,20 +81,7 @@ export function BeforeAfterSlider() {
 
   if (!file1 || !file2) {
     return (
-      <div className="max-w-4xl mx-auto py-12 space-y-8 animate-in fade-in duration-500">
-         <div className="text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-6 text-blue-500">
-               <Copy className="w-8 h-8" />
-            </div>
-            <h1 className="text-4xl font-bold font-syne mb-1 text-white">Before / After Slider</h1>
-            <p className="text-muted-foreground text-lg mb-12">
-               Upload two versions of the same photo to compare them with a smooth slider.
-            </p>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-              Tip: Use images with the same aspect ratio for a perfect overlay.
-            </div>
-         </div>
-
+      <ToolUploadLayout title="Before / After Slider" description="Side-by-side visual comparison tool." icon={SplitSquareHorizontal}>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">Version A (Before)</label>
@@ -122,29 +110,21 @@ export function BeforeAfterSlider() {
                )}
             </div>
          </div>
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <SplitSquareHorizontal className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Comparison Deck</h1>
-            <p className="text-muted-foreground text-sm">Drag the handle to reveal differences.</p>
-          </div>
-        </div>
-        <button onClick={reset} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
+    <ToolLayout
+      title="Comparison Deck"
+      description="Drag the handle to reveal differences."
+      icon={SplitSquareHorizontal}
+      onBack={reset}
+      backLabel="Start New"
+      maxWidth="max-w-6xl"
+    >
       {aspectWarning && (
-        <div className="mx-auto max-w-6xl px-4 sm:px-0">
+        <div className="mb-8">
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200/80 text-xs">
             {aspectWarning}
           </div>
@@ -197,7 +177,7 @@ export function BeforeAfterSlider() {
         <div className="absolute top-6 right-6 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-bold text-white uppercase tracking-widest border border-white/10 z-30 transition-opacity opacity-0 group-hover:opacity-100">After</div>
       </div>
 
-      <div className="p-8 glass-panel rounded-3xl flex items-center gap-8 border-white/5 shadow-lg">
+      <div className="p-8 glass-panel rounded-3xl flex items-center gap-8 border-white/5 shadow-lg mt-8">
          <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-500">
             <SplitSquareHorizontal className="w-8 h-8" />
          </div>
@@ -208,6 +188,6 @@ export function BeforeAfterSlider() {
             </p>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

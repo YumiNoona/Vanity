@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHorizontal, Loader2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -184,18 +185,17 @@ export function PdfCrop() {
     a.click()
   }
 
+  const handleBack = () => {
+    setFile(null)
+    clearPreviewUrl()
+    clearResultUrl()
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-amber-500/10 rounded-full mb-6 text-amber-500">
-            <Crop className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Crop PDF</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Adjust page margins to remove whitespace or crop content.
-        </p>
+      <ToolUploadLayout title="Crop PDF" description="Adjust page margins to remove whitespace or crop content." icon={Crop}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to crop" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
@@ -208,28 +208,21 @@ export function PdfCrop() {
   } : { top: 0, bottom: 0, left: 0, right: 0 }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
-             <FileText className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Cropping Engine</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <div className="flex gap-4">
-          <button 
-            onClick={() => setMargins({ top: 50, bottom: 50, left: 50, right: 50 })}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" /> Reset
-          </button>
-          <button onClick={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> New File
-          </button>
-        </div>
+    <ToolLayout
+      title="Cropping Engine"
+      description={file.name}
+      icon={FileText}
+      onBack={handleBack}
+      backLabel="New File"
+      maxWidth="max-w-5xl"
+    >
+      <div className="flex gap-4 mb-6">
+        <button 
+          onClick={() => setMargins({ top: 50, bottom: 50, left: 50, right: 50 })}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" /> Reset
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -367,6 +360,6 @@ export function PdfCrop() {
             </div>
          </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

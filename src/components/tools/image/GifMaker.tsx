@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Images, Download, RefreshCw, Trash2, SlidersHorizontal, AlertCircle, XCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import gifshot from "gifshot"
 import { guardDimensions, maybeYield } from "@/lib/utils"
@@ -79,7 +80,7 @@ export function GifMaker() {
     }
 
     try {
-      // 1. Process & Rezise Frames with time-budget yielding
+      // 1. Process & Rezise Frames
       let aggregatePixels = 0
 
       for (let i = 0; i < files.length; i++) {
@@ -112,7 +113,6 @@ export function GifMaker() {
               const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.75))
               const url = blob ? URL.createObjectURL(blob) : ""
               
-              // Memory cleanup
               canvas.width = 0
               canvas.height = 0
               resolve(url)
@@ -135,7 +135,7 @@ export function GifMaker() {
       setProgressStage("encoding")
 
       // 2. Encode with Gifshot logic
-      const effectiveDelay = Math.max(20, delay) // Enforce min 20ms delay
+      const effectiveDelay = Math.max(20, delay)
 
       gifshot.createGIF({
         images: frameUrls,
@@ -143,9 +143,8 @@ export function GifMaker() {
         gifWidth: 800,
         gifHeight: 800,
         numWorkers: 2,
-        sampleInterval: 10, // Palette quality vs speed
+        sampleInterval: 10,
       }, (obj: any) => {
-        // ALWAYS cleanup frames in the callback regardless of result
         cleanupFrames()
 
         if (generationIdRef.current !== generationId || isCancelledRef.current) {
@@ -159,7 +158,6 @@ export function GifMaker() {
               return
            }
            setProgressStage("finalizing")
-           // Convert base64 result to Blob for managed lifecycle
            fetch(obj.image)
              .then(res => res.blob())
              .then(blob => {
@@ -183,23 +181,12 @@ export function GifMaker() {
     }
   }
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
-             <Images className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">GIF Maker</h1>
-            <p className="text-muted-foreground text-sm">Combine image sequence into an animated GIF.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images} onBack={handleBack} backLabel="Back">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
            <DropZone onDrop={handleDrop} accept={{"image/*": []}} multiple label="Add Frames (Max 20)" />
@@ -310,6 +297,6 @@ export function GifMaker() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

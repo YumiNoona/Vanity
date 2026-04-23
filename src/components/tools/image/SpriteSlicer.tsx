@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Grid3X3, Download, RefreshCw, Scissors, AlertCircle, FileArchive } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import JSZip from "jszip"
 import { guardDimensions, maybeYield } from "@/lib/utils"
@@ -186,35 +187,14 @@ export function SpriteSlicer() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Scissors className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Sprite Slicer</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Upload a sprite sheet to extract individual frames into a ZIP archive.
-        </p>
+      <ToolUploadLayout title="Sprite Slicer" description="Upload a sprite sheet to extract individual frames into a ZIP archive." icon={Scissors}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop sprite sheet here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Grid3X3 className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Slice Sheet</h1>
-            <p className="text-muted-foreground text-sm">Define row/col grid and export all tiles.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearTilePreview(); clearZipUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
+    <ToolLayout title="Slice Sheet" description="Define row/col grid and export all tiles." icon={Grid3X3} onBack={() => { setFile(null); clearTilePreview(); clearZipUrl(); }} backLabel="Start New" maxWidth="max-w-7xl">
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Controls */}
@@ -321,6 +301,6 @@ export function SpriteSlicer() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

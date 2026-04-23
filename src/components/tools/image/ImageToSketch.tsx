@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Pencil, RefreshCw, SlidersHorizontal } from "lucide-react"
+import { Download, Pencil, RefreshCw, SlidersHorizontal } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
-import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -11,7 +11,6 @@ export function ImageToSketch() {
   const [file, setFile] = useState<File | null>(null)
   const [intensity, setIntensity] = useState(50)
   const [isProcessing, setIsProcessing] = useState(false)
-  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const mainCanvas = useRef<HTMLCanvasElement>(null)
   const processingTimeoutRef = useRef<number | null>(null)
   const runIdRef = useRef(0)
@@ -30,7 +29,6 @@ export function ImageToSketch() {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     setFile(uploadedFile)
-    setPreviewUrl(uploadedFile)
   }
 
   const applyEffect = useCallback(() => {
@@ -43,8 +41,11 @@ export function ImageToSketch() {
     }
     setIsProcessing(true)
 
+    // Load directly from File — no dependency on previewUrl state
+    const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
+      URL.revokeObjectURL(localUrl)
       if (!isMountedRef.current || runId !== runIdRef.current) return
       const canvas = mainCanvas.current!
       canvas.width = img.width
@@ -95,12 +96,13 @@ export function ImageToSketch() {
       }, 50)
     }
     img.onerror = () => {
+      URL.revokeObjectURL(localUrl)
       if (!isMountedRef.current || runId !== runIdRef.current) return
       setIsProcessing(false)
       toast.error("Failed to decode image")
     }
-    img.src = previewUrl!
-  }, [file, intensity, previewUrl])
+    img.src = localUrl
+  }, [file, intensity])
 
   useEffect(() => {
     if (file) applyEffect()
@@ -118,46 +120,34 @@ export function ImageToSketch() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <Pencil className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Image to Sketch</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Instantly turn any photo into a professional pencil-sketch illustration.
-        </p>
+      <ToolUploadLayout
+        title="Image to Sketch"
+        description="Instantly turn any photo into a professional pencil-sketch illustration."
+        icon={Pencil}
+      >
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo here" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg text-primary">
-             <Pencil className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">Sketch Studio</h1>
-            <p className="text-muted-foreground text-sm">Adjust intensity for different artistic styles.</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearPreviewUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
-
+    <ToolLayout
+      title="Sketch Studio"
+      description="Adjust intensity for different artistic styles."
+      icon={Pencil}
+      onBack={() => setFile(null)}
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         <div className="lg:col-span-8">
-          <div className="glass-panel p-4 rounded-3xl flex items-center justify-center min-h-[500px] bg-[#f8f9fa] shadow-inner relative overflow-hidden group">
+          <div className="glass-panel p-4 rounded-3xl flex items-center justify-center min-h-[500px] bg-black/40 shadow-inner relative overflow-hidden group border border-white/5">
              {isProcessing && (
-                <div className="absolute inset-0 z-10 bg-white/40 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 z-10 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                    <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                 </div>
              )}
              <canvas ref={mainCanvas} className="max-w-full max-h-full rounded-xl shadow-lg transition-transform group-hover:scale-[1.01] duration-500" />
-             <div className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-widest text-black/20">Canvas Output</div>
+             <div className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-widest text-white/20">Canvas Output</div>
           </div>
         </div>
 
@@ -203,6 +193,6 @@ export function ImageToSketch() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

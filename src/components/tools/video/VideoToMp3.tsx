@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Mic, Download, Zap, VideoOff, CheckCircle } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
 
@@ -54,35 +55,14 @@ export function VideoToMp3() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-purple-500/10 rounded-full mb-6 text-purple-500">
-            <VideoOff className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Video to MP3</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Strip high-quality audio tracks from any video file instantly. 100% local.
-        </p>
+      <ToolUploadLayout title="Video to MP3" description="Strip high-quality audio tracks from any video file instantly. 100% local." icon={VideoOff}>
         <DropZone onDrop={handleDrop} accept={{ "video/*": [] }} label="Drop video to extract audio" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-             <Mic className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Audio Extractor</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Change Video
-        </button>
-      </div>
+    <ToolLayout title="Audio Extractor" description={file.name} icon={Mic} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change Video" maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
@@ -140,6 +120,6 @@ export function VideoToMp3() {
             </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

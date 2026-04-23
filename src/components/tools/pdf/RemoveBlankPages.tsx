@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, FileMinus, Download, RefreshCw, Layers, ShieldCheck } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import * as pdfjsLib from "pdfjs-dist"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
@@ -112,35 +113,14 @@ export function RemoveBlankPages() {
 
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center animate-in fade-in duration-500">
-         <div className="inline-flex items-center justify-center p-3 bg-red-500/10 rounded-full mb-6 text-red-500">
-            <FileMinus className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1 text-white">Remove Blank Pages</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Auto-detect and strip fully white or empty pages from your PDF documents.
-        </p>
+      <ToolUploadLayout title="Remove Blank Pages" description="Auto-detect and strip fully white or empty pages from your PDF documents." icon={FileMinus}>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF to sanitize" />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
-             <Layers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Sanitization Hub</h1>
-            <p className="text-muted-foreground text-sm">{file.name}</p>
-          </div>
-        </div>
-        <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
+    <ToolLayout title="Sanitization Hub" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
@@ -202,6 +182,6 @@ export function RemoveBlankPages() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

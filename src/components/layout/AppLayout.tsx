@@ -14,6 +14,10 @@ export function AppLayout() {
   const location = useLocation()
 
   useEffect(() => {
+    // Preload Donate QR Code to ensure instant visibility
+    const img = new Image()
+    img.src = "/Donate.jpeg"
+
     const currentTool = ALL_TOOLS.find(t => t.path === location.pathname)
     if (currentTool) {
       document.title = `${currentTool.title} | Vanity`

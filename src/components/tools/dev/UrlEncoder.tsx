@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Link2, ArrowLeftRight, Copy, CheckCircle, Trash2 } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function UrlEncoder() {
   const [input, setInput] = useState("")
@@ -39,16 +40,7 @@ export function UrlEncoder() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
-           <Link2 className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">URL Encoder / Decoder</h1>
-          <p className="text-muted-foreground text-sm">Safely encode or decode URLs and query string parameters.</p>
-        </div>
-      </div>
+    <ToolLayout title="URL Encoder / Decoder" description="Safely encode or decode URLs and query string parameters." icon={Link2} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
         <div className="space-y-4">
@@ -99,6 +91,6 @@ export function UrlEncoder() {
           />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

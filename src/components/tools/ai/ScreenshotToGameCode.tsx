@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeft, Code2, Copy, Cpu, Loader2, Sparkles, TriangleAlert } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -172,51 +173,52 @@ export function ScreenshotToGameCode() {
     toast.success("Code copied!")
   }
 
+  const handleBack = () => {
+    requestControllerRef.current?.abort()
+    setFile(null)
+    clearPreviewUrl()
+    setOutputCode("")
+    setOcrWarning(false)
+  }
+
+  if (!file) {
+    return (
+      <ToolUploadLayout 
+        title="Screenshot to Game Code" 
+        description="Convert game code screenshots into clean, annotated source files using AI Vision." 
+        icon={Code2}
+      >
+        <div className="glass-panel p-3 rounded-2xl border-white/10 mb-6">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMode("gemini")}
+              className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "gemini" ? "bg-indigo-500 text-white" : "bg-white/5 text-muted-foreground")}
+            >
+              Gemini AI
+            </button>
+            <button
+              onClick={() => setMode("ocr")}
+              className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "ocr" ? "bg-amber-500 text-black" : "bg-white/5 text-muted-foreground")}
+            >
+              Offline OCR
+            </button>
+          </div>
+        </div>
+        {mode === "gemini" && <AIProviderHint />}
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop code screenshot" />
+      </ToolUploadLayout>
+    )
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500 border border-indigo-500/20">
-            <Code2 className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Screenshot to Game Code</h1>
-            <p className="text-muted-foreground text-sm">Provider: {activeProvider} · Gemini Vision or Offline OCR fallback</p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            requestControllerRef.current?.abort()
-            setFile(null)
-            clearPreviewUrl()
-            setOutputCode("")
-            setOcrWarning(false)
-          }}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" /> Reset
-        </button>
-      </div>
-
-      <div className="glass-panel p-3 rounded-2xl border-white/10">
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setMode("gemini")}
-            className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "gemini" ? "bg-indigo-500 text-white" : "bg-white/5 text-muted-foreground")}
-          >
-            Gemini AI
-          </button>
-          <button
-            onClick={() => setMode("ocr")}
-            className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "ocr" ? "bg-amber-500 text-black" : "bg-white/5 text-muted-foreground")}
-          >
-            Offline OCR
-          </button>
-        </div>
-      </div>
-
-      {mode === "gemini" && <AIProviderHint />}
-
+    <ToolLayout
+      title="Screenshot to Game Code"
+      description={`Provider: ${activeProvider} · Gemini Vision or Offline OCR fallback`}
+      icon={Code2}
+      onBack={handleBack}
+      backLabel="Reset"
+      maxWidth="max-w-6xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4 space-y-6">
           <div className="glass-panel p-6 rounded-3xl space-y-6 border-white/10">
@@ -250,30 +252,26 @@ export function ScreenshotToGameCode() {
               </div>
             )}
 
-            {!file ? (
-              <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop code screenshot" />
-            ) : (
-              <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-3">
-                  <img src={previewUrl || ""} alt="Screenshot preview" className="w-full h-auto max-h-[280px] object-contain rounded-xl" />
-                </div>
-                <button
-                  onClick={handleGenerate}
-                  disabled={isProcessing}
-                  className="w-full py-4 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" /> Generate Code
-                    </>
-                  )}
-                </button>
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-3">
+                <img src={previewUrl || ""} alt="Screenshot preview" className="w-full h-auto max-h-[280px] object-contain rounded-xl" />
               </div>
-            )}
+              <button
+                onClick={handleGenerate}
+                disabled={isProcessing}
+                className="w-full py-4 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2 active:scale-95"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" /> Generate Code
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -293,7 +291,7 @@ export function ScreenshotToGameCode() {
               <button
                 onClick={handleCopy}
                 disabled={!outputCode}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-30"
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold flex items-center gap-2 disabled:opacity-30 active:scale-95"
               >
                 {copied ? <Sparkles className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 {copied ? "Copied" : "Copy"}
@@ -305,12 +303,12 @@ export function ScreenshotToGameCode() {
               </pre>
             ) : (
               <div className="h-[560px] flex items-center justify-center text-muted-foreground">
-                <p className="text-sm">Upload a screenshot and generate to see code output.</p>
+                <p className="text-sm">Generate to see code output.</p>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

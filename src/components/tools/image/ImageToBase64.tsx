@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { ArrowLeft, Copy, CheckCircle, FileCode } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 
 export function ImageToBase64() {
@@ -29,33 +30,21 @@ export function ImageToBase64() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleBack = () => {
+    setFile(null)
+    setBase64(null)
+  }
+
   if (!file) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center">
-         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-6 text-primary">
-            <FileCode className="w-8 h-8" />
-         </div>
-        <h1 className="text-4xl font-bold font-syne mb-1">Image to Base64</h1>
-        <p className="text-muted-foreground text-lg mb-8">
-          Convert any image into a Base64 string for embedding in code or HTML.
-        </p>
+      <ToolUploadLayout title="Image to Base64" description="Convert any image into a Base64 string for embedding in code or HTML." icon={FileCode}>
         <DropZone onDrop={handleProcess} accept={{ "image/*": [] }} />
-      </div>
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          <h1 className="text-3xl font-bold font-syne mb-2">Base64 Output</h1>
-          <p className="text-muted-foreground text-sm">File: {file.name}</p>
-        </div>
-        <button onClick={() => { setFile(null); setBase64(null); }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Convert Another
-        </button>
-      </div>
-
+    <ToolLayout title="Base64 Output" description={`File: ${file.name}`} onBack={handleBack} backLabel="Convert Another">
       <div className="glass-panel p-6 rounded-xl space-y-4">
         <div className="flex justify-between items-center mb-2">
            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Encoded String</span>
@@ -75,6 +64,6 @@ export function ImageToBase64() {
           />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

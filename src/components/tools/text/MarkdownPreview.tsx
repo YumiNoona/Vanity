@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { ArrowLeft, Eye, Layout, Copy, CheckCircle, Download, FileJson } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { marked } from "marked"
 import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -34,23 +35,19 @@ export function MarkdownPreview() {
     a.click()
   }
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mt-4 px-4 sm:px-0">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
-             <Eye className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Markdown Studio</h1>
-            <p className="text-muted-foreground text-sm">Write markdown, get beautiful live rendering.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Markdown Studio" 
+      description="Write markdown, get beautiful live rendering." 
+      icon={Eye} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-7xl"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12 h-[calc(100vh-250px)]">
         {/* Editor Area */}
         <div className="flex flex-col space-y-4">
@@ -106,6 +103,6 @@ export function MarkdownPreview() {
         .prose blockquote { border-left-color: #10b981; background: rgba(16, 185, 129, 0.05); padding: 0.5rem 1rem; border-radius: 0 0.5rem 0.5rem 0; }
         .prose img { border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
       `}</style>
-    </div>
+    </ToolLayout>
   )
 }

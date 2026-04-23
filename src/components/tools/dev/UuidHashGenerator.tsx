@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Key, Copy, CheckCircle, RefreshCw, ShieldCheck, Hash } from "lucide-react"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 
 export function UuidHashGenerator() {
@@ -47,23 +48,19 @@ export function UuidHashGenerator() {
     calculateHash(val)
   }
 
-  return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20 px-4 sm:px-0">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-             <Key className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Security Toolbox</h1>
-            <p className="text-muted-foreground text-sm">Generate secure UUIDs and cryptographic hashes locally.</p>
-          </div>
-        </div>
-        <button onClick={() => window.history.back()} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
+  const handleBack = () => {
+    window.history.back()
+  }
 
+  return (
+    <ToolLayout 
+      title="Security Toolbox" 
+      description="Generate secure UUIDs and cryptographic hashes locally." 
+      icon={Key} 
+      onBack={handleBack} 
+      backLabel="Back" 
+      maxWidth="max-w-5xl"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* UUID Generator */}
         <div className="glass-panel p-8 rounded-3xl space-y-6 flex flex-col justify-between">
@@ -138,7 +135,7 @@ export function UuidHashGenerator() {
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
+      <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4 mt-8">
         <div className="p-2 bg-blue-500/20 rounded-lg text-blue-500 shrink-0">
            <Hash className="w-5 h-5" />
         </div>
@@ -149,6 +146,6 @@ export function UuidHashGenerator() {
            </p>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }
