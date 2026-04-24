@@ -99,8 +99,7 @@ export function SplitPdf() {
               onClick={handleDownload}
               className="px-8 py-4 text-lg font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105"
             >
-              <Download className="w-6 h-6" /> Download ZIP Archive
-            </button>
+              <Download className="w-6 h-6" /> Export </button>
           </div>
         )}
       </div>

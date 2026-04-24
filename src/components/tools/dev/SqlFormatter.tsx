@@ -91,9 +91,9 @@ export function SqlFormatter() {
            </button>
         </div>
 
-        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
-           <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-           <p className="text-[10px] text-muted-foreground leading-relaxed">
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4">
+           <Info className="w-5 h-5 text-primary shrink-0" />
+           <p className="text-sm text-muted-foreground leading-relaxed">
              This is a heuristic formatter designed for quick readability. It handles keyword casing and basic indentation for most common SQL dialects.
            </p>
         </div>

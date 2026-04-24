@@ -172,8 +172,7 @@ export function AsciiArt() {
                    onClick={handleDownloadTxt}
                    className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
                  >
-                   <Download className="w-4 h-4" />
-                   Download .txt
+                   <Download className="w-4 h-4" /> Export.txt
                  </button>
               </div>
            </div>

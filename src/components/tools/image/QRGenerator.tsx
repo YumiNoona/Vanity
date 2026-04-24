@@ -84,7 +84,7 @@ export function QRGenerator() {
                  onClick={handleDownload}
                  className="px-8 py-3 bg-black text-white font-bold rounded-full flex items-center gap-2 hover:scale-105 transition-all"
                >
-                 <Download className="w-4 h-4" /> Download PNG
+                 <Download className="w-4 h-4" /> Export
                </button>
              </>
            ) : (

@@ -266,7 +266,7 @@ export function WatermarkRemover() {
                     }}
                     className="px-6 py-2 bg-primary text-primary-foreground font-bold rounded-full shadow-lg flex items-center gap-2"
                   >
-                    <Download className="w-4 h-4" /> Download Cleaned
+                    <Download className="w-4 h-4" /> Export
                   </button>
                   <button 
                      onClick={() => clearResultUrl()}

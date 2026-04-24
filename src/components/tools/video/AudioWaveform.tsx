@@ -324,7 +324,7 @@ export function AudioWaveform() {
                    download={`vanity-trim-${file.name}`}
                    className="flex-1 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]"
                  >
-                   <Download className="w-5 h-5" /> Download Trim
+                   <Download className="w-5 h-5" /> Export
                  </a>
               )}
            </div>

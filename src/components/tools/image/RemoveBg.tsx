@@ -132,8 +132,7 @@ export function RemoveBg() {
             onClick={handleDownload}
             className="px-8 py-4 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-all flex items-center justify-center gap-3 hover:scale-105"
           >
-            <Download className="w-6 h-6" /> Download Transparent PNG
-          </button>
+            <Download className="w-6 h-6" /> Export </button>
         </div>
       )}
     </ToolLayout>

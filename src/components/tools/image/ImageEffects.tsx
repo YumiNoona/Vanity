@@ -1,33 +1,21 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import { useImageProcessor } from "@/hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
-import { guardDimensions } from "@/lib/utils"
+import { useImageProcessor } from "../../../hooks/useImageProcessor"
+import { useObjectUrl } from "../../../hooks/useObjectUrl"
+import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
+import { guardDimensions } from "../../../lib/utils"
 
 export function ImageEffects() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
 
-  useEffect(() => {
-    return () => {
-      if (sourceImage instanceof ImageBitmap) {
-        sourceImage.close()
-      }
-    }
-  }, [sourceImage])
-
-  useEffect(() => {
-    return () => {
-      clearCurrent()
-    }
-  }, [clearCurrent])
-  
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [settings, setSettings] = useState({
@@ -39,62 +27,50 @@ export function ImageEffects() {
     blur: 0,
   })
 
+  const filterString = [
+    `brightness(${settings.brightness}%)`,
+    `contrast(${settings.contrast}%)`,
+    `saturate(${settings.saturation}%)`,
+    `grayscale(${settings.grayscale}%)`,
+    `sepia(${settings.sepia}%)`,
+    `blur(${settings.blur}px)`
+  ].join(' ')
+
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
+    setPreviewUrl(uploadedFile)
+    
     const result = await processImage(uploadedFile)
     if (!result) return
-
     setSourceImage(result.source)
-    const canvas = canvasRef.current!
-    applyFilters(result.source, canvas)
   }
-
-  const applyFilters = async (source = sourceImage, canvas = canvasRef.current) => {
-    if (!canvas || !source) return
-
-    const { brightness, contrast, saturation, grayscale, sepia, blur } = settings
-    const filter = `
-      brightness(${brightness}%) 
-      contrast(${contrast}%) 
-      saturate(${saturation}%) 
-      grayscale(${grayscale}%) 
-      sepia(${sepia}%) 
-      blur(${blur}px)
-    `
-    await drawToCanvas(source, canvas, { filter, clear: true })
-  }
-
-  useEffect(() => {
-    if (sourceImage && canvasRef.current) {
-      applyFilters()
-    }
-
-    return () => {
-      if (canvasRef.current) {
-        canvasRef.current.width = 0
-        canvasRef.current.height = 0
-      }
-    }
-  }, [settings, sourceImage])
 
   const handleDownload = async () => {
+    const source = sourceImage
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || !source) {
+      toast.error("Image not ready for export")
+      return
+    }
     
     try {
+      await drawToCanvas(source, canvas, { filter: filterString, clear: true })
       const blob = await exportCanvas(canvas, "image/png", 1.0)
       downloadBlob(blob, `vanity-effects-${file?.name || "image.png"}`)
       toast.success("Image exported!")
     } catch (err) {
+      console.error("Export failed:", err)
       toast.error("Export failed")
     }
   }
 
   const handleBack = () => {
     setFile(null)
+    setSourceImage(null)
+    clearPreviewUrl()
     clearCurrent()
   }
 
@@ -130,7 +106,7 @@ export function ImageEffects() {
                 </div>
                 <input 
                   type="range"
-                  min={key === "blur" ? 0 : 0}
+                  min={0}
                   max={key === "blur" ? 20 : 200}
                   value={value}
                   onChange={(e) => setSettings(s => ({ ...s, [key]: Number(e.target.value) }))}
@@ -149,7 +125,7 @@ export function ImageEffects() {
             </button>
             <button 
               onClick={handleDownload}
-              disabled={isProcessing}
+              disabled={isProcessing || !sourceImage}
               className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg flex-1 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export
@@ -158,10 +134,19 @@ export function ImageEffects() {
         </div>
 
         <div className="lg:col-span-2 glass-panel p-6 rounded-xl min-h-[500px] flex items-center justify-center relative overflow-hidden bg-white/[0.01]">
-          <canvas 
-            ref={canvasRef} 
-            className="max-w-full max-h-[600px] object-contain shadow-2xl rounded"
-          />
+          {previewUrl ? (
+             <img 
+               src={previewUrl} 
+               alt="Preview" 
+               className="max-w-full max-h-[600px] object-contain shadow-2xl rounded-lg"
+               style={{ filter: filterString }}
+             />
+          ) : (
+             <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          )}
+          
+          {/* Hidden canvas for export */}
+          <canvas ref={canvasRef} className="hidden" />
         </div>
       </div>
     </ToolLayout>

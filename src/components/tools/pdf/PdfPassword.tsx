@@ -150,7 +150,9 @@ export function PdfPassword() {
             AES-256 Encryption Engine Online (qpdf)
           </div>
         )}
-        {renderToggle()}
+        <div className="mb-8">
+          {renderToggle()}
+        </div>
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [] }} />
       </ToolUploadLayout>
     )
@@ -239,8 +241,7 @@ export function PdfPassword() {
               onClick={handleDownload}
               className="px-12 py-5 bg-primary text-primary-foreground font-black rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto uppercase tracking-widest text-sm active:scale-95"
             >
-              <Download className="w-6 h-6" />
-              Download Result
+              <Download className="w-6 h-6" /> Export
             </button>
           </div>
         )}

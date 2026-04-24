@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Layers, FileText, Trash2, ArrowUp, ArrowDown, Loader2, CheckCircle } from "lucide-react"
 import { PDFDocument } from "pdf-lib"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 import { motion, Reorder } from "framer-motion"
 import { usePremium } from "@/hooks/usePremium"
@@ -90,51 +91,57 @@ export function MergePdf() {
 
   if (resultUrl && !isProcessing) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto py-12 text-center flex flex-col items-center"
+      <ToolLayout
+        title="Files Merged!"
+        description="Your new PDF is ready to download."
+        icon={CheckCircle}
+        onBack={() => { setPdfs([]); clearResultUrl(); }}
+        backLabel="Start New Merge"
       >
-        <div className="inline-flex items-center justify-center p-6 bg-accent/10 rounded-full mb-6 text-accent">
-          <CheckCircle className="w-12 h-12" />
-        </div>
-        <h1 className="text-4xl font-bold font-syne mb-6">Files Merged!</h1>
-        <p className="text-muted-foreground mb-8">Your new PDF is ready to download.</p>
-        
-        <div className="flex flex-wrap justify-center gap-4">
-          <button 
-            onClick={handleDownload}
-            className="px-8 py-4 text-lg font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center gap-3 hover:scale-105"
-          >
-            <Download className="w-6 h-6" /> Download PDF
-          </button>
+        <div className="max-w-2xl mx-auto py-8 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
+          <div className="inline-flex items-center justify-center p-8 bg-accent/10 rounded-full mb-8 text-accent shadow-2xl border border-accent/20">
+            <CheckCircle className="w-16 h-16" />
+          </div>
           
           <button 
-            onClick={() => { setPdfs([]); clearResultUrl(); }}
-            className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all flex items-center gap-3"
+            onClick={handleDownload}
+            className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-accent text-accent-foreground hover:bg-accent/90 rounded-2xl shadow-[0_0_40px_rgba(252,211,77,0.3)] transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-95 w-full md:w-auto justify-center"
           >
-            Start New Merge
+            <Download className="w-6 h-6" /> Export
           </button>
         </div>
-      </motion.div>
+      </ToolLayout>
+    )
+  }
+
+  if (pdfs.length === 0) {
+    return (
+      <ToolUploadLayout
+        title="Merge PDFs"
+        description="Combine multiple PDF files into one. 100% locally on your machine."
+        icon={Layers}
+      >
+        <DropZone 
+          onDrop={handleDrop} 
+          accept={{ "application/pdf": [".pdf"] }} 
+          maxFiles={limits.maxFiles} 
+          label="Drop PDF files here" 
+        />
+      </ToolUploadLayout>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold font-syne mb-2">Merge PDFs</h1>
-        <p className="text-muted-foreground text-sm">Combine multiple PDF files into one. 100% locally on your machine.</p>
-      </div>
+    <ToolLayout
+      title="Merge PDFs"
+      description="Combine multiple PDF files into one. 100% locally on your machine."
+      icon={Layers}
+      onBack={() => setPdfs([])}
+      backLabel="Clear All"
+    >
+      <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
 
-      <DropZone 
-        onDrop={handleDrop} 
-        accept={{ "application/pdf": [".pdf"] }} 
-        maxFiles={limits.maxFiles} 
-        label="Drop PDF files here" 
-      />
 
-      {pdfs.length > 0 && (
         <div className="glass-panel p-6 rounded-xl space-y-6">
           <h3 className="font-bold font-syne flex items-center gap-2 border-b border-border/50 pb-4">
             <FileText className="w-5 h-5 text-accent" />
@@ -191,7 +198,7 @@ export function MergePdf() {
             </button>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </ToolLayout>
   )
 }

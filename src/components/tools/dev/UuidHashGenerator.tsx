@@ -135,7 +135,7 @@ export function UuidHashGenerator() {
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4 mt-8">
+      <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center gap-4 mt-8">
         <div className="p-2 bg-blue-500/20 rounded-lg text-blue-500 shrink-0">
            <Hash className="w-5 h-5" />
         </div>

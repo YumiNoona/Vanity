@@ -222,7 +222,7 @@ export function GifMaker() {
                     download={`vanity-anim-${Date.now()}.gif`}
                     className="flex items-center gap-3 px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
                   >
-                    <Download className="w-5 h-5" /> Download GIF
+                    <Download className="w-5 h-5" /> Export
                   </a>
                </div>
              </div>

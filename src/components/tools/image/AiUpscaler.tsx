@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Maximize2, Sparkles } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -208,16 +209,15 @@ export function AiUpscaler() {
         description="Increase resolution by 2x or 4x using high-quality Lanczos3 resampling — instant, offline, no model download."
         icon={Maximize2}
       >
-        <div className="flex justify-center gap-4 mb-6">
-          {[2, 4].map(s => (
-            <button
-              key={s}
-              onClick={() => setScale(s)}
-              className={`px-8 py-4 rounded-xl font-bold transition-all ${scale === s ? "bg-primary text-primary-foreground shadow-lg scale-110" : "bg-white/5 hover:bg-white/10 text-muted-foreground"}`}
-            >
-              {s}X Scale
-            </button>
-          ))}
+        <div className="mb-8 flex justify-center">
+          <PillToggle
+            activeId={scale.toString()}
+            onChange={(id) => setScale(parseInt(id))}
+            options={[
+              { id: "2", label: "2X Scale" },
+              { id: "4", label: "4X Scale" }
+            ]}
+          />
         </div>
         <DropZone onDrop={handleProcess} accept={{ "image/*": [] }} />
       </ToolUploadLayout>
@@ -283,7 +283,7 @@ export function AiUpscaler() {
               onClick={handleDownload}
               className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto"
             >
-              <Download className="w-5 h-5" /> Download {scale}x Result
+              <Download className="w-5 h-5" /> Export{scale}x Result
             </button>
           </div>
         )}

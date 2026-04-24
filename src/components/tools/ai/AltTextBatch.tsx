@@ -223,8 +223,7 @@ Return ONLY the raw string. No markdown.`
                   disabled={isProcessing || !results.some(r => r.status === "done")}
                   className="w-full py-4 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30 active:scale-95"
                >
-                  <Download className="w-5 h-5" /> Export to CSV
-               </button>
+                  <Download className="w-5 h-5" /> Export </button>
             </div>
             
             {/* Add More Dropzone */}

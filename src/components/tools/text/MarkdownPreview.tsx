@@ -59,7 +59,7 @@ export function MarkdownPreview() {
               onClick={handleDownloadMd}
               className="text-[10px] uppercase font-bold text-muted-foreground hover:text-white transition-colors flex items-center gap-2"
             >
-               <Download className="w-3 h-3" /> Download .md
+               <Download className="w-3 h-3" /> Export.md
             </button>
           </div>
           <textarea 

@@ -6,7 +6,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
-import { guardDimensions, maybeYield } from "@/lib/utils"
+import { guardDimensions } from "@/lib/utils"
 
 export function MemeGenerator() {
   const { validateFiles } = usePremium()
@@ -25,37 +25,63 @@ export function MemeGenerator() {
     }
   }, [])
 
-  const [sourceData, setSourceData] = useState<{source: any, width: number, height: number} | null>(null)
+  const [sourceData, setSourceData] = useState<{source: any, width: number, height: number, type: 'image' | 'video'} | null>(null)
   const [hasSelection, setHasSelection] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
-    if (!uploadedFile || !validateFiles([uploadedFile])) return
+    if (!uploadedFile) return
     
     const jobId = ++jobIdRef.current
     setFile(uploadedFile)
     
     try {
-      const result = await loadImage(uploadedFile)
-      
-      // Guard against stale results or unmount
-      if (jobId !== jobIdRef.current || unmountedRef.current) {
-        result.cleanup()
-        return
+      if (uploadedFile.type.startsWith('video/')) {
+         const url = URL.createObjectURL(uploadedFile)
+         const video = document.createElement('video')
+         video.src = url
+         video.crossOrigin = "anonymous"
+         video.loop = true
+         video.muted = true // Required for autoplay without interaction
+         video.playsInline = true
+         
+         await new Promise((resolve, reject) => {
+           video.onloadedmetadata = resolve
+           video.onerror = reject
+         })
+         
+         if (jobId !== jobIdRef.current || unmountedRef.current) return
+         
+         if (cleanupRef.current) cleanupRef.current()
+         cleanupRef.current = () => { URL.revokeObjectURL(url); video.pause(); video.src = ""; }
+         
+         const { width, height } = guardDimensions(video.videoWidth, video.videoHeight)
+         videoRef.current = video
+         setSourceData({ source: video, width, height, type: 'video' })
+         
+      } else {
+         const result = await loadImage(uploadedFile)
+         
+         if (jobId !== jobIdRef.current || unmountedRef.current) {
+           result.cleanup()
+           return
+         }
+
+         if (cleanupRef.current) cleanupRef.current()
+         cleanupRef.current = result.cleanup
+
+         const { width, height } = guardDimensions(result.width, result.height)
+         setSourceData({ source: result.source, width, height, type: 'image' })
       }
-
-      if (cleanupRef.current) cleanupRef.current()
-      cleanupRef.current = result.cleanup
-
-      const { width, height } = guardDimensions(result.width, result.height)
-      setSourceData({ source: result.source, width, height })
       
       if (fabricCanvas.current) {
         fabricCanvas.current.dispose()
         fabricCanvas.current = null
       }
     } catch (e) {
-      if (jobId === jobIdRef.current) toast.error("Failed to load image")
+      if (jobId === jobIdRef.current) toast.error("Failed to load media")
     }
   }
 
@@ -72,13 +98,24 @@ export function MemeGenerator() {
       canvas.on("selection:updated", () => setHasSelection(true))
       canvas.on("selection:cleared", () => setHasSelection(false))
 
-      const fbImg = new fabric.FabricImage(sourceData.source as HTMLImageElement)
+      const fbMedia = new fabric.FabricImage(sourceData.source)
       const scale = Math.min(600 / sourceData.width, 600 / sourceData.height)
-      fbImg.scale(scale)
-      fbImg.set({ selectable: false, evented: false })
-      canvas.add(fbImg)
-      canvas.centerObject(fbImg)
+      fbMedia.scale(scale)
+      fbMedia.set({ selectable: false, evented: false })
+      canvas.add(fbMedia)
+      canvas.centerObject(fbMedia)
       canvas.requestRenderAll()
+      
+      if (sourceData.type === 'video' && videoRef.current) {
+         videoRef.current.play()
+         const renderLoop = () => {
+            if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
+               fabricCanvas.current.requestRenderAll()
+               fabric.util.requestAnimFrame(renderLoop)
+            }
+         }
+         fabric.util.requestAnimFrame(renderLoop)
+      }
       
       addMemeText("TOP TEXT", "top")
       addMemeText("BOTTOM TEXT", "bottom")
@@ -129,19 +166,82 @@ export function MemeGenerator() {
   }
 
   const handleDownload = async () => {
-    if (!fabricCanvas.current) return
+    if (!fabricCanvas.current || !sourceData) return
     setIsProcessing(true)
     
     try {
-      const fabricElement = fabricCanvas.current.toCanvasElement(1)
-      
-      const blob = await exportCanvas(fabricElement, "image/png", 1.0)
-      downloadBlob(blob, `vanity-meme-${Date.now()}.png`)
-      toast.success("Meme exported!")
+      if (sourceData.type === 'video' && videoRef.current) {
+         // Video Export using MediaRecorder
+         setIsRecording(true)
+         const video = videoRef.current
+         video.currentTime = 0
+         await video.play()
+
+         const canvasEl = fabricCanvas.current.getElement()
+         const stream = canvasEl.captureStream(30) // 30 FPS
+         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+         const chunks: Blob[] = []
+
+         recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunks.push(e.data)
+         }
+
+         recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' })
+            downloadBlob(blob, `vanity-meme-${Date.now()}.webm`)
+            toast.success("Video Meme exported!")
+            setIsRecording(false)
+            setIsProcessing(false)
+            
+            // Resume preview render loop
+            const renderLoop = () => {
+               if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
+                  fabricCanvas.current.requestRenderAll()
+                  fabric.util.requestAnimFrame(renderLoop)
+               }
+            }
+            fabric.util.requestAnimFrame(renderLoop)
+         }
+
+         recorder.start()
+         
+         const renderFrame = () => {
+             if (!unmountedRef.current && fabricCanvas.current && isRecording) {
+                 fabricCanvas.current.renderAll()
+             }
+         }
+
+         // Stop recording when video ends
+         const onEnded = () => {
+            recorder.stop()
+            video.removeEventListener('ended', onEnded)
+            video.loop = true
+            video.play()
+         }
+         
+         video.loop = false // Play once for recording
+         video.addEventListener('ended', onEnded)
+         
+         const animLoop = () => {
+            if (isRecording) {
+               renderFrame()
+               fabric.util.requestAnimFrame(animLoop)
+            }
+         }
+         fabric.util.requestAnimFrame(animLoop)
+         
+      } else {
+         // Image Export
+         const fabricElement = fabricCanvas.current.toCanvasElement(1)
+         const blob = await exportCanvas(fabricElement, "image/png", 1.0)
+         downloadBlob(blob, `vanity-meme-${Date.now()}.png`)
+         toast.success("Meme exported!")
+         setIsProcessing(false)
+      }
     } catch (error) {
       toast.error("Export failed")
-    } finally {
       setIsProcessing(false)
+      setIsRecording(false)
     }
   }
 
@@ -151,8 +251,8 @@ export function MemeGenerator() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Meme Generator" description="Upload a template and create viral memes instantly in your browser." icon={Sparkles}>
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+      <ToolUploadLayout title="Meme Generator" description="Upload an image or video template and create viral memes instantly in your browser." icon={Sparkles}>
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [], "video/*": [] }} />
       </ToolUploadLayout>
     )
   }
@@ -182,11 +282,11 @@ export function MemeGenerator() {
               
               <button 
                 onClick={handleDownload}
-                disabled={isProcessing}
+                disabled={isProcessing || isRecording}
                 className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
               >
-                {isProcessing ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
-                Download Meme
+                {isProcessing || isRecording ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
+                {isRecording ? "Recording Meme..." : "Download Meme"}
               </button>
            </div>
         </div>

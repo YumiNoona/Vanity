@@ -131,9 +131,7 @@ export function PdfFlatten() {
                    onClick={handleDownload}
                    className="px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
                  >
-                   <Download className="w-6 h-6" />
-                   Download Flattened PDF
-                 </button>
+                   <Download className="w-6 h-6" /> Export </button>
               </div>
            ) : previewUrl ? (
               <div className="animate-in fade-in zoom-in-95 duration-700">

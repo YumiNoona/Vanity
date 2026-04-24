@@ -147,8 +147,7 @@ export function AudioNormalizer() {
                       onClick={handleDownload}
                       className="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
                     >
-                      <Download className="w-5 h-5" /> Download Normalized Audio
-                    </button>
+                      <Download className="w-5 h-5" /> Export </button>
                   ) : (
                     <button 
                       onClick={processAudio}
@@ -160,9 +159,9 @@ export function AudioNormalizer() {
                </div>
             </div>
 
-            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
-               <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-               <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4">
+               <Info className="w-5 h-5 text-primary shrink-0" />
+               <p className="text-sm text-muted-foreground leading-relaxed">
                  Vanity uses the FFmpeg <code>loudnorm</code> filter which is a sophisticated dual-pass capable algorithm (operating here in integrated single-pass mode) to achieve target loudness without clipping.
                </p>
             </div>

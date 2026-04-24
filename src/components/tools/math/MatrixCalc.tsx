@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Calculator, ArrowRightLeft, Plus, X, RotateCcw, Info } from "lucide-react"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { cn } from "@/lib/utils"
 
 type Matrix = number[][]
@@ -74,40 +75,28 @@ export function MatrixCalc() {
       <div className="space-y-8">
         <div className="flex flex-wrap gap-4 items-center justify-between glass-panel p-4 rounded-2xl border-white/5 bg-black/20">
            <div className="flex items-center gap-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Matrix Size</label>
-              <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
-                 {[2, 3, 4, 5].map(s => (
-                   <button
-                     key={s}
-                     onClick={() => setSize(s)}
-                     className={cn(
-                       "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                       size === s ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-white"
-                     )}
-                   >{s}x{s}</button>
-                 ))}
-              </div>
+              <PillToggle
+                activeId={size.toString()}
+                onChange={(id) => setSize(parseInt(id))}
+                options={[
+                  { id: "2", label: "2x2" },
+                  { id: "3", label: "3x3" },
+                  { id: "4", label: "4x4" },
+                  { id: "5", label: "5x5" },
+                ]}
+              />
            </div>
            
-           <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
-              {[
+           <PillToggle
+              activeId={operation}
+              onChange={(id) => setOperation(id as any)}
+              options={[
                 { id: "add", icon: Plus, label: "Add" },
                 { id: "multiply", icon: X, label: "Multiply" },
                 { id: "det", icon: Calculator, label: "Det" },
                 { id: "transpose", icon: RotateCcw, label: "Trans" },
-              ].map(op => (
-                <button
-                  key={op.id}
-                  onClick={() => setOperation(op.id as any)}
-                  className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
-                    operation === op.id ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-white"
-                  )}
-                >
-                  <op.icon className="w-3.5 h-3.5" /> {op.label}
-                </button>
-              ))}
-           </div>
+              ]}
+           />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -167,14 +156,18 @@ export function MatrixCalc() {
                     {result === null ? (
                       <p className="text-xs text-muted-foreground italic">Fill matrices and calculate...</p>
                     ) : typeof result === "number" ? (
-                      <div className="text-center">
+                      <div className="text-center w-full px-2">
                          <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Determinant</p>
-                         <p className="text-5xl font-black font-syne text-white">{result.toLocaleString()}</p>
+                         <p className="text-4xl md:text-5xl font-black text-white break-all">{result.toLocaleString()}</p>
                       </div>
                     ) : (
-                      <div className="grid gap-3 w-full" style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}>
+                      <div className="grid gap-1.5 md:gap-2 w-full" style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}>
                          {result.map((row, r) => row.map((val, c) => (
-                           <div key={`${r}-${c}`} className="bg-primary/10 border border-primary/20 rounded-xl p-3 text-center font-mono text-sm font-bold text-primary">
+                           <div 
+                             key={`${r}-${c}`} 
+                             className="bg-primary/10 border border-primary/20 rounded-lg md:rounded-xl p-1.5 md:p-2 text-center font-mono text-[10px] md:text-xs font-bold text-primary overflow-hidden text-ellipsis whitespace-nowrap"
+                             title={val.toLocaleString()}
+                           >
                              {val.toLocaleString()}
                            </div>
                          )))}
@@ -185,9 +178,9 @@ export function MatrixCalc() {
            </div>
         </div>
 
-        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
-           <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-           <p className="text-[10px] text-muted-foreground leading-relaxed">
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4">
+           <Info className="w-5 h-5 text-primary shrink-0" />
+           <p className="text-sm text-muted-foreground leading-relaxed">
              This tool uses standard matrix algorithms for addition, multiplication, and transposition. Determinants are calculated using cofactor expansion (Laplace expansion), which is efficient for matrices up to 5x5.
            </p>
         </div>

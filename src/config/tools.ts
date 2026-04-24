@@ -30,10 +30,10 @@ export interface Tool {
 }
 
 export const IMAGE_TOOLS: Tool[] = [
-  { id: "format-converter", title: "Image Converter", description: "Convert between WEBP, PNG, JPG, GIF, PDF, SVG, HEIC, ICO, TIFF, BMP, TGA, AVIF, and EPS.", icon: ArrowLeftRight, path: "/tools/image/convert", isBulk: true, isPopular: true, keywords: ["heic", "svg", "pdf", "favicon", "ico", "avif", "webp", "tiff"] },
+  { id: "format-converter", title: "Image Converter", description: "Convert between WEBP, PNG, JPG, GIF, PDF, SVG, HEIC, ICO, TIFF, BMP, TGA, AVIF, and EPS.", icon: ArrowLeftRight, path: "/tools/image/convert", isPopular: true, keywords: ["heic", "svg", "pdf", "favicon", "ico", "avif", "webp", "tiff"] },
   { id: "remove-bg", title: "Remove Background", description: "AI-powered background removal running locally in your browser.", icon: Image, path: "/tools/image/remove-bg", isPopular: true, keywords: ["bg", "transparent", "cutout"] },
   { id: "upscale", title: "Image Upscaler", description: "Enhance resolution by 2x or 4x using actual AI super-resolution.", icon: Maximize2, path: "/tools/image/upscale", isPopular: true, keywords: ["enlarge", "resolution", "4k"] },
-  { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", isBulk: true, isPopular: true, keywords: ["shrink", "size", "kb"] },
+  { id: "image-compressor", title: "Image Compressor", description: "Compress images rapidly without losing quality.", icon: Minimize2, path: "/tools/image/compress", isPopular: true, keywords: ["shrink", "size", "kb"] },
   { id: "crop-resize", title: "Crop & Resize", description: "Easily crop and resize free-hand or to specific dimensions.", icon: Crop, path: "/tools/image/crop", isPopular: true },
   { id: "watermark-studio", title: "Watermark Studio", description: "Comprehensive tool to add protection or remove unwanted watermarks.", icon: Stamp, path: "/tools/image/watermark-studio", keywords: ["watermark", "remove", "add", "copyright"] },
   { id: "code-generator", title: "Code Generator", description: "Generate high-res QR codes and standard barcodes for any data.", icon: QrCode, path: "/tools/image/code-generator", keywords: ["qr", "barcode", "link", "matrix"] },
@@ -43,20 +43,20 @@ export const IMAGE_TOOLS: Tool[] = [
 
   { id: "gif-maker", title: "GIF Maker", description: "Combine images into a perfectly timed animated GIF.", icon: Images, path: "/tools/image/gif-maker", keywords: ["animation", "loop", "frames"] },
   { id: "pixel-art", title: "Pixel Art Converter", description: "Downscale any image into chunky retro pixel art.", icon: Binary, path: "/tools/image/pixel-art", keywords: ["retro", "8bit", "game"] },
-  { id: "duotone", title: "Duotone Tint", description: "Map image shadows and highlights to two custom colors.", icon: Contrast, path: "/tools/image/duotone" },
   { id: "noise-grain", title: "Noise & Grain", description: "Add film grain, noise, or vintage textures to any photo.", icon: Sparkles, path: "/tools/image/noise", keywords: ["texture", "film", "retro"] },
   { id: "image-to-sketch", title: "Image to Sketch", description: "Turn any photo into a pencil-sketch style illustration.", icon: Pencil, path: "/tools/image/sketch", keywords: ["draw", "pencil", "art"] },
-  { id: "sprite-slicer", title: "Sprite Sheet Slicer", description: "Cut a sprite grid into individual files in a zip.", icon: Grid, path: "/tools/image/sprite-slicer", isBulk: true },
+  { id: "sprite-slicer", title: "Sprite Sheet Slicer", description: "Cut a sprite grid into individual files in a zip.", icon: Grid, path: "/tools/image/sprite-slicer" },
   { id: "before-after", title: "Before & After Slider", description: "Create an interactive slider to compare two images side-by-side.", icon: SplitSquareHorizontal, path: "/tools/image/slider" },
   { id: "palette", title: "Color Palette", description: "Extract design palettes from any photograph.", icon: Pipette, path: "/tools/image/palette" },
   { id: "censor", title: "Smart Censor", description: "Pixelate sensitive information and faces.", icon: ShieldAlert, path: "/tools/image/censor" },
-  { id: "image-privacy", title: "Image Privacy", description: "Sanitize EXIF metadata and strip ICC color profiles for maximum security.", icon: ShieldCheck, path: "/tools/image/privacy", isBulk: true, keywords: ["metadata", "privacy", "gps", "icc", "srgb"] },
+  { id: "image-privacy", title: "Image Privacy", description: "Sanitize EXIF metadata and strip ICC color profiles for maximum security.", icon: ShieldCheck, path: "/tools/image/privacy", keywords: ["metadata", "privacy", "gps", "icc", "srgb", "viewer", "read", "exif"] },
   { id: "ascii", title: "ASCII Art Converter", description: "Turn any image into a text-based ASCII rendering.", icon: Type, path: "/tools/image/ascii" },
   { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
   { id: "image-diff", title: "Image Difference tool", description: "Compute exact pixel deviations via XOR overlays.", icon: Microscope, path: "/tools/image/diff", keywords: ["compare", "xor", "overlay"] },
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
   { id: "collage-maker", title: "Collage Maker", description: "Arrange multiple images into grids or masonry layouts.", icon: Layout, path: "/tools/image/collage", keywords: ["grid", "masonry", "layout"] },
 ]
+
 
 export const PDF_TOOLS: Tool[] = [
   { id: "merge-pdf", title: "Merge PDFs", description: "Combine multiple PDFs into a single file easily.", icon: Layers, path: "/tools/pdf/merge", isPopular: true, keywords: ["combine", "join", "add"] },

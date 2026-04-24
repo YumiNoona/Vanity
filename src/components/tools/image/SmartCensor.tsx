@@ -1,31 +1,20 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, ShieldAlert, Square, Circle } from "lucide-react"
+import { Download, ArrowLeft, Loader2, ShieldAlert, Square, Circle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { usePremium } from "@/hooks/usePremium"
+import { usePremium } from "../../../hooks/usePremium"
 import { toast } from "sonner"
-import { useImageProcessor } from "@/hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { useImageProcessor } from "../../../hooks/useImageProcessor"
+import { useObjectUrl } from "../../../hooks/useObjectUrl"
+import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
 
 export function SmartCensor() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
 
-  useEffect(() => {
-    return () => {
-      if (sourceImage instanceof ImageBitmap) {
-        sourceImage.close()
-      }
-    }
-  }, [sourceImage])
-
-  useEffect(() => {
-    return () => {
-      clearCurrent()
-    }
-  }, [clearCurrent])
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [rects, setRects] = useState<{x: number, y: number, w: number, h: number}[]>([])
@@ -36,6 +25,7 @@ export function SmartCensor() {
     if (!uploadedFile || !validateFiles([uploadedFile])) return
     
     setFile(uploadedFile)
+    setPreviewUrl(uploadedFile)
     const result = await processImage(uploadedFile)
     if (!result) return
 
@@ -56,26 +46,44 @@ export function SmartCensor() {
     
     const ctx = await drawToCanvas(sourceImage, canvas, { clear: true })
     
-    // Draw blurred rects
+    // Draw censored rects
     rects.forEach(r => censorArea(ctx, r))
     if (currentRect) censorArea(ctx, currentRect)
   }
 
   const censorArea = (ctx: CanvasRenderingContext2D, r: {x: number, y: number, w: number, h: number}) => {
-    // Pixelation effect
-    const size = 10
-    const w = r.w, h = r.h
-    for (let y = r.y; y < r.y + h; y += size) {
-      for (let x = r.x; x < r.x + w; x += size) {
-        const pixel = ctx.getImageData(x, y, 1, 1).data
-        ctx.fillStyle = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`
-        ctx.fillRect(x, y, size, size)
+    if (r.w === 0 || r.h === 0) return
+    
+    const pixelSize = 12
+    const x = Math.min(r.x, r.x + r.w)
+    const y = Math.min(r.y, r.y + r.h)
+    const w = Math.abs(r.w)
+    const h = Math.abs(r.h)
+
+    // Optimization: Get image data for the WHOLE rectangle at once
+    try {
+      const imageData = ctx.getImageData(x, y, w, h)
+      const data = imageData.data
+
+      for (let py = 0; py < h; py += pixelSize) {
+        for (let px = 0; px < w; px += pixelSize) {
+          const i = (py * w + px) * 4
+          const r = data[i]
+          const g = data[i + 1]
+          const b = data[i + 2]
+          
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
+          ctx.fillRect(x + px, y + py, pixelSize, pixelSize)
+        }
       }
+    } catch (e) {
+      // Handle edge cases where rect is outside canvas
     }
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    const canvas = canvasRef.current!
+    const canvas = canvasRef.current
+    if (!canvas) return
     const rect = canvas.getBoundingClientRect()
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
@@ -107,10 +115,10 @@ export function SmartCensor() {
   }
 
   const handleMouseUp = () => {
-    if (currentRect) {
+    if (currentRect && Math.abs(currentRect.w) > 5 && Math.abs(currentRect.h) > 5) {
       setRects([...rects, currentRect])
-      setCurrentRect(null)
     }
+    setCurrentRect(null)
     setIsDrawing(false)
   }
 
@@ -121,7 +129,7 @@ export function SmartCensor() {
     try {
       const blob = await exportCanvas(canvas, file?.type || 'image/png', 1.0)
       downloadBlob(blob, `vanity-censored-${file?.name || 'image.png'}`)
-      toast.success("Censored image saved!")
+      toast.success("Safe image exported!")
     } catch (error) {
       toast.error("Failed to export image")
     }
@@ -130,6 +138,7 @@ export function SmartCensor() {
   const handleBack = () => {
     setFile(null)
     clearCurrent()
+    clearPreviewUrl()
     setRects([])
   }
 
@@ -142,33 +151,65 @@ export function SmartCensor() {
   }
 
   return (
-    <ToolLayout
-      title="Smart Censor"
-      description="Drag to draw pixelated boxes over sensitive info."
-      icon={ShieldAlert}
-      onBack={handleBack}
-      backLabel="Start Over"
-      maxWidth="max-w-6xl"
-    >
-      <div className="flex gap-4 mb-6">
-        <button onClick={() => setRects([])} className="text-sm font-medium text-muted-foreground hover:text-foreground">Reset All</button>
-      </div>
+    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} onBack={handleBack} maxWidth="max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
+        <div className="lg:col-span-9">
+          <div className="glass-panel p-2 rounded-2xl flex items-center justify-center bg-black/40 shadow-inner overflow-hidden relative group border border-white/5">
+             <canvas 
+               ref={canvasRef} 
+               className="max-w-full max-h-[75vh] cursor-crosshair rounded cursor-cell shadow-2xl"
+               onMouseDown={handleMouseDown}
+               onMouseMove={handleMouseMove}
+               onMouseUp={handleMouseUp}
+             />
+             {!sourceImage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                   <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                </div>
+             )}
+          </div>
+        </div>
 
-      <div className="glass-panel p-4 rounded-2xl flex flex-col items-center bg-black/50">
-          <canvas 
-            ref={canvasRef} 
-            className="max-w-full max-h-[70vh] cursor-crosshair rounded cursor-cell"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          />
-          
-          <button 
-            onClick={handleDownload}
-            className="mt-8 px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-lg hover:scale-105 transition-all flex items-center gap-2"
-          >
-            <Download className="w-5 h-5" /> Export Safe Image
-          </button>
+        <div className="lg:col-span-3 space-y-6">
+           <div className="glass-panel p-6 rounded-2xl space-y-8 border border-white/5">
+              <div className="space-y-4">
+                 <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Controls</h3>
+                 <div className="space-y-3">
+                    <button 
+                      onClick={() => setRects([])} 
+                      disabled={rects.length === 0}
+                      className="w-full py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5 disabled:opacity-20"
+                    >
+                       Reset All ({rects.length})
+                    </button>
+                    <button 
+                      onClick={() => setRects(prev => prev.slice(0, -1))} 
+                      disabled={rects.length === 0}
+                      className="w-full py-3 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl transition-all border border-white/5 disabled:opacity-20"
+                    >
+                       Undo Last
+                    </button>
+                 </div>
+              </div>
+
+              <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-3">
+                 <div className="flex items-center gap-2 text-primary">
+                    <Info className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">How to use</span>
+                 </div>
+                 <p className="text-[10px] text-muted-foreground leading-relaxed uppercase">
+                   Click and drag directly on the image to draw pixelated rectangles over faces, text, or sensitive data.
+                 </p>
+              </div>
+
+              <button 
+                onClick={handleDownload}
+                disabled={isProcessing || !sourceImage}
+                className="w-full py-5 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                <Download className="w-5 h-5" /> Export </button>
+           </div>
+        </div>
       </div>
     </ToolLayout>
   )

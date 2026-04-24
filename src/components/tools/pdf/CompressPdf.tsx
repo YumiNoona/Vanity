@@ -294,8 +294,7 @@ export function CompressPdf() {
                   }}
                   className="px-10 py-5 text-xl font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_40px_rgba(252,211,77,0.4)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105 active:scale-95"
                 >
-                  <Download className="w-6 h-6" /> Download Optimized PDF
-                </button>
+                  <Download className="w-6 h-6" /> Export </button>
               </div>
             )}
 

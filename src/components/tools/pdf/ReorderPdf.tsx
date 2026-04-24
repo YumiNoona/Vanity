@@ -160,7 +160,7 @@ export function ReorderPdf() {
             onClick={handleDownload}
             className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
           >
-            <Download className="w-5 h-5" /> Download Result
+            <Download className="w-5 h-5" /> Export
           </button>
         )}
       </div>

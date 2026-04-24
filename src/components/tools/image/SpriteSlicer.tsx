@@ -254,7 +254,7 @@ export function SpriteSlicer() {
                       download={`vanity-spritesheet-${Date.now()}.zip`}
                       className="w-full py-4 bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center justify-center gap-3"
                     >
-                      <Download className="w-5 h-5" /> Download ZIP Archive
+                      <Download className="w-5 h-5" /> Export Archive
                     </a>
                     <button 
                       onClick={exportZip}

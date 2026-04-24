@@ -171,8 +171,7 @@ export function CsvJsonConverter() {
                 disabled={!output || output.startsWith("Error")}
                 className="px-4 py-2 bg-green-500 text-white text-xs font-bold rounded-lg flex items-center gap-2 hover:bg-green-600 disabled:opacity-30 transition-all font-syne"
                 >
-                <Download className="w-3 h-3" /> Download
-                </button>
+                <Download className="w-3 h-3" /> Export</button>
             </div>
           </div>
           <textarea 

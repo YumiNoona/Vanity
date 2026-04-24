@@ -1,146 +1,150 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
+import { motion } from "framer-motion"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, ShieldCheck, Info, FileArchive } from "lucide-react"
+import { Download, ArrowLeft, Loader2, ShieldCheck, Info, FileArchive, RefreshCw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { usePremium } from "@/hooks/usePremium"
-import { useImageProcessor } from "@/hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { usePremium } from "../../../hooks/usePremium"
+import { useImageProcessor } from "../../../hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
 import { toast } from "sonner"
-import { ModeToggle } from "@/components/shared/ModeToggle"
-import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
-import type { QueueItem } from "@/types/bulk"
-import JSZip from "jszip"
+import { PillToggle } from "@/components/shared/PillToggle"
+import { cn } from "../../../lib/utils"
+
+import * as ExifReader from "../../../lib/exif-reader"
+
+interface ExifTag {
+  value: any
+  description: string
+}
+
+interface ExifGroup {
+  [key: string]: ExifTag
+}
+
+interface ExifReport {
+  [group: string]: ExifGroup
+}
 
 export function ExifSanitizer() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
-  const { isProcessing, processImage } = useImageProcessor()
+  const { isProcessing, processImage, clearCurrent } = useImageProcessor()
   const [resultBlob, setResultBlob] = useState<Blob | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Bulk State
-  const [processMode, setProcessMode] = useState<'single' | 'batch'>('single')
-  const [queue, setQueue] = useState<QueueItem[]>([])
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+  // State
+  const [processMode, setProcessMode] = useState<'view' | 'remove'>('view')
+  const [exifReport, setExifReport] = useState<ExifReport | null>(null)
 
-  const runSanitize = async (inputFile: File): Promise<Blob> => {
+  const runSanitize = useCallback(async (inputFile: File): Promise<Blob> => {
     const result = await processImage(inputFile)
     if (!result) throw new Error("Failed to load image")
 
     try {
       const canvas = document.createElement("canvas")
       await drawToCanvas(result.source, canvas, { clear: true })
-      const blob = await exportCanvas(canvas, inputFile.type, 1.0)
+      
+      const blob = await exportCanvas(canvas, "image/jpeg", 0.95)
       result.cleanup()
       return blob
     } catch (err) {
       result.cleanup()
+      console.error("Sanitize error:", err)
       throw err
     }
-  }
+  }, [processImage])
 
-  const handleProcess = async (files: File[]) => {
+  const handleProcess = useCallback(async (files: File[]) => {
     if (files.length === 0) return
     if (!validateFiles(files)) return
+    setError(null)
+    console.log(`[ExifSanitizer] Processing ${files.length} files in ${processMode} mode`);
 
-    if (processMode === 'single') {
+    if (processMode === 'view') {
+      const uploadedFile = files[0]
+      setFile(uploadedFile)
+      
+      try {
+        const tags = await ExifReader.load(uploadedFile)
+        const groups: ExifReport = {}
+        
+        Object.entries(tags).forEach(([name, tag]: [string, any]) => {
+          let groupName = "Other"
+          
+          if (name.startsWith("exif")) groupName = "EXIF"
+          else if (name.startsWith("xmp")) groupName = "XMP"
+          else if (name.startsWith("iptc")) groupName = "IPTC"
+          else if (name.startsWith("icc")) groupName = "ICC_Profile"
+          else if (name.startsWith("photoshop")) groupName = "Photoshop"
+          else if (["Image Width", "Image Height", "FileType", "MIMEType"].includes(name)) groupName = "File"
+          else if (name.startsWith("gps")) groupName = "GPS"
+
+          if (!groups[groupName]) groups[groupName] = {}
+          groups[groupName][name] = {
+            value: tag.value,
+            description: tag.description
+          }
+        })
+
+        setExifReport(groups)
+        if (Object.keys(groups).length === 0) toast.error("No metadata found")
+      } catch (err) {
+        console.error("ExifReader error:", err)
+        toast.error("Could not parse image metadata")
+      }
+      return
+    }
+
+
+    if (processMode === 'remove') {
       const uploadedFile = files[0]
       setFile(uploadedFile)
       
       try {
         const blob = await runSanitize(uploadedFile)
         setResultBlob(blob)
-        toast.success("Metadata sanitized successfully!")
+        toast.success("Metadata sanitized!")
       } catch (error) {
-        toast.error("Failed to sanitize metadata")
-      }
-    } else {
-      const newItems: QueueItem[] = files.map(f => ({
-        id: Math.random().toString(36).substr(2, 9),
-        file: f,
-        status: 'pending',
-        originalSize: f.size
-      }))
-      setQueue(prev => [...prev, ...newItems])
-    }
-  }
-
-  const processBatch = async () => {
-    if (isBatchProcessing || queue.filter(i => i.status === 'pending').length === 0) return
-    
-    setIsBatchProcessing(true)
-    const pendingItems = queue.filter(i => i.status === 'pending')
-
-    for (const item of pendingItems) {
-      setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'processing' } : q))
-      
-      try {
-        const result = await runSanitize(item.file)
-        setQueue(prev => prev.map(q => q.id === item.id ? { 
-          ...q, 
-          status: 'done', 
-          resultBlob: result, 
-          resultSize: result.size 
-        } : q))
-      } catch (err) {
-        setQueue(prev => prev.map(q => q.id === item.id ? { 
-          ...q, 
-          status: 'failed', 
-          errorMessage: "Failed to sanitize" 
-        } : q))
+        console.error("[ExifSanitizer] Single process error:", error)
+        setError("Failed to sanitize metadata. The image might be too large or corrupted.")
       }
     }
-    
-    setIsBatchProcessing(false)
-    toast.success("Batch sanitization complete!")
-  }
-
-  useEffect(() => {
-    if (processMode === 'batch' && !isBatchProcessing && queue.some(i => i.status === 'pending')) {
-      processBatch()
-    }
-  }, [queue, processMode, isBatchProcessing])
-
-  const handleDownloadZip = async () => {
-    const doneItems = queue.filter(i => i.status === 'done' && i.resultBlob)
-    if (doneItems.length === 0) return
-
-    const zip = new JSZip()
-    doneItems.forEach(item => {
-      zip.file(`sanitized-${item.file.name}`, item.resultBlob!)
-    })
-
-    const content = await zip.generateAsync({ type: "blob" })
-    downloadBlob(content, `vanity-sanitized-batch-${Date.now()}.zip`)
-    toast.success(`Downloaded ${doneItems.length} sanitized images`)
-  }
+  }, [processMode, validateFiles, runSanitize])
 
   const handleDownload = () => {
     if (!resultBlob) return
-    downloadBlob(resultBlob, `vanity-sanitized-${file?.name}`)
+    downloadBlob(resultBlob, `sanitized-${file?.name || 'image.jpg'}`)
   }
 
   const handleBack = () => {
     setFile(null)
-    setQueue([])
     setResultBlob(null)
+    setError(null)
+    setExifData(null)
+    clearCurrent()
   }
 
-  // Landing state
-  if (!file && !(processMode === 'batch' && queue.length > 0)) {
+  if (!file) {
     return (
-      <ToolUploadLayout title="EXIF Sanitizer" description="Protect your privacy by removing hidden GPS and device metadata from photos." icon={ShieldCheck}>
-        <ModeToggle id="exif" mode={processMode} onChange={(m) => {
-          setProcessMode(m)
-          setFile(null)
-          setQueue([])
-          setResultBlob(null)
-        }} />
+      <ToolUploadLayout title="Image Privacy" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck}>
+        <div className="flex justify-center mb-10">
+           <PillToggle 
+             activeId={processMode}
+             onChange={(mode) => { setProcessMode(mode); handleBack(); }}
+             options={[
+               { id: 'view', label: 'View Data' },
+               { id: 'remove', label: 'Remove Data' }
+             ]}
+           />
+        </div>
 
         <DropZone 
           onDrop={handleProcess} 
           accept={{ "image/*": [] }} 
-          multiple={processMode === 'batch'}
-          label={processMode === 'batch' ? "Drop multiple images to sanitize" : "Drop image to sanitize"}
+          label={
+            processMode === 'view' ? "Drop image to read metadata" :
+            "Drop image to sanitize"
+          }
         />
       </ToolUploadLayout>
     )
@@ -148,79 +152,133 @@ export function ExifSanitizer() {
 
   return (
     <ToolLayout
-      title={processMode === 'batch' ? "Batch Sanitize" : "Privacy Shield"}
-      description={processMode === 'batch' ? `${queue.length} images queued` : `Target: ${file?.name}`}
+      title={processMode === 'remove' ? "Privacy Shield" : "Metadata Viewer"}
+      description={`Target: ${file?.name}`}
       icon={ShieldCheck}
       onBack={handleBack}
-      backLabel="Start Over"
       maxWidth="max-w-6xl"
     >
-      {processMode === 'batch' ? (
-        <div className="space-y-8">
-          <ProcessingQueue 
-            items={queue} 
-            onRemove={(id) => setQueue(prev => prev.filter(i => i.id !== id))}
-            disabled={isBatchProcessing}
-          />
-          
-          <div className="flex justify-center gap-4">
-             <button 
-               onClick={handleDownloadZip}
-               disabled={queue.filter(i => i.status === 'done').length === 0}
-               className="px-8 py-4 text-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600 rounded-full shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-3 hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
-             >
-               <FileArchive className="w-6 h-6" /> 
-               Download ZIP ({queue.filter(i => i.status === 'done').length})
-             </button>
-             <div className="relative overflow-hidden inline-flex items-center justify-center">
-                <input 
-                   type="file" multiple accept="image/*" 
-                   onChange={(e) => e.target.files && handleProcess(Array.from(e.target.files))}
-                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
-                <button className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 rounded-full transition-all flex items-center gap-3">
-                   Add More Files
-                </button>
-             </div>
-          </div>
+      {processMode === 'view' ? (
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="glass-panel p-8 rounded-3xl border-white/5 space-y-8 bg-white/[0.02]">
+              <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                 <div>
+                    <h3 className="text-xl font-black uppercase tracking-tight">Metadata Report</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Found {Object.keys(exifReport || {}).length} data segments</p>
+                 </div>
+                 <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                    Read Only
+                 </div>
+              </div>
+
+              {!exifReport || Object.keys(exifReport).length === 0 ? (
+                 <div className="py-20 text-center space-y-4">
+                    <Info className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest">No metadata tags detected in this file.</p>
+                 </div>
+              ) : (
+                 <div className="space-y-10">
+                    {/* Prioritize certain groups */}
+                    {["File", "GPS", "EXIF", "IPTC", "XMP", "Photoshop", "ICC_Profile", "Other"].map(groupName => {
+                       const group = exifReport[groupName];
+                       if (!group || Object.keys(group).length === 0) return null;
+                       
+                       return (
+                          <div key={groupName} className="space-y-4">
+                             <div className="flex items-center gap-3 px-2">
+                                <div className="h-px flex-1 bg-white/5" />
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">{groupName}</h4>
+                                <div className="h-px flex-1 bg-white/5" />
+                             </div>
+                             
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {Object.entries(group).map(([name, tag], idx) => (
+                                   <div key={idx} className="flex flex-col p-4 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors group">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary/60 transition-colors">{name}</span>
+                                      <span className="text-sm font-bold font-mono break-words leading-relaxed">{tag.description || String(tag.value)}</span>
+                                   </div>
+                                ))}
+                             </div>
+                          </div>
+                       );
+                    })}
+                 </div>
+              )}
+
+              <button 
+                onClick={() => { setProcessMode('remove'); handleProcess([file!]) }}
+                className="w-full py-5 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest rounded-2xl transition-all border border-white/5 flex items-center justify-center gap-3"
+              >
+                <ShieldCheck className="w-5 h-5" /> Sanitize Now
+              </button>
+           </div>
+
+           <div className="glass-panel p-6 rounded-2xl border border-white/5 flex gap-5 bg-white/[0.01]">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                 <Info className="w-5 h-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                 <h4 className="text-[10px] font-black uppercase tracking-widest">About this data</h4>
+                 <p className="text-[10px] text-muted-foreground leading-relaxed uppercase">
+                   This information is extracted locally in your browser. It reveals technical details that are often used to track your location or identify your hardware.
+                 </p>
+              </div>
+           </div>
         </div>
       ) : (
-        <div className="space-y-8">
-          <div className="glass-panel p-12 rounded-xl flex flex-col items-center justify-center min-h-[400px]">
+
+        <div className="space-y-8 max-w-2xl mx-auto">
+          <div className="glass-panel p-12 rounded-3xl flex flex-col items-center justify-center min-h-[450px] bg-white/[0.02] border-white/5 relative overflow-hidden">
             {isProcessing ? (
-              <div className="flex flex-col items-center animate-in fade-in">
-                 <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                 <p className="text-lg font-syne font-bold">Removing Metadata...</p>
+              <div className="flex flex-col items-center text-center space-y-6">
+                 <div className="relative">
+                    <div className="absolute inset-0 blur-2xl bg-primary/20 rounded-full animate-pulse" />
+                    <RefreshCw className="w-16 h-16 text-primary animate-spin relative" />
+                 </div>
+                 <h2 className="text-xl font-black uppercase tracking-widest">Stripping Metadata...</h2>
+                 <p className="text-[10px] text-muted-foreground uppercase max-w-[200px]">Rebuilding image pixels to ensure 100% privacy.</p>
+              </div>
+            ) : error ? (
+              <div className="text-center space-y-6">
+                 <div className="p-8 bg-red-500/10 rounded-full inline-block text-red-500">
+                    <ShieldCheck className="w-16 h-16 opacity-50" />
+                 </div>
+                 <h2 className="text-xl font-black uppercase tracking-widest text-red-500">Sanitization Failed</h2>
+                 <p className="text-xs text-muted-foreground max-w-xs mx-auto uppercase">{error}</p>
+                 <button onClick={handleBack} className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline">Try another image</button>
               </div>
             ) : (
-              <div className="text-center space-y-8 animate-in zoom-in-95">
-                 <div className="p-8 bg-primary/10 rounded-full inline-block text-primary">
-                    <ShieldCheck className="w-16 h-16" />
+              <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
+                 <div className="relative inline-block">
+                    <div className="absolute inset-0 blur-3xl bg-emerald-500/20 rounded-full" />
+                    <div className="p-10 bg-emerald-500/10 rounded-full relative text-emerald-500 border border-emerald-500/20">
+                       <ShieldCheck className="w-20 h-20" />
+                    </div>
                  </div>
                  <div>
-                   <h2 className="text-2xl font-bold font-syne mb-2">Image Sanitized!</h2>
-                   <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                     All GPS location data, camera settings, and unique device IDs have been stripped. Your image is now safe to share.
-                   </p>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 italic">Image Purified</h2>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest max-w-xs mx-auto leading-relaxed">
+                       All GPS coordinates, device fingerprints, and hidden headers have been permanently deleted.
+                    </p>
                  </div>
                  
                  <button 
                    onClick={handleDownload}
-                   className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-lg hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto"
+                   className="px-14 py-6 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-2xl shadow-2xl shadow-primary/30 hover:scale-[1.05] active:scale-95 transition-all flex items-center justify-center gap-4 mx-auto"
                  >
-                   <Download className="w-5 h-5" /> Download Safe Image
-                 </button>
+                   <Download className="w-6 h-6" /> Export </button>
               </div>
             )}
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex gap-4">
-             <Info className="w-5 h-5 text-primary shrink-0 mt-1" />
+          <div className="glass-panel p-6 rounded-2xl border border-white/5 flex gap-5 bg-white/[0.01]">
+             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                <Info className="w-5 h-5 text-primary" />
+             </div>
              <div className="space-y-1">
-                <h4 className="text-sm font-bold">Why sanitize?</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Most smartphones embed your exact location (latitude/longitude) into every photo you take. 
-                  Vanity creates a fresh pixel-for-pixel copy of your image while leaving the metadata behind.
+                <h4 className="text-[10px] font-black uppercase tracking-widest">Privacy Protocol</h4>
+                <p className="text-[10px] text-muted-foreground leading-relaxed uppercase">
+                  Vanity doesn't just "edit" tags. It performs a **Pixel Reconstruction**—reading the original pixels and writing them to a fresh container, making it mathematically impossible for any original metadata to remain.
                 </p>
              </div>
           </div>

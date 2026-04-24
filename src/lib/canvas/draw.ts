@@ -16,8 +16,8 @@ export const drawToCanvas = async (
   const ctx = canvas.getContext("2d", { alpha: !options.fillBackground });
   if (!ctx) throw new Error("Could not get 2D context");
 
-  const w = (source as HTMLImageElement).naturalWidth || (source as ImageBitmap).width || (source as any).width;
-  const h = (source as HTMLImageElement).naturalHeight || (source as ImageBitmap).height || (source as any).height;
+  const w = source instanceof HTMLImageElement ? source.naturalWidth : (source as ImageBitmap).width;
+  const h = source instanceof HTMLImageElement ? source.naturalHeight : (source as ImageBitmap).height;
   
   canvas.width = w;
   canvas.height = h;

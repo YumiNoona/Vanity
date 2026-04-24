@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react"
-import { ToolLayout } from "@/components/layout/ToolLayout"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
 import { Plus, Trash2, Download, RefreshCw, FileCode, Search, Save } from "lucide-react"
 import { toast } from "sonner"
@@ -79,6 +79,18 @@ export function EnvEditor() {
          r.comment?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  if (rows.length === 0) {
+    return (
+      <ToolUploadLayout
+        title="ENV File Editor"
+        description="Securely edit environment variables locally in your browser."
+        icon={FileCode}
+      >
+        <DropZone onDrop={handleDrop} accept={{ "text/plain": [".env"] }} label="Drop your .env file here" />
+      </ToolUploadLayout>
+    )
+  }
+
   return (
     <ToolLayout
       title="ENV File Editor"
@@ -86,9 +98,6 @@ export function EnvEditor() {
       icon={FileCode}
     >
       <div className="space-y-6">
-        {rows.length === 0 ? (
-          <DropZone onDrop={handleDrop} accept={{ "text/plain": [".env"] }} label="Drop your .env file here" />
-        ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass-panel p-4 rounded-2xl border-white/5 bg-black/20">
               <div className="relative w-full md:w-64">
@@ -179,11 +188,9 @@ export function EnvEditor() {
               onClick={downloadFile}
               className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
-              <Download className="w-5 h-5" />
-              Download {fileName}
+              <Download className="w-5 h-5" /> Export{fileName}
             </button>
           </div>
-        )}
       </div>
     </ToolLayout>
   )

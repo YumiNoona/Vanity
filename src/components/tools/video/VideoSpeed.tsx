@@ -160,8 +160,7 @@ export function VideoSpeed() {
                       onClick={handleDownload}
                       className="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
                     >
-                      <Download className="w-5 h-5" /> Download Modified Video
-                    </button>
+                      <Download className="w-5 h-5" /> Export </button>
                   ) : (
                     <button 
                       onClick={processVideo}
@@ -173,9 +172,9 @@ export function VideoSpeed() {
                </div>
             </div>
 
-            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
-               <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-               <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4">
+               <Info className="w-5 h-5 text-primary shrink-0" />
+               <p className="text-sm text-muted-foreground leading-relaxed">
                  Vanity uses the FFmpeg <code>atempo</code> and <code>setpts</code> filters to ensure audio pitch remains consistent while changing speed. All processing is 100% local and never leaves your browser.
                </p>
             </div>

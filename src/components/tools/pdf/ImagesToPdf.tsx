@@ -190,7 +190,7 @@ export function ImagesToPdf() {
               onClick={handleDownload}
               className="px-8 py-3 font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all flex items-center gap-2"
             >
-              <Download className="w-5 h-5" /> Download PDF
+              <Download className="w-5 h-5" /> Export
             </button>
           )}
         </div>

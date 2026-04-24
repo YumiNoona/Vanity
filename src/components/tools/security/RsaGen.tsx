@@ -133,9 +133,9 @@ export function RsaGen() {
           </div>
         )}
 
-        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4 mt-8">
-           <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-           <p className="text-[10px] text-muted-foreground leading-relaxed">
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4 mt-8">
+           <Info className="w-5 h-5 text-primary shrink-0" />
+           <p className="text-sm text-muted-foreground leading-relaxed">
              RSA Key Generation uses the native <code>SubtleCrypto</code> API. Your keys are generated entirely in your browser's secure context and are never sent to any server. 4096-bit keys are highly secure but may take a few seconds to generate.
            </p>
         </div>

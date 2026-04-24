@@ -211,7 +211,7 @@ export function ColorBlindness() {
               disabled={isProcessing || (!outputUrl && mode !== "original")}
               className="w-full py-4 mt-8 bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors disabled:opacity-50"
             >
-               <Download className="w-5 h-5" /> Download Render
+               <Download className="w-5 h-5" /> Export
             </button>
          </div>
       </div>

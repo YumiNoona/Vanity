@@ -3,7 +3,9 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, Sparkles, SlidersHorizontal, RefreshCw, ImageIcon } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { useObjectUrl } from "../../../hooks/useObjectUrl"
+import { useImageProcessor } from "../../../hooks/useImageProcessor"
+import { cn } from "../../../lib/utils"
 
 export function NoiseGrain() {
   const [file, setFile] = useState<File | null>(null)
@@ -11,21 +13,33 @@ export function NoiseGrain() {
   const [mono, setMono] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
+  const { processImage, clearCurrent } = useImageProcessor()
+  const jobIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => { isMountedRef.current = false }
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile) return
     setFile(uploadedFile)
+    setPreviewUrl(uploadedFile)
   }
 
   const applyNoise = useCallback(() => {
     if (!file || !canvasRef.current) return
+    const jobId = ++jobIdRef.current
     setIsProcessing(true)
 
     const localUrl = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => {
       URL.revokeObjectURL(localUrl)
+      if (jobId !== jobIdRef.current || !isMountedRef.current) return
+      
       const canvas = canvasRef.current!
       canvas.width = img.width
       canvas.height = img.height
@@ -53,7 +67,10 @@ export function NoiseGrain() {
       ctx.putImageData(imageData, 0, 0)
       setIsProcessing(false)
     }
-    img.onerror = () => URL.revokeObjectURL(localUrl)
+    img.onerror = () => {
+      URL.revokeObjectURL(localUrl)
+      if (jobId === jobIdRef.current) setIsProcessing(false)
+    }
     img.src = localUrl
   }, [file, intensity, mono])
 
@@ -73,6 +90,8 @@ export function NoiseGrain() {
 
   const handleBack = () => {
     setFile(null)
+    clearPreviewUrl()
+    clearCurrent()
   }
 
   if (!file) {
@@ -151,8 +170,7 @@ export function NoiseGrain() {
                 disabled={isProcessing}
                 className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
               >
-                <Download className="w-5 h-5" />
-                Export High-Res Texture
+                <Download className="w-5 h-5" /> Export-Res Texture
               </button>
            </div>
         </div>

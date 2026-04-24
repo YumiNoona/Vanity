@@ -143,9 +143,7 @@ export function PixelArt() {
                 disabled={isProcessing}
                 className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
               >
-                <Download className="w-5 h-5" />
-                Export Pixel Art
-              </button>
+                <Download className="w-5 h-5" /> Export </button>
            </div>
         </div>
       </div>

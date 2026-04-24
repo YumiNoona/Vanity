@@ -352,8 +352,7 @@ export function PdfExporter() {
                    disabled={!resultUrl || isProcessing}
                    className="w-full py-5 bg-accent text-accent-foreground font-bold rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
                  >
-                   <Download className="w-5 h-5" />
-                   Download {mode === "text" ? ".txt File" : mode === "word" ? ".docx File" : "ZIP Bundle"}
+                   <Download className="w-5 h-5" /> Export{mode === "text" ? ".txt File" : mode === "word" ? ".docx File" : "ZIP Bundle"}
                  </button>
                  
                  {(resultUrl || extractedText) && !isProcessing && (

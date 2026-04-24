@@ -1,19 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import React, { useState, useRef, useEffect } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeftRight, Loader2, FileArchive, Layers, ArrowLeft, Info, CheckCircle, ChevronRight } from "lucide-react"
+import { Download, ArrowLeftRight, Loader2, Layers, ArrowLeft, Info } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
-import { drawToCanvas, exportCanvas } from "@/lib/canvas"
 import { toast } from "sonner"
-import { ModeToggle } from "@/components/shared/ModeToggle"
-import { ProcessingQueue } from "@/components/shared/ProcessingQueue"
-import type { QueueItem } from "@/types/bulk"
 import { cn } from "@/lib/utils"
 import { downloadBlob, canvasSupportsMime } from "@/lib/canvas/export"
-// Removed static import for JSZip
 
 // Formats that use custom binary encoders (not canvas.toBlob) are always supported
 const CUSTOM_ENCODER_FORMATS = new Set(["pdf", "svg", "ico", "tga", "eps"])
@@ -44,18 +38,6 @@ export function FormatConverter() {
   const [isEncoding, setIsEncoding] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  // Bulk State
-  const [processMode, setProcessMode] = useState<'single' | 'batch'>('single')
-  const [queue, setQueue] = useState<QueueItem[]>([])
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false)
-
-  useEffect(() => {
-    if (targetFormat === "ico" && processMode === "batch") {
-      setProcessMode("single")
-      setQueue([])
-    }
-  }, [targetFormat, processMode])
 
   // Detect browser support for canvas-based export formats
   const [unsupportedFormats, setUnsupportedFormats] = useState<Set<string>>(new Set())
@@ -258,55 +240,24 @@ showpage
   const handleFiles = async (files: File[]) => {
     if (files.length === 0 || !validateFiles(files)) return
 
-    if (processMode === 'single') {
-      const uploadedFile = files[0]
-      setFile(uploadedFile)
-      clearResultUrl()
-      try {
-        setIsEncoding(true)
-        const blob = await runConversion(uploadedFile, targetFormat)
-        setResultUrl(blob)
-        toast.success(`Converted to ${targetFormat.toUpperCase()}!`)
-      } catch (error) {
-        console.error("Conversion error:", error)
-        toast.error("Conversion failed", {
-          description: error instanceof Error ? error.message : "Unknown error — check browser console for details."
-        })
-      } finally {
-        setIsEncoding(false)
-      }
-    } else {
-      const newItems: QueueItem[] = files.map(f => ({
-        id: Math.random().toString(36).substr(2, 9),
-        file: f,
-        status: 'pending',
-        originalSize: f.size
-      }))
-      setQueue(prev => [...prev, ...newItems])
+    const uploadedFile = files[0]
+    setFile(uploadedFile)
+    clearResultUrl()
+    try {
+      setIsEncoding(true)
+      const blob = await runConversion(uploadedFile, targetFormat)
+      setResultUrl(blob)
+      toast.success(`Converted to ${targetFormat.toUpperCase()}!`)
+    } catch (error) {
+      console.error("Conversion error:", error)
+      toast.error("Conversion failed", {
+        description: error instanceof Error ? error.message : "Unknown error — check browser console for details."
+      })
+    } finally {
+      setIsEncoding(false)
     }
   }
 
-  const processBatch = useCallback(async () => {
-    if (isBatchProcessing) return
-    setIsBatchProcessing(true)
-    const pending = queue.filter(i => i.status === 'pending')
-    for (const item of pending) {
-      setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'processing' } : q))
-      try {
-        const result = await runConversion(item.file, targetFormat)
-        setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'done', resultBlob: result, resultSize: result.size } : q))
-      } catch (err) {
-        setQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'failed' } : q))
-      }
-    }
-    setIsBatchProcessing(false)
-  }, [isBatchProcessing, queue, targetFormat])
-
-  useEffect(() => {
-    if (processMode === 'batch' && !isBatchProcessing && queue.some(i => i.status === 'pending')) {
-      processBatch()
-    }
-  }, [queue, processMode, isBatchProcessing, processBatch])
 
   const handleDownload = () => {
     if (!resultUrl) return
@@ -323,11 +274,8 @@ showpage
       icon={ArrowLeftRight}
     >
       <div className="space-y-8">
-        {!file && queue.length === 0 ? (
+        {!file ? (
           <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="flex justify-center">
-                <ModeToggle id="format" mode={processMode} onChange={setProcessMode} />
-              </div>
 
              <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Target Format</label>
@@ -356,17 +304,7 @@ showpage
                 </div>
              </div>
 
-             <AnimatePresence mode="wait">
-               <motion.div
-                 key={processMode}
-                 initial={{ opacity: 0, y: 10 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 exit={{ opacity: 0, y: -10 }}
-                 transition={{ duration: 0.3 }}
-               >
-                 <DropZone onDrop={handleFiles} multiple={processMode === 'batch'} label={processMode === 'batch' ? "Drop multiple images for batch conversion" : "Drop image to convert"} />
-               </motion.div>
-             </AnimatePresence>
+             <DropZone onDrop={handleFiles} label="Drop image to convert" />
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
@@ -377,60 +315,40 @@ showpage
                    </div>
                    <div>
                       <p className="text-sm font-bold uppercase tracking-widest">
-                         {processMode === 'batch' ? `${queue.length} Images` : file?.name}
+                         {file?.name}
                       </p>
                       <p className="text-[10px] text-muted-foreground uppercase">Targeting {targetFormat.toUpperCase()}</p>
                    </div>
                 </div>
-                <button onClick={() => { setFile(null); setQueue([]); clearResultUrl(); }} className="text-xs text-muted-foreground hover:text-white flex items-center gap-2">
+                <button onClick={() => { setFile(null); clearResultUrl(); }} className="text-xs text-muted-foreground hover:text-white flex items-center gap-2">
                    <ArrowLeft className="w-3 h-3" /> Change
                 </button>
              </div>
 
-             {processMode === 'batch' ? (
-                <div className="space-y-6">
-                   <ProcessingQueue items={queue} onRemove={id => setQueue(q => q.filter(i => i.id !== id))} />
-                   <div className="flex justify-center">
-                      <button 
-                        onClick={async () => {
-                           const JSZip = (await import("jszip")).default
-                           const zip = new JSZip()
-                           queue.filter(i => i.resultBlob).forEach(i => zip.file(i.file.name.split(".")[0] + "." + targetFormat, i.resultBlob!))
-                           const blob = await zip.generateAsync({ type: "blob" })
-                           downloadBlob(blob, `vanity-batch-${targetFormat}.zip`)
-                        }}
-                        className="px-10 py-4 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all flex items-center gap-3"
-                      >
-                         <FileArchive className="w-6 h-6" /> Download Batch (ZIP)
-                      </button>
-                   </div>
-                </div>
-             ) : (
-                <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 flex flex-col items-center justify-center min-h-[400px]">
-                   {isProcessing || isEncoding ? (
-                     <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                        <p className="text-sm font-bold uppercase tracking-widest animate-pulse">Encoding...</p>
-                     </div>
-                   ) : resultUrl ? (
-                     <div className="space-y-8 w-full flex flex-col items-center">
-                        {targetFormat !== "ico" && <img src={resultUrl} className="max-h-[400px] rounded-xl shadow-2xl border border-white/5" />}
-                        <button 
-                           onClick={handleDownload}
-                           className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
-                        >
-                           <Download className="w-6 h-6" /> Download {targetFormat.toUpperCase()}
-                        </button>
-                     </div>
-                   ) : null}
-                </div>
-             )}
+             <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 flex flex-col items-center justify-center min-h-[400px]">
+                {isProcessing || isEncoding ? (
+                  <div className="flex flex-col items-center gap-4">
+                     <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                     <p className="text-sm font-bold uppercase tracking-widest animate-pulse">Encoding...</p>
+                  </div>
+                ) : resultUrl ? (
+                  <div className="space-y-8 w-full flex flex-col items-center">
+                     {targetFormat !== "ico" && <img src={resultUrl} className="max-h-[400px] rounded-xl shadow-2xl border border-white/5" />}
+                     <button 
+                        onClick={handleDownload}
+                        className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
+                     >
+                        <Download className="w-6 h-6" /> Export{targetFormat.toUpperCase()}
+                     </button>
+                  </div>
+                ) : null}
+             </div>
           </div>
         )}
 
-        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4">
-           <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-           <p className="text-[10px] text-muted-foreground leading-relaxed uppercase tracking-widest font-black">
+        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-4">
+           <Info className="w-5 h-5 text-primary shrink-0" />
+           <p className="text-sm text-muted-foreground leading-relaxed">
              All processing is performed locally via the Web Image Decoding API and HTML5 Canvas. Your files are never uploaded to any server.
            </p>
         </div>

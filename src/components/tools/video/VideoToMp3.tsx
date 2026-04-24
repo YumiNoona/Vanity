@@ -93,8 +93,7 @@ export function VideoToMp3() {
                       onClick={handleDownload}
                       className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
                     >
-                      <Download className="w-6 h-6" />
-                      Download Extracted MP3
+                      <Download className="w-6 h-6" /> Export MP3
                     </button>
                  </div>
                ) : (

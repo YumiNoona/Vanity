@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { KeyRound, RefreshCw, Copy, CheckCircle, ShieldAlert, ShieldCheck, Shield, List, Type, Fingerprint, Download } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -117,26 +118,16 @@ export function PasswordGenerator() {
         <div className="lg:col-span-5 space-y-6">
           <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-8">
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Generation Mode</label>
-              <div className="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
-                {[
-                  { id: "random", icon: Fingerprint, label: "Random" },
-                  { id: "passphrase", icon: List, label: "Phrase" },
-                  { id: "pronounceable", icon: Type, label: "Speak" },
-                ].map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => setMode(m.id as PasswordMode)}
-                    className={cn(
-                      "py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1",
-                      mode === m.id ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-white"
-                    )}
-                  >
-                    <m.icon className="w-3.5 h-3.5" />
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+              <PillToggle
+                activeId={mode}
+                onChange={(id) => setMode(id as PasswordMode)}
+                options={[
+                  { id: "random", label: "Random", icon: Fingerprint },
+                  { id: "passphrase", label: "Phrase", icon: List },
+                  { id: "pronounceable", label: "Speak", icon: Type },
+                ]}
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-6">
@@ -243,7 +234,7 @@ export function PasswordGenerator() {
               <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bulk Results</span>
                 <button onClick={downloadBulk} className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all">
-                  <Download className="w-3 h-3" /> Download .txt
+                  <Download className="w-3 h-3" /> Export
                 </button>
               </div>
               <div className="flex-1 overflow-auto p-6 space-y-2 custom-scrollbar">

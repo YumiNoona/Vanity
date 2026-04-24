@@ -52,7 +52,6 @@ const SocialResizer = lazy(() => import("./components/tools/image/SocialResizer"
 const ImageToSketch = lazy(() => import("./components/tools/image/ImageToSketch").then(m => ({ default: m.ImageToSketch })))
 const NoiseGrain = lazy(() => import("./components/tools/image/NoiseGrain").then(m => ({ default: m.NoiseGrain })))
 const PixelArt = lazy(() => import("./components/tools/image/PixelArt").then(m => ({ default: m.PixelArt })))
-const Duotone = lazy(() => import("./components/tools/image/Duotone").then(m => ({ default: m.Duotone })))
 const AsciiArt = lazy(() => import("./components/tools/image/AsciiArt").then(m => ({ default: m.AsciiArt })))
 const BeforeAfterSlider = lazy(() => import("./components/tools/image/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })))
 const GifMaker = lazy(() => import("./components/tools/image/GifMaker").then(m => ({ default: m.GifMaker })))
@@ -230,7 +229,6 @@ function App() {
             <Route path="/tools/image/social-resizer" element={<SocialResizer />} />
             <Route path="/tools/image/noise" element={<NoiseGrain />} />
             <Route path="/tools/image/pixel-art" element={<PixelArt />} />
-            <Route path="/tools/image/duotone" element={<Duotone />} />
             <Route path="/tools/image/ascii" element={<AsciiArt />} />
             <Route path="/tools/image/slider" element={<BeforeAfterSlider />} />
             <Route path="/tools/image/gif-maker" element={<GifMaker />} />

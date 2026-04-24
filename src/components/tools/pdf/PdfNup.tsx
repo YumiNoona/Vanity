@@ -335,7 +335,7 @@ export function PdfNup() {
                       onClick={handleDownload}
                       className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
                     >
-                      <Download className="w-6 h-6" /> Download PDF
+                      <Download className="w-6 h-6" /> Export
                     </button>
                  ) : (
                     <button 
@@ -397,8 +397,7 @@ export function PdfNup() {
                     onClick={handleDownload}
                     className="px-12 py-5 bg-white text-black font-bold rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
                   >
-                    <Download className="w-6 h-6" /> Save Imposed PDF
-                  </button>
+                    <Download className="w-6 h-6" /> Export </button>
                </div>
             ) : (
                <div className="w-full space-y-8 animate-in fade-in duration-1000">

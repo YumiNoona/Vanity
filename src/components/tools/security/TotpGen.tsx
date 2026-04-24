@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { KeyRound, ShieldCheck, Copy, CheckCircle, Clock, AlertTriangle } from "lucide-react"
+import { KeyRound, ShieldCheck, Copy, CheckCircle, Clock, AlertTriangle, Info } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -148,9 +148,9 @@ export function TotpGen() {
            </div>
         </div>
 
-        <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-start gap-4">
-           <AlertTriangle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-           <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+        <div className="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-center gap-4">
+           <Info className="w-5 h-5 text-emerald-500 shrink-0" />
+           <p className="text-sm text-emerald-500/80 leading-relaxed">
              This tool uses the <code>SubtleCrypto</code> API for high-performance, zero-dependency token generation. Everything is local.
            </p>
         </div>

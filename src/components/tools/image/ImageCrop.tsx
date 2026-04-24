@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, ArrowLeft, Loader2, Crop, RefreshCcw, Layers, Image as ImageIcon, Trash2, CheckCircle, Settings2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -254,27 +255,15 @@ export function ImageCrop() {
   }
 
   const renderTabSwitcher = () => (
-    <div className="flex justify-center mb-10">
-      <div className="bg-black/40 p-1.5 rounded-2xl border border-white/5 inline-flex shadow-2xl backdrop-blur-md">
-        <button 
-          onClick={() => setActiveTab("single")} 
-          className={cn(
-            "px-10 py-3.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2", 
-            activeTab === "single" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"
-          )}
-        >
-          <Crop className="w-4 h-4" /> Single Crop
-        </button>
-        <button 
-          onClick={() => setActiveTab("bulk")} 
-          className={cn(
-            "px-10 py-3.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2", 
-            activeTab === "bulk" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"
-          )}
-        >
-          <Layers className="w-4 h-4" /> Bulk Resize
-        </button>
-      </div>
+    <div className="mb-10 flex justify-center">
+      <PillToggle
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as any)}
+        options={[
+          { id: "single", label: "Single Crop", icon: Crop },
+          { id: "bulk", label: "Bulk Resize", icon: Layers }
+        ]}
+      />
     </div>
   )
 
@@ -373,7 +362,7 @@ export function ImageCrop() {
               </div>
               <div className="pt-4">
                 {processedBulk.length > 0 && processedBulk.length === bulkFiles.length ? (
-                  <button onClick={handleDownloadAllBulk} className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 active:scale-95"><Download className="w-5 h-5" /> Download All ({processedBulk.length})</button>
+                  <button onClick={handleDownloadAllBulk} className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 active:scale-95"><Download className="w-5 h-5" /> Export ({processedBulk.length})</button>
                 ) : (
                   <button onClick={processBulkSequentially} disabled={isBulkProcessing} className="w-full py-5 bg-cyan-500 text-black font-bold rounded-2xl shadow-xl hover:bg-cyan-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95">
                     {isBulkProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "Start Bulk Resize"}
