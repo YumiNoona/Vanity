@@ -3,7 +3,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { ShieldCheck, Download, Copy, CheckCircle, Loader2, RefreshCw, Key, Info } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { AnimatedTabs } from "@/components/shared/AnimatedTabs"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 export function RsaGen() {
   const [keys, setKeys] = useState<{ public: string; private: string } | null>(null)
@@ -72,16 +72,15 @@ export function RsaGen() {
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 flex flex-wrap gap-6 items-center justify-between">
            <div className="flex items-center gap-4">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bit Size</label>
-              <AnimatedTabs
-                 tabs={[
-                   { id: 1024, label: "1024" },
-                   { id: 2048, label: "2048" },
-                   { id: 4096, label: "4096" }
-                 ]}
-                 activeTab={bitSize}
-                 onChange={setBitSize}
-                 layoutId="rsaBitSize"
-              />
+               <PillToggle
+                  activeId={bitSize}
+                  onChange={setBitSize}
+                  options={[
+                    { id: 1024, label: "1024" },
+                    { id: 2048, label: "2048" },
+                    { id: 4096, label: "4096" }
+                  ]}
+               />
            </div>
            
            <button 

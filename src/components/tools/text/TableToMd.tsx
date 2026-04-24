@@ -3,7 +3,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Table, Copy, CheckCircle, Download, FileCode, ArrowLeftRight, Braces, ClipboardList } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { AnimatedTabs } from "@/components/shared/AnimatedTabs"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 export function TableToMd() {
   const [input, setInput] = useState("Name\tRole\tDepartment\nJohn Doe\tDesigner\tCreative\nJane Smith\tEngineer\tProduct")
@@ -74,13 +74,13 @@ export function TableToMd() {
 
         <div className="space-y-4 flex flex-col">
           <div className="flex items-center justify-between">
-            <AnimatedTabs
-              tabs={[
+            <PillToggle
+              activeId={format}
+              onChange={(id) => setFormat(id as any)}
+              options={[
                 { id: "markdown", label: "Markdown" },
                 { id: "html", label: "HTML" }
               ]}
-              activeTab={format}
-              onChange={setFormat}
             />
             {output && (
               <button onClick={handleCopy} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all text-muted-foreground hover:text-white">

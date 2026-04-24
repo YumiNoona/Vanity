@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Receipt, Plus, Minus, Info, Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { AnimatedTabs } from "@/components/shared/AnimatedTabs"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 const GST_RATES = [5, 12, 18, 28]
 
@@ -44,14 +44,13 @@ export function GstCalc() {
           <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-8">
              <div className="space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Calculation Mode</label>
-                <AnimatedTabs
-                  tabs={[
+                <PillToggle
+                  activeId={mode}
+                  onChange={(id) => setMode(id as any)}
+                  options={[
                     { id: "exclusive", label: "Add GST", icon: Plus },
                     { id: "inclusive", label: "Remove GST", icon: Minus }
                   ]}
-                  activeTab={mode}
-                  onChange={setMode}
-                  className="w-full"
                 />
              </div>
 

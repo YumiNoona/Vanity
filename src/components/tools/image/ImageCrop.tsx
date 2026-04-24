@@ -332,7 +332,7 @@ export function ImageCrop() {
             className="mt-8 px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all disabled:opacity-50 shadow-lg active:scale-95"
           >
             {isExporting ? <Loader2 className="animate-spin w-6 h-6" /> : <Download className="w-6 h-6" />}
-            Download Cropped Result
+            Export
           </button>
         </div>
       ) : (
@@ -345,11 +345,15 @@ export function ImageCrop() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Scaling Logic</label>
-                  <div className="grid grid-cols-3 gap-2 bg-black/40 border border-white/10 rounded-xl p-1">
-                    {["width", "height", "percentage"].map((m) => (
-                      <button key={m} onClick={() => setScaleMode(m as any)} className={cn("px-2 py-2 text-[10px] font-bold transition-all rounded-lg uppercase tracking-tighter", scaleMode === m ? "bg-cyan-500 text-black shadow-lg" : "text-muted-foreground hover:text-white")}>{m}</button>
-                    ))}
-                  </div>
+                  <PillToggle
+                    activeId={scaleMode}
+                    onChange={(id) => setScaleMode(id as any)}
+                    options={[
+                      { id: "width", label: "Width" },
+                      { id: "height", label: "Height" },
+                      { id: "percentage", label: "Scale %" },
+                    ]}
+                  />
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between"><label className="text-[10px] font-bold text-muted-foreground uppercase">{scaleMode === "percentage" ? "Percentage" : "Dimension (px)"}</label><span className="font-mono text-cyan-400 font-bold">{scaleValue}</span></div>
