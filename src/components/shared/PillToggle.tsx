@@ -2,20 +2,20 @@ import React from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-interface PillOption<T extends string> {
+interface PillOption<T extends string | number> {
   id: T
   label: string
   icon?: React.ElementType
 }
 
-interface PillToggleProps<T extends string> {
+interface PillToggleProps<T extends string | number> {
   options: PillOption<T>[]
   activeId: T
   onChange: (id: T) => void
   className?: string
 }
 
-export function PillToggle<T extends string>({ 
+export function PillToggle<T extends string | number>({ 
   options, 
   activeId, 
   onChange, 

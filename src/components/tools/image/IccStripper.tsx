@@ -9,6 +9,7 @@ import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
 import { toast } from "sonner"
 import { cn } from "../../../lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
+// @ts-ignore
 import * as ExifReader from "../../../lib/exif-reader"
 
 interface IccMetadata {

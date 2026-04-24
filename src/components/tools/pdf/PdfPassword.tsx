@@ -126,7 +126,6 @@ export function PdfPassword() {
 
   const renderToggle = () => (
     <PillToggle
-      id="pdf-password"
       activeId={mode}
       onChange={setMode}
       options={[

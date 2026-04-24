@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { cn } from "../../../lib/utils"
 
+// @ts-ignore
 import * as ExifReader from "../../../lib/exif-reader"
 
 interface ExifTag {
@@ -120,7 +121,7 @@ export function ExifSanitizer() {
     setFile(null)
     setResultBlob(null)
     setError(null)
-    setExifData(null)
+    setExifReport(null)
     clearCurrent()
   }
 

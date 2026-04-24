@@ -7,7 +7,7 @@ import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { downloadBlob, canvasSupportsMime } from "@/lib/canvas/export"
+import { downloadBlob, canvasSupportsMime, exportCanvas } from "@/lib/canvas/export"
 
 // Formats that use custom binary encoders (not canvas.toBlob) are always supported
 const CUSTOM_ENCODER_FORMATS = new Set(["pdf", "svg", "ico", "tga", "eps"])

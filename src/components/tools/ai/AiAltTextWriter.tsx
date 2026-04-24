@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle } from "lucide-react"
+import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
