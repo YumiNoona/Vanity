@@ -88,7 +88,7 @@ JSON Structure requirement:
 
   if (!file || !imgUrl) {
     return (
-       <ToolUploadLayout title="Caption Generator" description="Upload any image and let Claude write engaging, platform-perfect captions in seconds." icon={MessageSquare}>
+       <ToolUploadLayout title="AI Caption Generator" description="Upload any image and let Claude write engaging, platform-perfect captions in seconds." icon={MessageSquare}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to caption" />
       </ToolUploadLayout>
@@ -97,7 +97,7 @@ JSON Structure requirement:
 
   return (
     <ToolLayout 
-      title="Content Studio" 
+      title="AI Caption Generator" 
       description={`${file.name} · ${activeProvider}`} 
       icon={MessageSquare} 
       onBack={handleBack} 

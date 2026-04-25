@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Binary, Asterisk, Hash, CircleDot, AlertTriangle } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 
 export function NumberBaseConverter() {
   const [dec, setDec] = useState("")
@@ -55,17 +56,11 @@ export function NumberBaseConverter() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-red-500/10 text-red-500 rounded-xl">
-           <Hash className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">Number Base Converter</h1>
-          <p className="text-muted-foreground text-sm">Convert between binary, octal, decimal, and hexadecimal instantly.</p>
-        </div>
-      </div>
-
+    <ToolLayout 
+      title="Number Base Converter" 
+      description="Convert between binary, octal, decimal, and hexadecimal instantly." 
+      icon={Hash}
+    >
       <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-6">
         {error && (
           <div className="flex items-center gap-2 p-4 bg-red-500/10 text-red-400 border border-red-500/20 text-sm rounded-xl">
@@ -127,6 +122,6 @@ export function NumberBaseConverter() {
           />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

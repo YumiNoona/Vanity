@@ -1,36 +1,24 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Crop, RefreshCcw, Layers, Image as ImageIcon, Trash2, CheckCircle, Settings2 } from "lucide-react"
+import { Download, ArrowLeft, Loader2, Crop, RefreshCcw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PillToggle } from "@/components/shared/PillToggle"
 import { usePremium } from "@/hooks/usePremium"
-import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { exportCanvas, downloadBlob } from "@/lib/canvas"
 import { releaseCanvas } from "@/lib/canvas/guards"
 
-interface ProcessedImage {
-  originalFile: File
-  originalWidth: number
-  originalHeight: number
-  resizedBlob: Blob
-  newWidth: number
-  newHeight: number
-}
-
 export function ImageCrop() {
   const { validateFiles } = usePremium()
-  const [activeTab, setActiveTab] = useState<"single" | "bulk">("single")
   
   // Single Mode State
   const [singleFile, setSingleFile] = useState<File | null>(null)
-  const { isProcessing: isSingleProcessing, processImage, getJobId, clearCurrent } = useImageProcessor()
+  const { isProcessing: isSingleProcessing, processImage, clearCurrent } = useImageProcessor()
   const { url: preview, setUrl: setPreview, clear: clearPreview } = useObjectUrl()
   const [sourceImage, setSourceImage] = useState<ImageBitmap | HTMLImageElement | null>(null)
 
-  // Cleanup effect for sourceImage (ImageBitmap must be closed manually)
   useEffect(() => {
     return () => {
       if (sourceImage instanceof ImageBitmap) {
@@ -52,17 +40,6 @@ export function ImageCrop() {
   const [isResizing, setIsResizing] = useState<string | null>(null)
   const [startPos, setStartPos] = useState({ x: 0, y: 0, cropX: 0, cropY: 0, cropW: 0, cropH: 0 })
   const [isExporting, setIsExporting] = useState(false)
-
-  // Bulk Mode State
-  const [bulkFiles, setBulkFiles] = useState<File[]>([])
-  const { urls: originalUrls, addUrl: addOriginalUrl, clear: clearOriginalUrls } = useObjectUrls()
-  const { urls: resizedUrls, addUrl: addResizedUrl, clear: clearResizedUrls } = useObjectUrls()
-  const [scaleMode, setScaleMode] = useState<"percentage" | "width" | "height">("width")
-  const [scaleValue, setScaleValue] = useState<number>(800)
-  const [quality, setQuality] = useState<number>(90)
-  const [isBulkProcessing, setIsBulkProcessing] = useState(false)
-  const [bulkProgress, setBulkProgress] = useState(0)
-  const [processedBulk, setProcessedBulk] = useState<ProcessedImage[]>([])
 
   const handleSingleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -175,239 +152,70 @@ export function ImageCrop() {
     }
   }
 
-  const handleBulkDrop = (newFiles: File[]) => {
-    if (newFiles.length > 0) {
-      const unique = newFiles.filter(nf => !bulkFiles.some(existing => existing.name === nf.name))
-      setBulkFiles(prev => [...prev, ...unique])
-      setProcessedBulk([])
-      clearOriginalUrls()
-      clearResizedUrls()
-      setBulkProgress(0)
-    }
-  }
-
-  const removeBulkFile = (name: string) => setBulkFiles(bulkFiles.filter(f => f.name !== name))
-
-  const processBulkSequentially = async () => {
-    if (bulkFiles.length === 0) return
-    setIsBulkProcessing(true)
-    setBulkProgress(0)
-    setProcessedBulk([])
-    clearResizedUrls()
-    const results: ProcessedImage[] = []
-    
-    for (let i = 0; i < bulkFiles.length; i++) {
-       const file = bulkFiles[i]
-       try {
-         const url = addOriginalUrl(file)
-         const img = await new Promise<HTMLImageElement>((res, rej) => {
-           const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url;
-         })
-         const canvas = document.createElement("canvas")
-         let w = img.width, h = img.height
-         if (scaleMode === "percentage") { const factor = scaleValue / 100; w *= factor; h *= factor; }
-         else if (scaleMode === "width") { const factor = scaleValue / w; w = scaleValue; h *= factor; }
-         else if (scaleMode === "height") { const factor = scaleValue / h; h = scaleValue; w *= factor; }
-         
-         canvas.width = Math.max(1, Math.round(w))
-         canvas.height = Math.max(1, Math.round(h))
-         const ctx = canvas.getContext("2d")!
-         ctx.imageSmoothingEnabled = true
-         ctx.imageSmoothingQuality = "high"
-         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-         
-         await new Promise(r => setTimeout(r, 10))
-         const blob = await new Promise<Blob>((res) => canvas.toBlob(b => res(b!), file.type === "image/png" ? "image/png" : "image/jpeg", quality / 100))
-         
-         results.push({ originalFile: file, originalWidth: img.width, originalHeight: img.height, resizedBlob: blob, newWidth: canvas.width, newHeight: canvas.height })
-         addResizedUrl(blob)
-         setProcessedBulk([...results])
-         setBulkProgress(Math.round(((i + 1) / bulkFiles.length) * 100))
-       } catch (err) { console.error(`Failed on ${file.name}`, err) }
-    }
-    setIsBulkProcessing(false)
-  }
-
-  const handleDownloadAllBulk = () => {
-    processedBulk.forEach((item, i) => {
-       setTimeout(() => {
-          const a = document.createElement("a"); a.href = resizedUrls[i]; a.download = `resized-${item.originalFile.name}`; a.click();
-       }, i * 300) 
-    })
-  }
-
-  const resetSingle = () => {
+  const handleBack = () => {
     setSingleFile(null)
     clearPreview()
     clearCurrent()
     setSourceImage(null)
   }
 
-  const handleBack = () => {
-    if (activeTab === "single" && singleFile) {
-      resetSingle()
-    } else if (activeTab === "bulk" && bulkFiles.length > 0) {
-      setBulkFiles([])
-      setProcessedBulk([])
-      clearOriginalUrls()
-      clearResizedUrls()
-    }
-  }
-
-  const renderTabSwitcher = () => (
-    <div className="mb-10 flex justify-center">
-      <PillToggle
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as any)}
-        options={[
-          { id: "single", label: "Single Crop", icon: Crop },
-          { id: "bulk", label: "Bulk Resize", icon: Layers }
-        ]}
-      />
-    </div>
-  )
-
-  if (activeTab === "single" && !singleFile) {
+  if (!singleFile) {
     return (
-      <ToolUploadLayout title="Crop Image" description="Select an image to start cropping or switch to bulk mode." icon={Crop}>
-        {renderTabSwitcher()}
+      <ToolUploadLayout title="Crop Image" description="Select an image to start cropping." icon={Crop}>
         <DropZone onDrop={handleSingleDrop} accept={{ "image/*": [] }} label="Drop image to crop" />
-      </ToolUploadLayout>
-    )
-  }
-
-  if (activeTab === "bulk" && bulkFiles.length === 0) {
-    return (
-      <ToolUploadLayout title="Bulk Image Resizer" description="Process entire batches of images locally and securely." icon={Layers}>
-        {renderTabSwitcher()}
-        <DropZone onDrop={handleBulkDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
       </ToolUploadLayout>
     )
   }
 
   return (
     <ToolLayout
-      title={activeTab === "single" ? "Crop Image" : "Bulk Resize"}
-      description={activeTab === "single" ? `Editing: ${singleFile?.name}` : `${bulkFiles.length} images queued`}
-      icon={activeTab === "single" ? Crop : Layers}
+      title="Crop Image"
+      description={`Editing: ${singleFile?.name}`}
+      icon={Crop}
       onBack={handleBack}
       backLabel="Start Over"
       maxWidth="max-w-6xl"
     >
-      {activeTab === "single" ? (
-        <div className="glass-panel p-8 rounded-3xl flex flex-col items-center overflow-hidden border-white/10 bg-black/40 min-h-[500px] justify-center">
-          <div ref={containerRef} className="relative inline-flex max-w-full select-none rounded-xl overflow-hidden shadow-2xl bg-black/20">
-            {preview && (
-              <img 
-                ref={previewRef}
-                src={preview} 
-                alt="Preview" 
-                className="max-h-[60vh] w-auto object-contain pointer-events-none animate-in fade-in zoom-in duration-300" 
-              />
-            )}
-            <div 
-              className="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] cursor-move transition-shadow"
-              style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.width}%`, height: `${crop.height}%` }}
-              onMouseDown={(e) => handleMouseDown(e, 'move')}
-            >
-              {/* Handles */}
-              <div onMouseDown={(e) => handleMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 -translate-y-1/2 cursor-nw-resize rounded-full border-2 border-white z-20" />
-              <div onMouseDown={(e) => handleMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 bg-primary translate-x-1/2 -translate-y-1/2 cursor-ne-resize rounded-full border-2 border-white z-20" />
-              <div onMouseDown={(e) => handleMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 translate-y-1/2 cursor-sw-resize rounded-full border-2 border-white z-20" />
-              <div onMouseDown={(e) => handleMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 bg-primary translate-x-1/2 translate-y-1/2 cursor-se-resize rounded-full border-2 border-white z-20" />
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-20">
-                <div className="border-r border-b border-white" /><div className="border-r border-b border-white" /><div className="border-b border-white" />
-                <div className="border-r border-b border-white" /><div className="border-r border-b border-white" /><div className="border-b border-white" />
-                <div className="border-r border-white" /><div className="border-r border-white" /><div />
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap justify-center gap-12 w-full mt-8 pt-6 border-t border-white/5">
-             <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Position</span><div className="text-sm font-mono text-white">X: {Math.round(crop.x)}% Y: {Math.round(crop.y)}%</div></div>
-             <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Size</span><div className="text-sm font-mono text-white">W: {Math.round(crop.width)}% H: {Math.round(crop.height)}%</div></div>
-          </div>
-          <button 
-            onClick={handleSingleDownload} 
-            disabled={isExporting} 
-            className="mt-8 px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all disabled:opacity-50 shadow-lg active:scale-95"
+      <div className="glass-panel p-8 rounded-3xl flex flex-col items-center overflow-hidden border-white/10 bg-black/40 min-h-[500px] justify-center">
+        <div ref={containerRef} className="relative inline-flex max-w-full select-none rounded-xl overflow-hidden shadow-2xl bg-black/20">
+          {preview && (
+            <img 
+              ref={previewRef}
+              src={preview} 
+              alt="Preview" 
+              className="max-h-[60vh] w-auto object-contain pointer-events-none animate-in fade-in zoom-in duration-300" 
+            />
+          )}
+          <div 
+            className="absolute border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] cursor-move transition-shadow"
+            style={{ left: `${crop.x}%`, top: `${crop.y}%`, width: `${crop.width}%`, height: `${crop.height}%` }}
+            onMouseDown={(e) => handleMouseDown(e, 'move')}
           >
-            {isExporting ? <Loader2 className="animate-spin w-6 h-6" /> : <Download className="w-6 h-6" />}
-            Export
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-4 space-y-6">
-            <div className="glass-panel p-8 rounded-3xl space-y-8 border-cyan-500/20 bg-black/40">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400 border-b border-white/5 pb-4">
-                <Settings2 className="w-4 h-4" /> Global Rules
-              </div>
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Scaling Logic</label>
-                  <PillToggle
-                    activeId={scaleMode}
-                    onChange={(id) => setScaleMode(id as any)}
-                    options={[
-                      { id: "width", label: "Width" },
-                      { id: "height", label: "Height" },
-                      { id: "percentage", label: "Scale %" },
-                    ]}
-                  />
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between"><label className="text-[10px] font-bold text-muted-foreground uppercase">{scaleMode === "percentage" ? "Percentage" : "Dimension (px)"}</label><span className="font-mono text-cyan-400 font-bold">{scaleValue}</span></div>
-                  <input type="range" min={scaleMode === "percentage" ? 10 : 100} max={scaleMode === "percentage" ? 200 : 4000} value={scaleValue} onChange={(e) => setScaleValue(Number(e.target.value))} className="w-full accent-cyan-500" />
-                </div>
-                <div className="space-y-4 pt-4 border-t border-white/5">
-                  <div className="flex items-center justify-between"><label className="text-[10px] font-bold text-muted-foreground uppercase">Quality</label><span className="font-mono text-emerald-400 font-bold">{quality}%</span></div>
-                  <input type="range" min="10" max="100" value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full accent-emerald-500" />
-                </div>
-              </div>
-              <div className="pt-4">
-                {processedBulk.length > 0 && processedBulk.length === bulkFiles.length ? (
-                  <button onClick={handleDownloadAllBulk} className="w-full py-5 bg-emerald-500 text-white font-bold rounded-2xl shadow-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 active:scale-95"><Download className="w-5 h-5" /> Export ({processedBulk.length})</button>
-                ) : (
-                  <button onClick={processBulkSequentially} disabled={isBulkProcessing} className="w-full py-5 bg-cyan-500 text-black font-bold rounded-2xl shadow-xl hover:bg-cyan-400 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95">
-                    {isBulkProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "Start Bulk Resize"}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="h-32 border-2 border-dashed border-white/10 rounded-2xl relative hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all text-center flex flex-col items-center justify-center cursor-pointer">
-              <input type="file" multiple accept="image/*" onChange={(e) => e.target.files && handleBulkDrop(Array.from(e.target.files))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <ImageIcon className="w-6 h-6 text-muted-foreground mb-2" />
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Add More Files</span>
-            </div>
-          </div>
-          <div className="lg:col-span-8 flex flex-col bg-black/40 rounded-3xl border border-white/5 overflow-hidden min-h-[400px]">
-            {isBulkProcessing && (
-              <div className="p-4 bg-cyan-500/10 border-b border-cyan-500/20 text-cyan-400 relative">
-                <div className="absolute top-0 bottom-0 left-0 bg-cyan-500/20 transition-all" style={{ width: `${bulkProgress}%` }} />
-                <div className="relative z-10 flex justify-between text-[10px] font-bold"><span>SEQUENTIAL QUEUE</span><span>{processedBulk.length} / {bulkFiles.length} DONE</span></div>
-              </div>
-            )}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar max-h-[600px]">
-              {bulkFiles.map((f, i) => {
-                const res = processedBulk.find(p => p.originalFile.name === f.name)
-                return (
-                  <div key={f.name} className={cn("flex items-center justify-between p-4 rounded-2xl border transition-all", res ? "bg-emerald-500/5 border-emerald-500/20 shadow-inner" : "bg-white/5 border-white/5")}>
-                    <div className="flex items-center gap-4 flex-1 truncate pr-4">
-                      <div className="w-8 h-8 flex items-center justify-center shrink-0">{res ? <CheckCircle className="w-5 h-5 text-emerald-400" /> : <span className="text-xs font-mono text-muted-foreground">{i + 1}</span>}</div>
-                      <div className="flex flex-col truncate"><span className="text-sm font-bold text-white truncate">{f.name}</span>{res && <span className="text-[10px] text-muted-foreground font-mono">{res.newWidth}×{res.newHeight}px</span>}</div>
-                    </div>
-                    {res ? (
-                      <a href={resizedUrls[processedBulk.indexOf(res)]} download={`resized-${res.originalFile.name}`} className="px-4 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-black font-bold text-[10px] rounded-lg transition-all uppercase">Download</a>
-                    ) : !isBulkProcessing && (
-                      <button onClick={() => removeBulkFile(f.name)} className="p-2 text-muted-foreground hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                    )}
-                  </div>
-                )
-              })}
+            {/* Handles */}
+            <div onMouseDown={(e) => handleMouseDown(e, 'nw')} className="absolute top-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 -translate-y-1/2 cursor-nw-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'ne')} className="absolute top-0 right-0 w-4 h-4 bg-primary translate-x-1/2 -translate-y-1/2 cursor-ne-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'sw')} className="absolute bottom-0 left-0 w-4 h-4 bg-primary -translate-x-1/2 translate-y-1/2 cursor-sw-resize rounded-full border-2 border-white z-20" />
+            <div onMouseDown={(e) => handleMouseDown(e, 'se')} className="absolute bottom-0 right-0 w-4 h-4 bg-primary translate-x-1/2 translate-y-1/2 cursor-se-resize rounded-full border-2 border-white z-20" />
+            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-20">
+              <div className="border-r border-b border-white" /><div className="border-r border-b border-white" /><div className="border-b border-white" />
+              <div className="border-r border-b border-white" /><div className="border-r border-b border-white" /><div className="border-b border-white" />
+              <div className="border-r border-white" /><div className="border-r border-white" /><div />
             </div>
           </div>
         </div>
-      )}
+        <div className="flex flex-wrap justify-center gap-12 w-full mt-8 pt-6 border-t border-white/5">
+            <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Position</span><div className="text-sm font-mono text-white">X: {Math.round(crop.x)}% Y: {Math.round(crop.y)}%</div></div>
+            <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Size</span><div className="text-sm font-mono text-white">W: {Math.round(crop.width)}% H: {Math.round(crop.height)}%</div></div>
+        </div>
+        <button 
+          onClick={handleSingleDownload} 
+          disabled={isExporting} 
+          className="mt-8 px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all disabled:opacity-50 shadow-lg active:scale-95"
+        >
+          {isExporting ? <Loader2 className="animate-spin w-6 h-6" /> : <Download className="w-6 h-6" />}
+          Export
+        </button>
+      </div>
     </ToolLayout>
   )
 }

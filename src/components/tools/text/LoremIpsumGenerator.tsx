@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { AlignLeft, Copy, CheckCircle, RefreshCcw } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 
 const DICTIONARIES = {
   classic: ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat"],
@@ -64,17 +65,11 @@ export function LoremIpsumGenerator() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-stone-500/10 text-stone-500 rounded-xl">
-           <AlignLeft className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">Lorem Ipsum Generator</h1>
-          <p className="text-muted-foreground text-sm">Generate customizable placeholder text instantly for your mockups.</p>
-        </div>
-      </div>
-
+    <ToolLayout 
+      title="Lorem Ipsum Generator" 
+      description="Generate customizable placeholder text instantly for your mockups." 
+      icon={AlignLeft}
+    >
       <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-6">
         <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6">
            <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 overflow-hidden w-full sm:w-auto">
@@ -134,6 +129,6 @@ export function LoremIpsumGenerator() {
            />
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

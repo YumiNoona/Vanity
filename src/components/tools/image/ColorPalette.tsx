@@ -97,7 +97,7 @@ export function ColorPalette() {
   }
 
   return (
-    <ToolLayout title="Palette Extracted" description={`Derived from ${file.name}`} onBack={handleBack} backLabel="New Image">
+    <ToolLayout title="Color Palette" description={`Derived from ${file.name}`} icon={Pipette} onBack={handleBack} backLabel="New Image">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="glass-panel p-4 rounded-xl flex items-center justify-center bg-black/40">
            {preview && <img src={preview} alt="Original" className="max-h-[400px] object-contain rounded" />}

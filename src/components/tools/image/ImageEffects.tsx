@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
+import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2, Layers } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -76,7 +76,7 @@ export function ImageEffects() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Filter Studio" description="Apply filters, adjustments, and effects to any photograph." icon={SlidersHorizontal}>
+      <ToolUploadLayout title="Image Effects" description="Apply filters, adjustments, and effects to any photograph." icon={Layers}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </ToolUploadLayout>
     )
@@ -84,8 +84,9 @@ export function ImageEffects() {
 
   return (
     <ToolLayout 
-      title="Edit Image" 
+      title="Image Effects" 
       description={`Editing: ${file.name}`} 
+      icon={Layers}
       onBack={handleBack} 
       backLabel="Try another image" 
       maxWidth="max-w-7xl"

@@ -111,7 +111,7 @@ JSON Structure requirement:
 
   return (
     <ToolLayout 
-      title="Typography Analysis" 
+      title="Font Matcher (Vision)" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Type} 
       onBack={handleBack} 

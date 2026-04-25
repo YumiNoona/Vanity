@@ -10,6 +10,9 @@ export function GstCalc() {
   const [amount, setAmount] = useState("1000")
   const [rate, setRate] = useState(18)
   const [mode, setMode] = useState<"exclusive" | "inclusive">("exclusive")
+  const [currency, setCurrency] = useState("₹")
+
+  const CURRENCIES = ["₹", "$", "€", "£", "¥"]
 
   const calculate = () => {
     const val = parseFloat(amount) || 0
@@ -56,8 +59,14 @@ export function GstCalc() {
 
              <div className="space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Amount</label>
-                <div className="relative">
-                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">₹</span>
+                <div className="relative flex">
+                   <select 
+                     value={currency} 
+                     onChange={e => setCurrency(e.target.value)}
+                     className="absolute left-4 top-1/2 -translate-y-1/2 bg-transparent text-muted-foreground font-mono font-bold outline-none cursor-pointer border-none z-10 appearance-none"
+                   >
+                     {CURRENCIES.map(c => <option key={c} value={c} className="bg-zinc-900">{c}</option>)}
+                   </select>
                    <input 
                      type="text" 
                      value={formatIndian(amount)} 
@@ -65,7 +74,7 @@ export function GstCalc() {
                        const raw = e.target.value.replace(/,/g, "")
                        if (!raw || /^\d*$/.test(raw)) setAmount(raw)
                      }}
-                     className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono focus:border-primary/50 outline-none transition-all"
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-xl font-mono focus:border-primary/50 outline-none transition-all"
                      placeholder="0.00"
                    />
                 </div>
@@ -106,28 +115,28 @@ export function GstCalc() {
                  <div className="flex justify-between items-end border-b border-white/5 pb-4">
                     <div className="space-y-1">
                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Net Amount (Base)</p>
-                       <p className="text-2xl font-mono font-bold text-white/90">₹ {base.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                       <p className="text-2xl font-mono font-bold text-white/90">{currency} {base.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                     <div className="text-right space-y-1">
                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">GST ({rate}%)</p>
-                       <p className="text-2xl font-mono font-bold text-primary">₹ {gst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                       <p className="text-2xl font-mono font-bold text-primary">{currency} {gst.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                  </div>
 
                  <div className="space-y-2 text-center pt-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Price</p>
-                    <p className="text-6xl font-black font-syne text-white tracking-tight">₹ {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-5xl lg:text-6xl font-black font-syne text-white tracking-tight whitespace-nowrap">{currency}{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                  </div>
               </div>
 
               <div className="pt-8 grid grid-cols-2 gap-4">
                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">CGST ({(rate/2).toFixed(1)}%)</p>
-                    <p className="text-sm font-mono font-bold text-center">₹ {(gst/2).toLocaleString()}</p>
+                    <p className="text-sm font-mono font-bold text-center">{currency} {(gst/2).toLocaleString()}</p>
                  </div>
                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">SGST ({(rate/2).toFixed(1)}%)</p>
-                    <p className="text-sm font-mono font-bold text-center">₹ {(gst/2).toLocaleString()}</p>
+                    <p className="text-sm font-mono font-bold text-center">{currency} {(gst/2).toLocaleString()}</p>
                  </div>
               </div>
            </div>

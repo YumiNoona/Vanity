@@ -137,7 +137,7 @@ Your response must exactly match this JSON structure:
   if (!file) {
     return (
        <ToolUploadLayout 
-        title="Resume Reviewer" 
+        title="AI Resume Reviewer" 
         description="Get an elite recruiter's actionable breakdown completely privately without uploading to third-party databases." 
         icon={Sparkles}
       >
@@ -149,7 +149,7 @@ Your response must exactly match this JSON structure:
 
   return (
     <ToolLayout 
-      title="Executive Scorecard" 
+      title="AI Resume Reviewer" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Award} 
       onBack={handleBack} 
@@ -163,7 +163,7 @@ Your response must exactly match this JSON structure:
             <p className="text-muted-foreground mb-8 max-w-md">AI will read your resume locally and extract strategic insights across impact, syntax, and hiring frameworks.</p>
             <button 
               onClick={handleReview}
-              className="py-4 px-8 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-xl shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-1 active:scale-95"
+              className="py-4 px-8 bg-primary text-primary-foreground font-bold rounded-xl shadow-[0_0_25px_rgba(var(--primary),0.5)] transition-all transform hover:-translate-y-1 active:scale-95"
             >
               Begin Comprehensive Review
             </button>

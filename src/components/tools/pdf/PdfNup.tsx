@@ -240,7 +240,7 @@ export function PdfNup() {
   }
 
   return (
-    <ToolLayout title="Imposition Engine" description={file.name} icon={FileText} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-6xl">
+    <ToolLayout title="N-up Imposition" description={file.name} icon={FileText} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          {/* Sidebar Controls */}
@@ -261,7 +261,7 @@ export function PdfNup() {
                         onClick={() => setNup(val)}
                         className={cn(
                           "py-2 rounded-lg text-xs font-bold transition-all border",
-                          nup === val ? "bg-indigo-500 border-indigo-400 text-white" : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                          nup === val ? "bg-primary border-primary text-primary-foreground" : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
                         )}
                       >
                         {val}-up
@@ -305,7 +305,7 @@ export function PdfNup() {
                   </div>
                   <button 
                     onClick={() => setIsLandscape(!isLandscape)}
-                    className={cn("w-10 h-5 rounded-full transition-all relative", isLandscape ? "bg-indigo-500" : "bg-white/10")}
+                    className={cn("w-10 h-5 rounded-full transition-all relative", isLandscape ? "bg-primary" : "bg-white/10")}
                   >
                      <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all", isLandscape ? "right-1" : "left-1")} />
                   </button>
@@ -341,7 +341,7 @@ export function PdfNup() {
                     <button 
                       onClick={runImposition}
                       disabled={isProcessing}
-                      className="w-full py-5 bg-indigo-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale"
+                      className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale"
                     >
                       {isProcessing ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Layout className="w-6 h-6" />}
                       Generate Layout
@@ -379,7 +379,7 @@ export function PdfNup() {
                   </div>
                   <div className="w-full max-w-xs h-1 bg-white/5 rounded-full overflow-hidden">
                      <div 
-                        className="h-full bg-indigo-500 transition-all duration-500" 
+                        className="h-full bg-primary transition-all duration-500" 
                         style={{ width: `${(progress.current / (progress.total || 1)) * 100}%` }}
                      />
                   </div>

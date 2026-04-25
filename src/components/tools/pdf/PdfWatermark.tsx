@@ -92,15 +92,16 @@ export function PdfWatermark() {
 
   return (
     <ToolLayout 
-      title="Configure Stamp" 
+      title="PDF Watermark" 
       description={`Target: ${file.name}`} 
+      icon={Stamp}
       onBack={handleBack} 
       backLabel="Start Over" 
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1 glass-panel p-6 rounded-xl space-y-6">
-           <div className="flex items-center gap-2 text-accent mb-4">
+           <div className="flex items-center gap-2 text-primary mb-4">
               <Settings2 className="w-4 h-4" />
               <h3 className="text-xs font-bold uppercase tracking-widest">Controls</h3>
            </div>
@@ -112,7 +113,7 @@ export function PdfWatermark() {
                    type="text"
                    value={text}
                    onChange={e => setText(e.target.value)}
-                   className="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:border-accent outline-none font-bold text-sm"
+                   className="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:border-primary outline-none font-bold text-sm"
                  />
               </div>
 
@@ -125,7 +126,7 @@ export function PdfWatermark() {
                    type="range" min="0.1" max="1" step="0.1"
                    value={opacity}
                    onChange={e => setOpacity(Number(e.target.value))}
-                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer primary-primary"
                  />
               </div>
 
@@ -138,7 +139,7 @@ export function PdfWatermark() {
                    type="range" min="10" max="150" step="5"
                    value={fontSize}
                    onChange={e => setFontSize(Number(e.target.value))}
-                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer primary-primary"
                  />
               </div>
 
@@ -166,7 +167,7 @@ export function PdfWatermark() {
                 <button 
                   onClick={applyWatermark}
                   disabled={isProcessing || !text}
-                  className="w-full py-4 bg-accent text-accent-foreground font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
                 >
                   {isProcessing ? <Loader2 className="animate-spin" /> : <Stamp className="w-5 h-5" />}
                   Generate Watermarked PDF

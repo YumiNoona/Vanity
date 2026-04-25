@@ -209,29 +209,22 @@ export function AudioWaveform() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 px-4 sm:px-0 pb-20">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500">
-             <FastForward className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne text-white">Audio Workstation</h1>
-            <p className="text-muted-foreground text-sm">Target: <span className="text-purple-400 font-mono">{file.name}</span></p>
-          </div>
-        </div>
-        <button onClick={async () => {
-          if (audioCtxRef.current) await audioCtxRef.current.close().catch(() => {});
-          setFile(null); 
-          clearAudioUrl();
-          clearTrimmedUrl();
-          setAudioBuffer(null);
-        }} className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Load Different
-        </button>
-      </div>
-
-      <div className="glass-panel p-8 rounded-3xl space-y-8 relative overflow-hidden shadow-2xl border-purple-500/10">
+    <ToolLayout 
+      title="Audio Waveform Visualizer" 
+      description={file.name} 
+      icon={Mic} 
+      onBack={async () => {
+        if (audioCtxRef.current) await audioCtxRef.current.close().catch(() => {});
+        setFile(null); 
+        clearAudioUrl();
+        clearTrimmedUrl();
+        setAudioBuffer(null);
+      }} 
+      backLabel="Load Different" 
+      maxWidth="max-w-5xl"
+    >
+      <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="glass-panel p-8 rounded-3xl space-y-8 relative overflow-hidden shadow-2xl border-purple-500/10">
         
         {isDecoding && (
            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
@@ -322,7 +315,7 @@ export function AudioWaveform() {
                  <a 
                    href={trimmedUrl}
                    download={`vanity-trim-${file.name}`}
-                   className="flex-1 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                   className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg flex items-center justify-center gap-2 font-bold transition-all shadow-[0_0_20px_rgba(var(--primary),0.4)]"
                  >
                    <Download className="w-5 h-5" /> Export
                  </a>
@@ -335,7 +328,8 @@ export function AudioWaveform() {
               <audio controls src={audioUrl} className="w-full h-10 custom-audio-player" />
            </div>
         )}
+        </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

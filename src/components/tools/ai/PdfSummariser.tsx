@@ -104,7 +104,7 @@ export function PdfSummariser() {
   if (!file) {
     return (
       <ToolUploadLayout 
-        title="AI PDF Summariser" 
+        title="AI PDF Summarizer" 
         description="Upload a PDF to get private, AI-powered insights." 
         icon={BrainCircuit}
       >
@@ -118,7 +118,7 @@ export function PdfSummariser() {
 
   return (
     <ToolLayout 
-      title="Insight Engine" 
+      title="AI PDF Summarizer" 
       description={`${file.name} (${progress}% processed) · ${activeProvider}`} 
       icon={Sparkles} 
       onBack={handleBack} 

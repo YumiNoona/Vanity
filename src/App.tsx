@@ -56,7 +56,7 @@ const AsciiArt = lazy(() => import("./components/tools/image/AsciiArt").then(m =
 const BeforeAfterSlider = lazy(() => import("./components/tools/image/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })))
 const GifMaker = lazy(() => import("./components/tools/image/GifMaker").then(m => ({ default: m.GifMaker })))
 const SpriteSlicer = lazy(() => import("./components/tools/image/SpriteSlicer").then(m => ({ default: m.SpriteSlicer })))
-const ImageDiff = lazy(() => import("./components/tools/image/ImageDiff").then(m => ({ default: m.ImageDiff })))
+
 const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
 const CollageMaker = lazy(() => import("./components/tools/image/CollageMaker").then(m => ({ default: m.CollageMaker })))
 
@@ -150,6 +150,7 @@ const TomlJson = lazy(() => import("./components/tools/text/TomlJson").then(m =>
 const UnicodeExplorer = lazy(() => import("./components/tools/text/UnicodeExplorer").then(m => ({ default: m.UnicodeExplorer })))
 const NameFormatter = lazy(() => import("./components/tools/text/NameFormatter").then(m => ({ default: m.NameFormatter })))
 const TableToMd = lazy(() => import("./components/tools/text/TableToMd").then(m => ({ default: m.TableToMd })))
+const ReadmeViewer = lazy(() => import("./components/tools/text/ReadmeViewer").then(m => ({ default: m.ReadmeViewer })))
 
 
 // Export loaders for prefetching popular tools
@@ -171,23 +172,7 @@ function PageLoader() {
   )
 }
 
-function ToolFallback() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-700">
-      <div className="mb-8 p-6 bg-primary/5 rounded-full border border-primary/10">
-        <Loader2 className="w-16 h-16 text-primary animate-spin" />
-      </div>
-      <h2 className="text-4xl font-extrabold font-syne mb-2">Refining Logic</h2>
-      <p className="max-w-md text-muted-foreground">
-        We're currently optimizing the WASM engine for this tool to ensure 100% local performance and privacy.
-      </p>
-      <div className="mt-8 flex gap-3">
-        <div className="px-4 py-1.5 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Local Inference</div>
-        <div className="px-4 py-1.5 bg-white/5 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Zero Cloud</div>
-      </div>
-    </div>
-  )
-}
+
 
 function App() {
   return (
@@ -233,7 +218,7 @@ function App() {
             <Route path="/tools/image/slider" element={<BeforeAfterSlider />} />
             <Route path="/tools/image/gif-maker" element={<GifMaker />} />
             <Route path="/tools/image/sprite-slicer" element={<SpriteSlicer />} />
-            <Route path="/tools/image/diff" element={<ImageDiff />} />
+
             <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
             <Route path="/tools/image/collage" element={<CollageMaker />} />
 
@@ -255,9 +240,6 @@ function App() {
             <Route path="/tools/pdf/n-up" element={<PdfNup />} />
             <Route path="/tools/pdf/remove-blank" element={<RemoveBlankPages />} />
             <Route path="/tools/pdf/fonts" element={<PdfFontExtractor />} />
-            
-            {/* PDF Placeholders */}
-            <Route path="/tools/pdf/compare" element={<ToolFallback />} />
 
             {/* Developer Tools */}
             <Route path="/tools/dev/json" element={<JsonFormatter />} />
@@ -289,7 +271,7 @@ function App() {
             <Route path="/tools/video/speed" element={<VideoSpeed />} />
             <Route path="/tools/video/normalize" element={<AudioNormalizer />} />
 
-            <Route path="/tools/video/*" element={<ToolFallback />} />
+
 
             {/* Text Tools */}
             <Route path="/tools/text/md-preview" element={<MarkdownPreview />} />
@@ -306,6 +288,7 @@ function App() {
             <Route path="/tools/text/unicode" element={<UnicodeExplorer />} />
             <Route path="/tools/text/name-case" element={<NameFormatter />} />
             <Route path="/tools/text/table-to-md" element={<TableToMd />} />
+            <Route path="/tools/text/readme" element={<ReadmeViewer />} />
             
             {/* Browser Tools */}
             <Route path="/tools/browser/dns" element={<DnsLookup />} />
@@ -332,10 +315,10 @@ function App() {
             <Route path="/tools/finance/currency" element={<CurrencyFormatter />} />
             <Route path="/tools/finance/gst" element={<GstCalc />} />
 
-            <Route path="/tools/text/md-to-pdf" element={<ToolFallback />} />
+
             
             {/* Fallback */}
-            <Route path="*" element={<ToolFallback />} />
+            <Route path="*" element={<Home />} />
           </Route>
         </Routes>
       </Suspense>

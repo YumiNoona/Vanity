@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeft, Code2, Copy, Cpu, Loader2, Sparkles, TriangleAlert } from "lucide-react"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -188,24 +189,20 @@ export function ScreenshotToGameCode() {
         description="Convert game code screenshots into clean, annotated source files using AI Vision." 
         icon={Code2}
       >
-        <div className="glass-panel p-3 rounded-2xl border-white/10 mb-6">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setMode("gemini")}
-              className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "gemini" ? "bg-indigo-500 text-white" : "bg-white/5 text-muted-foreground")}
-            >
-              Gemini AI
-            </button>
-            <button
-              onClick={() => setMode("ocr")}
-              className={cn("py-3 rounded-xl text-sm font-bold transition-all", mode === "ocr" ? "bg-amber-500 text-black" : "bg-white/5 text-muted-foreground")}
-            >
-              Offline OCR
-            </button>
+        <div className="flex flex-col space-y-6 w-full max-w-2xl mx-auto">
+          <div className="flex justify-center">
+            <PillToggle
+              activeId={mode}
+              onChange={setMode}
+              options={[
+                { id: "gemini", label: "Gemini AI", icon: Sparkles },
+                { id: "ocr", label: "Offline OCR", icon: Cpu }
+              ]}
+            />
           </div>
+          {mode === "gemini" && <AIProviderHint />}
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop code screenshot" />
         </div>
-        {mode === "gemini" && <AIProviderHint />}
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop code screenshot" />
       </ToolUploadLayout>
     )
   }
@@ -231,7 +228,7 @@ export function ScreenshotToGameCode() {
                     onClick={() => setEngine(option.id)}
                     className={cn(
                       "py-2.5 px-3 rounded-xl text-xs font-bold text-left transition-all",
-                      engine === option.id ? "bg-indigo-500 text-white" : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                      engine === option.id ? "bg-primary text-primary-foreground" : "bg-white/5 text-muted-foreground hover:bg-white/10"
                     )}
                   >
                     {option.label}
@@ -247,7 +244,7 @@ export function ScreenshotToGameCode() {
                   value={contextHint}
                   onChange={(e) => setContextHint(e.target.value)}
                   placeholder="2D platformer player controller"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500/30"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/30"
                 />
               </div>
             )}
@@ -259,7 +256,7 @@ export function ScreenshotToGameCode() {
               <button
                 onClick={handleGenerate}
                 disabled={isProcessing}
-                className="w-full py-4 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-400 transition-all disabled:opacity-40 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:scale-[1.02] transition-all disabled:opacity-40 flex items-center justify-center gap-2 active:scale-95 shadow-xl shadow-primary/20"
               >
                 {isProcessing ? (
                   <>

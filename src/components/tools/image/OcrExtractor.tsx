@@ -141,7 +141,7 @@ export function OcrExtractor() {
 
   return (
     <ToolLayout
-      title="OCR Result"
+      title="OCR — Image to Text"
       description={`Extracted from ${file.name}`}
       icon={Languages}
       onBack={() => {

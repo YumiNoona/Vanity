@@ -23,7 +23,7 @@ export function PillToggle<T extends string | number>({
 }: PillToggleProps<T>) {
   return (
     <div className={cn("flex justify-center w-full", className)}>
-      <div className="bg-white/5 p-1.5 rounded-2xl border border-white/10 inline-block min-w-[320px] max-w-full">
+      <div className="bg-white/5 p-1.5 rounded-2xl border border-white/10 inline-flex max-w-full">
         <div className="flex relative isolate w-full">
           {/* Animated Background Slider */}
           <motion.div 
@@ -45,7 +45,7 @@ export function PillToggle<T extends string | number>({
                 key={option.id}
                 onClick={() => onChange(option.id)}
                 className={cn(
-                  "relative flex-1 py-3 text-xs md:text-sm font-bold transition-colors duration-300 z-10 flex items-center justify-center gap-2 px-6 whitespace-nowrap",
+                  "relative flex-1 py-3 text-xs md:text-sm font-bold transition-colors duration-300 z-10 flex items-center justify-center gap-2 px-6 whitespace-nowrap min-w-[80px]",
                   isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >

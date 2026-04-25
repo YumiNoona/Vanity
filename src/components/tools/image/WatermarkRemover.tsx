@@ -10,7 +10,7 @@ import { runYieldedTask, releaseCanvas } from "@/lib/canvas/guards"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
-export function WatermarkRemover() {
+export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, processImage, updateProgress, getJobId, clearCurrent } = useImageProcessor()
@@ -167,14 +167,14 @@ export function WatermarkRemover() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Watermark Remover" description="Upload an image and brush over the watermark to remove it using local AI." icon={Eraser}>
+      <ToolUploadLayout title="Watermark Remover" description="Upload an image and brush over the watermark to remove it using local AI." icon={Eraser} hideHeader={embedded}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." onBack={handleBack} backLabel="Start New" maxWidth="max-w-6xl">
+    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." onBack={handleBack} backLabel="Start New" maxWidth="max-w-6xl" hideHeader={embedded}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-6 rounded-xl space-y-6">

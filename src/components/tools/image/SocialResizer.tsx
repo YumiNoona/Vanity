@@ -147,14 +147,14 @@ export function SocialResizer() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Social Resizer" description="One-click resize for Instagram, Twitter, LinkedIn, and more." icon={Maximize}>
+      <ToolUploadLayout title="Social Media Resizer" description="One-click resize for Instagram, Twitter, LinkedIn, and more." icon={Smartphone}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image here" />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Social Resize" description="Drag to reposition. Export at target resolution." onBack={() => { setFile(null); clearImgPreviewUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
+    <ToolLayout title="Social Media Resizer" description="Drag to reposition. Export at target resolution." icon={Smartphone} onBack={() => { setFile(null); clearImgPreviewUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Column 1: Platform Selection */}

@@ -98,7 +98,7 @@ export function JsonFormatter() {
               onChange={(e) => setInput(e.target.value)}
               placeholder='Paste your JSON here... {"example": "text"}'
               className={cn(
-                "w-full h-[500px] bg-black/40 border rounded-xl p-6 font-mono text-sm resize-none outline-none transition-all focus:ring-2 focus:ring-blue-500/20 text-white/90",
+                "w-full h-[500px] bg-black/40 border rounded-xl p-6 font-mono text-sm resize-none outline-none transition-all focus:ring-2 focus:ring-primary/20 text-white/90",
                 error ? "border-red-500/50" : "border-white/10 group-hover:border-white/20"
               )}
             />
@@ -113,7 +113,7 @@ export function JsonFormatter() {
           <div className="grid grid-cols-2 gap-4">
              <button 
                onClick={() => validateAndFormat(true)}
-               className="py-4 bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+               className="py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
              >
                <Braces className="w-4 h-4" /> Prettify
              </button>
@@ -158,8 +158,8 @@ export function JsonFormatter() {
             </div>
           </div>
           
-          <div className="p-4 bg-blue-500/5 rounded-xl border border-blue-500/10">
-             <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-2">Editor Stats</h4>
+          <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+             <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Editor Stats</h4>
              <div className="grid grid-cols-2 gap-4">
                 <div className="text-[10px] text-muted-foreground">Length: <span className="text-white font-mono">{output.length}</span></div>
                 <div className="text-[10px] text-muted-foreground">Lines: <span className="text-white font-mono">{output.split('\n').length}</span></div>

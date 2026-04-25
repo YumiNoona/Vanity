@@ -49,10 +49,12 @@ export function ColorBlindness() {
   const applyMatrix = async (simMode: Simulation) => {
     runIdRef.current += 1
     const runId = runIdRef.current
+    
     if (processingTimeoutRef.current !== null) {
       window.clearTimeout(processingTimeoutRef.current)
       processingTimeoutRef.current = null
     }
+    
     setMode(simMode)
     if (simMode === "original") {
       clearOutputUrl()
@@ -63,12 +65,26 @@ export function ColorBlindness() {
     if (!imgRef.current || !canvasRef.current || !imgUrl) return
     setIsProcessing(true)
 
-    // Using setTimeout to yield main thread briefly
+    // Ensure image is fully loaded before trying to read its pixels
+    const img = imgRef.current
+    if (!img.complete || img.naturalWidth === 0) {
+      await new Promise((resolve) => {
+        img.onload = resolve
+        img.onerror = resolve
+      })
+    }
+
+    if (!isMountedRef.current || runId !== runIdRef.current) return
+
     processingTimeoutRef.current = window.setTimeout(() => {
       try {
         if (!isMountedRef.current || runId !== runIdRef.current) return
-        const img = imgRef.current!
+        
         const canvas = canvasRef.current!
+        if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+          throw new Error("Invalid image dimensions")
+        }
+
         canvas.width = img.naturalWidth
         canvas.height = img.naturalHeight
         
@@ -96,16 +112,15 @@ export function ColorBlindness() {
         canvas.toBlob((blob) => {
           if (!isMountedRef.current || runId !== runIdRef.current) return
           if (blob) setOutputUrl(blob)
+          setIsProcessing(false)
         }, "image/png")
+        
       } catch (err) {
+        console.error(err)
         if (isMountedRef.current && runId === runIdRef.current) {
           toast.error("Failed to process image matrix")
-        }
-      } finally {
-        if (isMountedRef.current && runId === runIdRef.current) {
           setIsProcessing(false)
         }
-        processingTimeoutRef.current = null
       }
     }, 50)
   }
@@ -135,7 +150,7 @@ export function ColorBlindness() {
 
   return (
     <ToolLayout 
-      title="Accessibility Preview" 
+      title="Color Blindness Simulator" 
       description={`Visualizing ${mode.toUpperCase()} matrices directly against RGB pipelines locally.`} 
       icon={Eye} 
       onBack={handleBack} 
@@ -143,7 +158,7 @@ export function ColorBlindness() {
       maxWidth="max-w-6xl"
     >
       {/* Hidden processing resources */}
-      <img ref={imgRef} src={imgUrl} className="hidden" crossOrigin="anonymous" alt="Original" />
+      <img ref={imgRef} src={imgUrl} className="hidden" alt="Original" />
       <canvas ref={canvasRef} className="hidden" />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -209,7 +224,7 @@ export function ColorBlindness() {
             <button 
               onClick={handleDownload}
               disabled={isProcessing || (!outputUrl && mode !== "original")}
-              className="w-full py-4 mt-8 bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors disabled:opacity-50"
+              className="w-full py-4 mt-8 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
                <Download className="w-5 h-5" /> Export
             </button>

@@ -64,7 +64,7 @@ export function PdfRotate() {
   }
 
   return (
-    <ToolLayout title="Rotation Deck" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File">
+    <ToolLayout title="Rotate PDF Pages" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File">
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
          <div className="md:col-span-12 xl:col-span-12">
@@ -80,7 +80,7 @@ export function PdfRotate() {
                      </div>
                      <button 
                        onClick={handleDownload}
-                       className="px-12 py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
+                       className="px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
                      >
                        <Download className="w-6 h-6" /> Export </button>
                   </div>
@@ -95,7 +95,7 @@ export function PdfRotate() {
                                  onClick={() => setRotation(angle)}
                                  className={cn(
                                     "py-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 group",
-                                    rotation === angle ? "bg-blue-500 border-blue-500 text-white" : "bg-white/5 border-white/5 hover:border-white/10 text-muted-foreground"
+                                    rotation === angle ? "bg-primary border-primary text-primary-foreground" : "bg-white/5 border-white/5 hover:border-white/10 text-muted-foreground"
                                  )}
                               >
                                  <RotateCw className={cn(
@@ -112,7 +112,7 @@ export function PdfRotate() {
                      <button 
                         onClick={applyRotation}
                         disabled={isProcessing}
-                        className="w-full py-6 bg-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
+                        className="w-full py-6 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
                      >
                         {isProcessing ? <RefreshCw className="w-6 h-6 animate-spin" /> : <RotateCw className="w-6 h-6" />}
                         Apply Rotation to All Pages

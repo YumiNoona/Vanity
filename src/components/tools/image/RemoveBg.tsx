@@ -85,7 +85,7 @@ export function RemoveBg() {
   if (!file) {
     return (
       <ToolUploadLayout
-        title="Background Removal"
+        title="Remove Background"
         description="Upload an image and instantly remove its background. Powered by AI, perfectly free, and processes entirely in your browser."
         icon={Image}
       >

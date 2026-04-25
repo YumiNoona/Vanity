@@ -54,7 +54,7 @@ export function UuidHashGenerator() {
 
   return (
     <ToolLayout 
-      title="Security Toolbox" 
+      title="UUID & Hash Generator" 
       description="Generate secure UUIDs and cryptographic hashes locally." 
       icon={Key} 
       onBack={handleBack} 
@@ -85,7 +85,7 @@ export function UuidHashGenerator() {
               </button>
               <button 
                 onClick={() => handleCopy(uuid, 'uuid')}
-                className="flex-1 py-4 bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
               >
                 {copiedId === 'uuid' ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 Copy Result
@@ -103,7 +103,7 @@ export function UuidHashGenerator() {
                 value={inputText}
                 onChange={(e) => onInputChange(e.target.value)}
                 placeholder="Enter string to hash..."
-                className="w-full h-32 bg-black/40 border border-white/5 rounded-2xl p-4 font-mono text-sm outline-none focus:border-blue-500/30 transition-all text-white/90"
+                className="w-full h-32 bg-black/40 border border-white/5 rounded-2xl p-4 font-mono text-sm outline-none focus:border-primary/30 transition-all text-white/90"
               />
            </div>
 
@@ -111,7 +111,7 @@ export function UuidHashGenerator() {
               <div className="space-y-2">
                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold uppercase">
                     <span>SHA-256</span>
-                    <button onClick={() => handleCopy(hashResult.sha256, '256')} className="hover:text-blue-500 transition-colors">
+                    <button onClick={() => handleCopy(hashResult.sha256, '256')} className="hover:text-primary transition-colors">
                        <Copy className="w-3 h-3" />
                     </button>
                  </div>
@@ -123,7 +123,7 @@ export function UuidHashGenerator() {
               <div className="space-y-2">
                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold uppercase">
                     <span>SHA-512</span>
-                    <button onClick={() => handleCopy(hashResult.sha512, '512')} className="hover:text-blue-500 transition-colors">
+                    <button onClick={() => handleCopy(hashResult.sha512, '512')} className="hover:text-primary transition-colors">
                        <Copy className="w-3 h-3" />
                     </button>
                  </div>
@@ -135,8 +135,8 @@ export function UuidHashGenerator() {
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center gap-4 mt-8">
-        <div className="p-2 bg-blue-500/20 rounded-lg text-blue-500 shrink-0">
+      <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-4 mt-8">
+        <div className="p-2 bg-primary/20 rounded-lg text-primary shrink-0">
            <Hash className="w-5 h-5" />
         </div>
         <div className="space-y-1">

@@ -105,8 +105,8 @@ ${schema}`
 
   return (
     <ToolLayout 
-      title="API Scaffold" 
-      description={`Synthesize data structures accurately · ${activeProvider}`} 
+      title="Mock JSON Generator" 
+      description="Synthesize strict deterministic schema arrays seamlessly." 
       icon={Database} 
       onBack={handleBack} 
       backLabel="Back" 
@@ -159,7 +159,7 @@ ${schema}`
                <button 
                  onClick={generateMockData}
                  disabled={isProcessing || !schema.trim()}
-                 className="w-full py-4 bg-red-500 hover:bg-red-400 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4 active:scale-95"
+                 className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4 active:scale-95"
                >
                  {isProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Fetching Dataset...</> : <><Database className="w-5 h-5" /> Generate Seed Data</>}
                </button>
@@ -186,7 +186,7 @@ ${schema}`
                            </button>
                            <button 
                              onClick={handleDownload}
-                             className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition-colors"
+                             className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs uppercase tracking-widest rounded-lg transition-colors"
                            >
                              Save .json
                            </button>

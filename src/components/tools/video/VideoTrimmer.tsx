@@ -119,7 +119,7 @@ export function VideoTrimmer() {
                 <div className="space-y-6 text-center z-10 w-full max-w-sm">
                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-purple-500 transition-all duration-300" 
+                        className="h-full bg-primary transition-all duration-300" 
                         style={{ width: `${progress}%` }}
                       />
                    </div>

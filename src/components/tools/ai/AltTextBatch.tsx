@@ -16,7 +16,7 @@ interface ProcessedAltText {
 
 import { useObjectUrl, useObjectUrls } from "@/hooks/useObjectUrl"
 
-export function AltTextBatch() {
+export function AltTextBatch({ embedded = false }: { embedded?: boolean }) {
   const activeProvider = useActiveProvider()
   const [queue, setQueue] = useState<File[]>([])
   const [results, setResults] = useState<ProcessedAltText[]>([])
@@ -183,7 +183,7 @@ Return ONLY the raw string. No markdown.`
 
   if (queue.length === 0) {
     return (
-      <ToolUploadLayout title="Batch Alt Text Generator" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers}>
+      <ToolUploadLayout title="AI Alt-Text Writer (Batch)" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers} hideHeader={embedded}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
       </ToolUploadLayout>
@@ -192,12 +192,13 @@ Return ONLY the raw string. No markdown.`
 
   return (
     <ToolLayout 
-      title="Queue Manager" 
+      title="AI Alt-Text Writer (Batch)" 
       description={`${queue.length} items loaded · ${activeProvider}`} 
       icon={Layers} 
       onBack={handleBack} 
       backLabel="Start Fresh" 
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 border-t border-white/5 pt-6">
          {/* Command Panel */}

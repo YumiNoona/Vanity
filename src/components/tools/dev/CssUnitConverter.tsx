@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { Scissors, Settings2, Replace } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 
 type CssUnit = "px" | "rem" | "em" | "vw" | "vh"
 
@@ -38,18 +39,12 @@ export function CssUnitConverter() {
   const units: CssUnit[] = ["px", "rem", "em", "vw", "vh"]
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pt-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-4 px-4 sm:px-0 mb-8">
-        <div className="p-2 bg-pink-500/10 text-pink-500 rounded-xl">
-           <Scissors className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-syne">CSS Unit Converter</h1>
-          <p className="text-muted-foreground text-sm">Instantly translate pixels to relative and viewport units.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-0">
+    <ToolLayout 
+      title="CSS Unit Converter" 
+      description="Instantly translate pixels to relative and viewport units." 
+      icon={Scissors}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 glass-panel p-8 rounded-2xl space-y-8">
             
             <div className="flex flex-col md:flex-row items-stretch gap-4">
@@ -133,6 +128,6 @@ export function CssUnitConverter() {
            </div>
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

@@ -75,11 +75,11 @@ export function SplitPdf() {
   }
 
   return (
-    <ToolLayout title="Split PDF" description={`File: ${file.name}`} onBack={handleBack}>
+    <ToolLayout title="Split PDF" description={`File: ${file.name}`} icon={SplitSquareHorizontal} onBack={handleBack}>
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden">
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur flex flex-col items-center justify-center z-10 transition-opacity">
-            <Loader2 className="w-12 h-12 text-accent animate-spin mb-4" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
             <h3 className="text-xl font-bold font-syne animate-pulse text-white">Splitting PDF...</h3>
             <p className="text-sm text-muted-foreground mt-2">Processing {pageCount} pages locally</p>
           </div>
@@ -88,7 +88,7 @@ export function SplitPdf() {
         {resultZipUrl && !isProcessing && (
           <div className="text-center space-y-6">
             <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-2xl mb-2">
-               <FileText className="w-20 h-20 text-accent opacity-50" />
+               <FileText className="w-20 h-20 text-primary opacity-50" />
             </div>
             <div>
               <h2 className="text-2xl font-bold font-syne">{pageCount} Pages Extracted</h2>
@@ -97,7 +97,7 @@ export function SplitPdf() {
             
             <button 
               onClick={handleDownload}
-              className="px-8 py-4 text-lg font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105"
+              className="px-8 py-4 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105"
             >
               <Download className="w-6 h-6" /> Export </button>
           </div>

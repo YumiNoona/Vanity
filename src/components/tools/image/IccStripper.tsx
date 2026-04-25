@@ -19,7 +19,7 @@ interface IccMetadata {
   }
 }
 
-export function IccStripper() {
+export function IccStripper({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
@@ -108,8 +108,8 @@ export function IccStripper() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="ICC Profile Stripper" description="Remove embedded color profiles to ensure consistent web-standard sRGB rendering." icon={PaintBucket}>
-        <div className="flex justify-center mb-10">
+      <ToolUploadLayout title="ICC Profile Stripper" description="Remove embedded color profiles to ensure consistent web-standard sRGB rendering." icon={PaintBucket} hideHeader={embedded}>
+        <div className={cn("flex justify-center", embedded ? "mt-2 mb-4" : "mb-10")}>
            <PillToggle 
              activeId={processMode}
              onChange={(mode) => { setProcessMode(mode as any); handleBack(); }}
@@ -139,6 +139,7 @@ export function IccStripper() {
       icon={PaintBucket}
       onBack={handleBack}
       maxWidth="max-w-4xl"
+      hideHeader={embedded}
     >
       {processMode === 'view' ? (
         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

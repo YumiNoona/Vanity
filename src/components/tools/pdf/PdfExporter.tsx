@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { extractPdfText } from "@/lib/pdf-text"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { cn } from "@/lib/utils"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 type ExportMode = "images" | "text" | "word"
 
@@ -240,17 +241,15 @@ export function PdfExporter() {
       onBack={handleStartNew} 
       maxWidth="max-w-6xl"
     >
-      <div className="glass-panel p-3 rounded-2xl flex justify-center gap-2 flex-wrap mb-8">
-         <button onClick={() => changeMode("images")} disabled={isProcessing} className={cn("px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", mode === "images" ? "bg-accent text-accent-foreground" : "hover:bg-white/5 opacity-50 hover:opacity-100")}>
-            <Images className="w-4 h-4" /> Export to Images (ZIP)
-         </button>
-         <button onClick={() => changeMode("text")} disabled={isProcessing} className={cn("px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", mode === "text" ? "bg-accent text-accent-foreground" : "hover:bg-white/5 opacity-50 hover:opacity-100")}>
-            <FileText className="w-4 h-4" /> Export to Text (TXT)
-         </button>
-         <button onClick={() => changeMode("word")} disabled={isProcessing} className={cn("px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", mode === "word" ? "bg-accent text-accent-foreground" : "hover:bg-white/5 opacity-50 hover:opacity-100")}>
-            <FileSearch className="w-4 h-4" /> Export to Word (DOCX)
-         </button>
-      </div>
+      <PillToggle
+        activeId={mode}
+        onChange={(val) => changeMode(val as ExportMode)}
+        options={[
+          { id: "images", label: "Images (ZIP)", icon: Images },
+          { id: "text", label: "Text (TXT)", icon: FileText },
+          { id: "word", label: "Word (DOCX)", icon: FileSearch }
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -261,7 +260,7 @@ export function PdfExporter() {
                    <p className="text-muted-foreground">Ready to export as <strong>{mode.toUpperCase()}</strong>.</p>
                    <button 
                      onClick={runExport}
-                     className="px-8 py-5 bg-accent text-accent-foreground font-bold rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all text-lg mx-auto block"
+                     className="px-8 py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all text-lg mx-auto block"
                    >
                      Start Extraction
                    </button>
@@ -269,8 +268,8 @@ export function PdfExporter() {
              ) : isProcessing ? (
                 <div className="space-y-6 text-center z-10 w-full max-w-sm">
                    <div className="relative inline-block">
-                      <RefreshCw className="w-20 h-20 text-accent animate-spin opacity-20 mx-auto" />
-                      <div className="absolute inset-0 flex items-center justify-center font-mono text-xl font-bold text-accent">
+                      <RefreshCw className="w-20 h-20 text-primary animate-spin opacity-20 mx-auto" />
+                      <div className="absolute inset-0 flex items-center justify-center font-mono text-xl font-bold text-primary">
                          {progress}%
                       </div>
                    </div>
@@ -281,7 +280,7 @@ export function PdfExporter() {
                          {mode === "word" && "Mapping Layout..."}
                       </p>
                       <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-4">
-                        <div className="h-full bg-accent transition-all duration-300" style={{ width: `${progress}%` }} />
+                        <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
                       </div>
                    </div>
                 </div>
@@ -290,7 +289,7 @@ export function PdfExporter() {
              {mode === "images" && resultUrl && !isProcessing && (
                 <div className="text-center space-y-6 animate-in zoom-in-95 duration-500">
                   <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-full mb-2">
-                     <Images className="w-20 h-20 text-accent opacity-50" />
+                     <Images className="w-20 h-20 text-primary opacity-50" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold font-syne text-white">{pageCount} Images Generated</h2>
@@ -309,7 +308,7 @@ export function PdfExporter() {
 
              {mode === "word" && resultUrl && !isProcessing && (
                 <div className="text-center z-10 animate-in zoom-in-95 duration-500">
-                   <div className="p-6 bg-accent/10 rounded-full inline-block text-accent border border-accent/20 mb-6">
+                   <div className="p-6 bg-primary/10 rounded-full inline-block text-primary border border-accent/20 mb-6">
                       <ShieldCheck className="w-16 h-16" />
                    </div>
                    <h2 className="text-4xl font-bold font-syne text-white mb-2">Docx Export Ready</h2>
@@ -350,7 +349,7 @@ export function PdfExporter() {
                  <button 
                    onClick={handleDownload}
                    disabled={!resultUrl || isProcessing}
-                   className="w-full py-5 bg-accent text-accent-foreground font-bold rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
+                   className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-30"
                  >
                    <Download className="w-5 h-5" /> Export{mode === "text" ? ".txt File" : mode === "word" ? ".docx File" : "ZIP Bundle"}
                  </button>
@@ -365,8 +364,8 @@ export function PdfExporter() {
               </div>
            </div>
 
-           <div className="p-6 rounded-2xl bg-accent/5 border border-accent/10 flex items-start gap-4">
-              <ShieldCheck className="w-6 h-6 text-accent shrink-0 mt-1" />
+           <div className="p-6 rounded-2xl bg-primary/5 border border-accent/10 flex items-start gap-4">
+              <ShieldCheck className="w-6 h-6 text-primary shrink-0 mt-1" />
               <div>
                  <h4 className="font-bold text-sm text-white">100% Client-Side</h4>
                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">

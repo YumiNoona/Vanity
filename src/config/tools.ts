@@ -1,18 +1,19 @@
 import { 
-  Image, Layers, Crop, CheckCircle, FileText, SplitSquareHorizontal, 
-  Minimize2, Lock, Images, Eraser, FileCode, Pipette, 
+  Image, Layers, Crop, FileText, SplitSquareHorizontal, 
+  Minimize2, Lock, Images, FileCode, Pipette, 
   ShieldAlert, ShieldCheck, QrCode, MessageSquare, Sparkles, 
   ListOrdered, Stamp, Maximize2, Languages, FileEdit, FileImage,
-  Monitor, Layout, CircleUser, FileType, Pencil, Smartphone,
-  FileSpreadsheet, GitCompare, RotateCw, Scissors, Braces, 
-  Palette, Hash, Video, Zap, ArrowLeftRight, FileJson, 
-  Square, FileMinus, Binary, Contrast, Type, Copy,
+  Monitor, Layout, Pencil, Smartphone,
+  FileSpreadsheet, RotateCw, Scissors, Braces, 
+  Palette, Hash, Video, ArrowLeftRight, FileJson, 
+  FileMinus, Binary, Type, Zap,
   Grid, Search, Diff, Key, BrainCircuit, Mic, Music, Eye, FileCheck,
-  ImagePlus, Sigma, Globe, Code2, PenTool,
+  ImagePlus, Sigma, Code2,
   Terminal, Clock, Link2, Calendar, Code, AlignLeft, KeyRound, BarChart3,
-  Microscope, EyeOff, PaintBucket, ImagePlay, FastForward, Award, Database, FileSearch,
+  EyeOff, ImagePlay, FastForward, Award, Database, FileSearch,
   Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
-  Percent, Coins, Wallet, Landmark, Receipt, Repeat, HelpCircle, Table, ClipboardList
+  Percent, Coins, Wallet, Landmark, Receipt, Repeat, Table,
+  BookOpen
 } from "lucide-react"
 
 // Types to allow easier custom icons
@@ -52,7 +53,6 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "image-privacy", title: "Image Privacy", description: "Sanitize EXIF metadata and strip ICC color profiles for maximum security.", icon: ShieldCheck, path: "/tools/image/privacy", keywords: ["metadata", "privacy", "gps", "icc", "srgb", "viewer", "read", "exif"] },
   { id: "ascii", title: "ASCII Art Converter", description: "Turn any image into a text-based ASCII rendering.", icon: Type, path: "/tools/image/ascii" },
   { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
-  { id: "image-diff", title: "Image Difference tool", description: "Compute exact pixel deviations via XOR overlays.", icon: Microscope, path: "/tools/image/diff", keywords: ["compare", "xor", "overlay"] },
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
   { id: "collage-maker", title: "Collage Maker", description: "Arrange multiple images into grids or masonry layouts.", icon: Layout, path: "/tools/image/collage", keywords: ["grid", "masonry", "layout"] },
 ]
@@ -91,6 +91,7 @@ export const AI_TOOLS: Tool[] = [
 ]
 
 export const DEV_TOOLS: Tool[] = [
+  { id: "readme-viewer", title: "README Previewer", description: "Preview markdown with GitHub styling, copy code blocks, and generate badges.", icon: FileText, path: "/tools/text/readme", keywords: ["markdown", "github", "badges", "documentation"] },
   { id: "json-formatter", title: "JSON Formatter", description: "Prettify, minify, and validate JSON data.", icon: Braces, path: "/tools/dev/json", isPopular: true, keywords: ["pretty", "minify", "validate"] },
   { id: "color-picker", title: "Color Converter", description: "Pick any color, convert between HEX, RGB, HSL, CMYK.", icon: Palette, path: "/tools/dev/color", isPopular: true },
   { id: "base64-studio", title: "Base64 Studio", description: "Encode/Decode text, images, or files to base64 strings.", icon: Code2, path: "/tools/dev/base64-studio", isPopular: true, keywords: ["string", "encode", "embed"] },
@@ -136,6 +137,7 @@ export const TEXT_TOOLS: Tool[] = [
   { id: "unicode-explorer", title: "Unicode Explorer", description: "Inspect code points, categories, and bytes for any character.", icon: Languages, path: "/tools/text/unicode", keywords: ["utf8", "entity", "hex"] },
   { id: "name-formatter", title: "Name Case Formatter", description: "Bulk-fix name casing (JOHN DOE → John Doe) with prefix support.", icon: Type, path: "/tools/text/name-case", keywords: ["cleanup", "list", "format"] },
   { id: "table-to-md", title: "Table to Markdown / HTML", description: "Convert spreadsheet selections or CSV into Markdown or HTML tables.", icon: Table, path: "/tools/text/table-to-md", keywords: ["convert", "excel", "spreadsheet"] },
+  { id: "readme-viewer", title: "README Previewer", description: "Preview GitHub READMEs with templates, badges, and live rendering.", icon: BookOpen, path: "/tools/text/readme", isPopular: true, keywords: ["github", "markdown", "badge", "shield", "template"] },
 ]
 
 export const BROWSER_TOOLS: Tool[] = [

@@ -7,6 +7,9 @@ export function LoanEmi() {
   const [principal, setPrincipal] = useState("500000")
   const [rate, setRate] = useState("8.5")
   const [tenure, setTenure] = useState("5") // Years
+  const [currency, setCurrency] = useState("₹")
+
+  const CURRENCIES = ["₹", "$", "€", "£", "¥"]
 
   const calculate = () => {
     const p = parseFloat(principal) || 0
@@ -41,8 +44,14 @@ export function LoanEmi() {
           <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-8">
              <div className="space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Principal Amount (Loan)</label>
-                <div className="relative">
-                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">₹</span>
+                <div className="relative flex">
+                   <select 
+                     value={currency} 
+                     onChange={e => setCurrency(e.target.value)}
+                     className="absolute left-4 top-1/2 -translate-y-1/2 bg-transparent text-muted-foreground font-mono font-bold outline-none cursor-pointer border-none z-10 appearance-none"
+                   >
+                     {CURRENCIES.map(c => <option key={c} value={c} className="bg-zinc-900">{c}</option>)}
+                   </select>
                    <input 
                      type="text" 
                      value={formatIndian(principal)} 
@@ -50,7 +59,7 @@ export function LoanEmi() {
                        const raw = e.target.value.replace(/,/g, "")
                        if (!raw || /^\d*$/.test(raw)) setPrincipal(raw)
                      }}
-                     className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-4 text-xl font-mono focus:border-primary/50 outline-none transition-all"
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-xl font-mono focus:border-primary/50 outline-none transition-all"
                      placeholder="0"
                    />
                 </div>
@@ -101,7 +110,7 @@ export function LoanEmi() {
            <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-12 h-full flex flex-col justify-center">
               <div className="text-center space-y-2">
                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monthly EMI</p>
-                 <p className="text-6xl font-black font-syne text-white tracking-tight">₹ {Math.round(emi).toLocaleString()}</p>
+                 <p className="text-5xl lg:text-6xl font-black font-syne text-white tracking-tight whitespace-nowrap">{currency}{Math.round(emi).toLocaleString()}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-8 border-t border-white/5 pt-12">
@@ -110,14 +119,14 @@ export function LoanEmi() {
                        <PieChart className="w-3.5 h-3.5 text-primary" />
                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Interest</span>
                     </div>
-                    <p className="text-xl font-mono font-bold text-white">₹ {Math.round(totalInterest).toLocaleString()}</p>
+                    <p className="text-xl font-mono font-bold text-white">{currency} {Math.round(totalInterest).toLocaleString()}</p>
                  </div>
                  <div className="space-y-1">
                     <div className="flex items-center gap-2 mb-1">
                        <Wallet className="w-3.5 h-3.5 text-emerald-500" />
                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Payable</span>
                     </div>
-                    <p className="text-xl font-mono font-bold text-white">₹ {Math.round(totalPayment).toLocaleString()}</p>
+                    <p className="text-xl font-mono font-bold text-white">{currency} {Math.round(totalPayment).toLocaleString()}</p>
                  </div>
               </div>
 

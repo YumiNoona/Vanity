@@ -5,8 +5,9 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import * as fabric from "fabric"
-import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
+import { downloadBlob, exportCanvas, loadImage } from "@/lib/canvas"
 import { cn } from "@/lib/utils"
+import { PillToggle } from "@/components/shared/PillToggle"
 
 // Customize generic fabric UI controls for a modern, sleek look matching our crop tool
 fabric.Object.prototype.set({
@@ -22,7 +23,7 @@ fabric.Object.prototype.set({
   hasRotatingPoint: false // Hide rotation point by default
 });
 
-export function ImageWatermark() {
+export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -234,35 +235,33 @@ export function ImageWatermark() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Deep Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles}>
+      <ToolUploadLayout title="Deep Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles} hideHeader={embedded}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Watermark Editor" description="Rotate, scale, and place watermarks anywhere." maxWidth="max-w-7xl">
+    <ToolLayout 
+      title="Watermark Editor" 
+      description="Rotate, scale, and place watermarks anywhere." 
+      maxWidth="max-w-7xl"
+      onBack={() => setFile(null)}
+      hideHeader={embedded}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Editor sidebar */}
         <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-8">
           <div className="glass-panel p-6 rounded-3xl space-y-6 border-white/10 bg-black/40 shadow-2xl">
-            <div className="flex p-1 bg-white/5 rounded-2xl border border-white/5">
-              <button 
-                onClick={() => setActiveTab("text")}
-                className={cn("flex-1 flex flex-col items-center py-4 rounded-xl transition-all", activeTab === "text" ? "bg-primary text-primary-foreground font-bold shadow-lg" : "text-muted-foreground hover:text-foreground")}
-              >
-                <Type className="w-5 h-5 mb-1" />
-                <span className="text-[10px] uppercase font-bold tracking-widest">Text</span>
-              </button>
-              <button 
-                onClick={() => setActiveTab("image")}
-                className={cn("flex-1 flex flex-col items-center py-4 rounded-xl transition-all", activeTab === "image" ? "bg-primary text-primary-foreground font-bold shadow-lg" : "text-muted-foreground hover:text-foreground")}
-              >
-                <ImageIcon className="w-5 h-5 mb-1" />
-                <span className="text-[10px] uppercase font-bold tracking-widest">Image</span>
-              </button>
-            </div>
+            <PillToggle 
+              activeId={activeTab}
+              onChange={setActiveTab}
+              options={[
+                { id: "text", label: "Text", icon: Type },
+                { id: "image", label: "Image", icon: ImageIcon }
+              ]}
+            />
 
             {activeTab === "text" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">

@@ -1,6 +1,6 @@
 import React from "react"
 import { ArrowLeft, type LucideIcon } from "lucide-react"
-import { Link } from "react-router-dom"
+import { cn } from "@/lib/utils"
 
 interface ToolLayoutProps {
   title: string
@@ -11,6 +11,7 @@ interface ToolLayoutProps {
   backLabel?: string
   onBack?: () => void
   maxWidth?: string
+  hideHeader?: boolean
 }
 
 export function ToolLayout({
@@ -22,6 +23,7 @@ export function ToolLayout({
   backLabel,
   onBack,
   maxWidth = "max-w-4xl",
+  hideHeader = false,
 }: ToolLayoutProps) {
   const colorMap = {
     primary: {
@@ -37,30 +39,32 @@ export function ToolLayout({
   const colors = colorMap[iconColor]
 
   return (
-    <div className={`${maxWidth} mx-auto space-y-8`}>
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          {Icon && (
-            <div className={`inline-flex items-center justify-center p-3 ${colors.bg} rounded-full ${colors.text}`}>
-              <Icon className="w-6 h-6" />
+    <div className={cn(maxWidth, "mx-auto space-y-8")}>
+      {!hideHeader && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-4">
+            {Icon && (
+              <div className={`inline-flex items-center justify-center p-3 ${colors.bg} rounded-full ${colors.text}`}>
+                <Icon className="w-6 h-6" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-3xl font-bold font-syne mb-1">{title}</h1>
+              <p className="text-muted-foreground text-sm">{description}</p>
             </div>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold font-syne mb-1">{title}</h1>
-            <p className="text-muted-foreground text-sm">{description}</p>
           </div>
-        </div>
 
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {backLabel || "Start New"}
-          </button>
-        )}
-      </div>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backLabel || "Start New"}
+            </button>
+          )}
+        </div>
+      )}
 
       {children}
     </div>
@@ -77,6 +81,7 @@ interface ToolUploadLayoutProps {
   icon: LucideIcon
   iconColor?: "primary" | "accent"
   children: React.ReactNode
+  hideHeader?: boolean
 }
 
 export function ToolUploadLayout({
@@ -85,6 +90,7 @@ export function ToolUploadLayout({
   icon: Icon,
   iconColor = "primary",
   children,
+  hideHeader = false,
 }: ToolUploadLayoutProps) {
   const colorMap = {
     primary: {
@@ -100,12 +106,16 @@ export function ToolUploadLayout({
   const colors = colorMap[iconColor]
 
   return (
-    <div className="max-w-2xl mx-auto py-12 text-center">
-      <div className={`inline-flex items-center justify-center p-3 ${colors.bg} rounded-full mb-6 ${colors.text}`}>
-        <Icon className="w-8 h-8" />
-      </div>
-      <h1 className="text-4xl font-bold font-syne mb-1">{title}</h1>
-      <p className="text-muted-foreground text-lg mb-8">{description}</p>
+    <div className={cn("mx-auto py-12 text-center", hideHeader ? "max-w-full" : "max-w-2xl")}>
+      {!hideHeader && (
+        <>
+          <div className={`inline-flex items-center justify-center p-3 ${colors.bg} rounded-full mb-6 ${colors.text}`}>
+            <Icon className="w-8 h-8" />
+          </div>
+          <h1 className="text-4xl font-bold font-syne mb-1">{title}</h1>
+          <p className="text-muted-foreground text-lg mb-8">{description}</p>
+        </>
+      )}
       {children}
     </div>
   )

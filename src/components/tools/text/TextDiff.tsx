@@ -32,7 +32,7 @@ export function TextDiff() {
 
   return (
     <ToolLayout 
-      title="Diff Checker" 
+      title="Text Diff Checker" 
       description="Compare two versions of text side-by-side." 
       icon={Diff} 
       onBack={handleBack} 

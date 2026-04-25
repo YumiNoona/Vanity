@@ -92,7 +92,7 @@ export function MergePdf() {
   if (resultUrl && !isProcessing) {
     return (
       <ToolLayout
-        title="Files Merged!"
+        title="Merge PDFs"
         description="Your new PDF is ready to download."
         icon={CheckCircle}
         onBack={() => { setPdfs([]); clearResultUrl(); }}

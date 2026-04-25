@@ -185,14 +185,21 @@ export function GifMaker() {
     window.history.back()
   }
 
+  if (files.length === 0) {
+    return (
+      <ToolUploadLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images}>
+        <DropZone onDrop={handleDrop} accept={{"image/*": []}} multiple label="Add Frames (Max 20)" />
+      </ToolUploadLayout>
+    )
+  }
+
   return (
     <ToolLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images} onBack={handleBack} backLabel="Back">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-           <DropZone onDrop={handleDrop} accept={{"image/*": []}} multiple label="Add Frames (Max 20)" />
+           <DropZone onDrop={handleDrop} accept={{"image/*": []}} multiple label="Add More Frames" />
            
-           {files.length > 0 && (
-             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {files.map((_, idx) => (
                    <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border border-white/10 bg-white/5">
                       <img src={previewUrls[idx]} className="w-full h-full object-cover" />
@@ -208,7 +215,6 @@ export function GifMaker() {
                    </div>
                 ))}
              </div>
-           )}
 
            {resultGif && (
              <div className="glass-panel p-6 rounded-3xl border-primary/20 space-y-4">

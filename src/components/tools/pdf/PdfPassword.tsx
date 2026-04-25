@@ -137,7 +137,7 @@ export function PdfPassword() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="PDF Password Manager" description="Add or remove password protection from your PDF files using AES-256 encryption." icon={Lock}>
+      <ToolUploadLayout title="PDF Passwords" description="Add or remove password protection from your PDF files using AES-256 encryption." icon={Lock}>
         {serverOnline === false && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm animate-in fade-in slide-in-from-top-2">
             ⚠️ PDF Password Service is offline. Run <code className="bg-white/10 px-2 py-0.5 rounded text-white">node server/server.js</code> locally to enable encryption.
@@ -159,7 +159,7 @@ export function PdfPassword() {
 
   return (
     <ToolLayout
-      title={mode === "add" ? "Protect PDF" : "Unlock PDF"}
+      title="PDF Passwords"
       description={file.name}
       icon={mode === "add" ? Lock : Unlock}
       onBack={handleBack}

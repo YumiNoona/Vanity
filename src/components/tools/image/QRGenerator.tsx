@@ -7,7 +7,7 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 import { downloadBlob } from "@/lib/canvas"
 
-export function QRGenerator() {
+export function QRGenerator({ embedded = false }: { embedded?: boolean }) {
   const [text, setText] = useState("https://vanity.venusapp.in")
   const [qrBlob, setQrBlob] = useState<Blob | null>(null)
   const { url: qrUrl, setUrl: setQrUrl } = useObjectUrl()
@@ -50,7 +50,7 @@ export function QRGenerator() {
   }, [])
 
   return (
-    <ToolLayout title="QR Generator" description="Create high-resolution QR codes instantly.">
+    <ToolLayout title="QR Generator" description="Create high-resolution QR codes instantly." hideHeader={embedded}>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">

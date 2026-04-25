@@ -4,7 +4,7 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
-export function Base64Tool() {
+export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"encode" | "decode">("encode")
@@ -79,6 +79,7 @@ export function Base64Tool() {
       onBack={handleBack} 
       backLabel="Back" 
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}

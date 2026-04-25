@@ -75,7 +75,7 @@ export function AudioConverter() {
                 <div className="space-y-6 text-center z-10 w-full max-w-sm">
                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-purple-500 transition-all duration-300" 
+                        className="h-full bg-primary transition-all duration-300" 
                         style={{ width: `${progress}%` }}
                       />
                    </div>
@@ -114,7 +114,7 @@ export function AudioConverter() {
                          onClick={() => setTargetFormat(fmt)}
                          className={cn(
                            "py-3 rounded-xl text-xs font-bold border transition-all uppercase",
-                           targetFormat === fmt ? "bg-purple-500 border-purple-500 text-white" : "border-white/5 bg-white/5 hover:bg-white/10 text-muted-foreground"
+                           targetFormat === fmt ? "bg-primary border-primary text-primary-foreground" : "border-white/5 bg-white/5 hover:bg-white/10 text-muted-foreground"
                          )}
                        >
                          {fmt}

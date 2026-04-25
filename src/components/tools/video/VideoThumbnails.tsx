@@ -148,7 +148,7 @@ export function VideoThumbnails() {
   }
 
   return (
-    <ToolLayout title="Contact Sheet" description={file.name} icon={ImagePlay} onBack={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} backLabel="Load Different" maxWidth="max-w-6xl">
+    <ToolLayout title="Video Grid Extractor" description={file.name} icon={ImagePlay} onBack={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} backLabel="Load Different" maxWidth="max-w-6xl">
 
       <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-8 border-indigo-500/10">
          
@@ -168,7 +168,7 @@ export function VideoThumbnails() {
             <button 
               onClick={extractFrames}
               disabled={isExtracting}
-              className="py-3 px-8 bg-indigo-500 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:bg-indigo-400 transition-all disabled:opacity-50 flex items-center gap-2"
+              className="py-3 px-8 bg-primary text-primary-foreground font-bold rounded-lg shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all disabled:opacity-50 flex items-center gap-2"
             >
               {isExtracting ? <><Loader2 className="w-4 h-4 animate-spin" /> {progress}%</> : "Extract Frames"}
             </button>
@@ -205,7 +205,7 @@ export function VideoThumbnails() {
                         <Loader2 className="w-12 h-12 animate-spin mb-4" />
                         <p className="font-mono text-sm">Decoding frames sequentially...</p>
                         <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden mt-2">
-                           <div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress}%` }} />
+                           <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                         </div>
                      </>
                   ) : (

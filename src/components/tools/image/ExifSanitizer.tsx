@@ -26,7 +26,7 @@ interface ExifReport {
   [group: string]: ExifGroup
 }
 
-export function ExifSanitizer() {
+export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
@@ -127,8 +127,8 @@ export function ExifSanitizer() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Image Privacy" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck}>
-        <div className="flex justify-center mb-10">
+      <ToolUploadLayout title="Image Privacy" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck} hideHeader={embedded}>
+        <div className={cn("flex justify-center", embedded ? "mt-2 mb-4" : "mb-10")}>
            <PillToggle 
              activeId={processMode}
              onChange={(mode) => { setProcessMode(mode); handleBack(); }}
@@ -158,6 +158,7 @@ export function ExifSanitizer() {
       icon={ShieldCheck}
       onBack={handleBack}
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       {processMode === 'view' ? (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Sparkles, Type, Plus } from "lucide-react"
+import { Download, ArrowLeft, Loader2, Sparkles, Type, Plus, MessageSquare } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -251,14 +251,14 @@ export function MemeGenerator() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Meme Generator" description="Upload an image or video template and create viral memes instantly in your browser." icon={Sparkles}>
+      <ToolUploadLayout title="Meme Generator" description="Upload an image or video template and create viral memes instantly in your browser." icon={MessageSquare}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [], "video/*": [] }} />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Meme Station" description="Double click text to edit. Drag to reposition." onBack={handleBack} backLabel="Change Template" maxWidth="max-w-6xl">
+    <ToolLayout title="Meme Generator" description="Double click text to edit. Drag to reposition." icon={MessageSquare} onBack={handleBack} backLabel="Change Template" maxWidth="max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
            <div className="glass-panel p-6 rounded-xl space-y-4">

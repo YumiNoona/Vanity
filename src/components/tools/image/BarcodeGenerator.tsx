@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { downloadBlob, exportCanvas } from "@/lib/canvas"
 
-export function BarcodeGenerator() {
+export function BarcodeGenerator({ embedded = false }: { embedded?: boolean }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [text, setText] = useState("VANITYTOOLS")
@@ -80,7 +80,7 @@ export function BarcodeGenerator() {
   }
 
   return (
-    <ToolLayout title="Barcode Generator" description="Generate commercial-grade barcodes instantly.">
+    <ToolLayout title="Barcode Generator" description="Generate commercial-grade barcodes instantly." hideHeader={embedded}>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">

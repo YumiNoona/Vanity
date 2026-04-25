@@ -64,7 +64,7 @@ export function ColorPicker() {
   }
 
   return (
-    <ToolLayout title="Color Picker" description="Convert between HEX, RGB, and HSL." icon={Palette} onBack={handleBack} backLabel="Back">
+    <ToolLayout title="Color Converter" description="Convert between HEX, RGB, and HSL." icon={Palette} onBack={handleBack} backLabel="Back">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Visual Picker */}
         <div className="space-y-6">

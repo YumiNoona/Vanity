@@ -112,7 +112,7 @@ JSON Structure requirement:
 
   return (
     <ToolLayout 
-      title="UX Architecture" 
+      title="Explain UI" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Monitor} 
       onBack={handleBack} 
@@ -128,7 +128,7 @@ JSON Structure requirement:
             {!isProcessing && !breakdown && (
                <button 
                  onClick={analyzeInterface}
-                 className="w-full py-4 bg-teal-500 text-black font-bold rounded-xl shadow-[0_0_25px_rgba(20,184,166,0.3)] hover:bg-teal-400 transition-all flex items-center justify-center gap-2 active:scale-95"
+                 className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-[0_0_25px_rgba(var(--primary),0.3)] transition-all flex items-center justify-center gap-2 active:scale-95"
                >
                  <Glasses className="w-5 h-5" /> Deconstruct Layout & Interactions
                </button>

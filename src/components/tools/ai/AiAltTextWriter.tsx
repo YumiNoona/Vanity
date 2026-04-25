@@ -9,7 +9,7 @@ import { toast } from "sonner"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
-export function AiAltTextWriter() {
+export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
   const [file, setFile] = useState<File | null>(null)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -70,6 +70,7 @@ export function AiAltTextWriter() {
         title="AI Alt-Text Writer" 
         description="Generate professional accessibility descriptions for your images using AI Vision." 
         icon={Eye}
+        hideHeader={embedded}
       >
         <div className="space-y-6">
           <AIProviderHint />
@@ -81,12 +82,13 @@ export function AiAltTextWriter() {
 
   return (
     <ToolLayout 
-      title="Accessibility Engine" 
+      title="AI Alt-Text Writer" 
       description={`Provider: ${activeProvider}`} 
       icon={BrainCircuit} 
       onBack={handleBack} 
       backLabel="Change Image" 
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-6">

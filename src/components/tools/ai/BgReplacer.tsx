@@ -90,7 +90,7 @@ export function BgReplacer() {
   if (!file) {
     return (
       <ToolUploadLayout 
-        title="AI BG Replacer" 
+        title="AI Background Replacer" 
         description="Remove your background locally, then let AI imagine a new set using CSS & SVG artistry." 
         icon={Wand2} 
       >
@@ -104,7 +104,7 @@ export function BgReplacer() {
 
   return (
     <ToolLayout 
-      title="Background Studio" 
+      title="AI Background Replacer" 
       description={`Hybrid local-AI scene generation · ${activeProvider}`} 
       icon={Wand2} 
       onBack={handleBack} 
