@@ -60,8 +60,11 @@ export function NumberBaseConverter() {
       title="Number Base Converter" 
       description="Convert between binary, octal, decimal, and hexadecimal instantly." 
       icon={Hash}
+      centered={true}
+      maxWidth="max-w-4xl"
     >
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="glass-panel p-6 sm:p-8 rounded-2xl space-y-6">
         {error && (
           <div className="flex items-center gap-2 p-4 bg-red-500/10 text-red-400 border border-red-500/20 text-sm rounded-xl">
             <AlertTriangle className="w-4 h-4" /> {error}
@@ -120,6 +123,8 @@ export function NumberBaseConverter() {
             className="w-full bg-black/40 border border-white/10 focus:border-sky-500/50 rounded-xl p-6 font-mono text-xl sm:text-2xl text-sky-100 outline-none transition-colors"
             spellCheck={false}
           />
+        </div>
+      </div>
         </div>
       </div>
     </ToolLayout>

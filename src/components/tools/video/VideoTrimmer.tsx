@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Video, Download, RefreshCw, Scissors, Clock, Zap } from "lucide-react"
+import { Video, Download, RefreshCw, Scissors, Clock, Zap } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { useProcessingState } from "@/hooks/useProcessingState"
@@ -74,12 +74,6 @@ export function VideoTrimmer() {
     document.body.removeChild(a)
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearSourceUrl()
-    clearResultUrl()
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout 
@@ -108,8 +102,7 @@ export function VideoTrimmer() {
       title="Video Trimmer"
       description={file.name}
       icon={Scissors}
-      onBack={handleBack}
-      backLabel="New Video"
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

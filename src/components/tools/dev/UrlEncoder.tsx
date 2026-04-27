@@ -40,7 +40,13 @@ export function UrlEncoder() {
   }
 
   return (
-    <ToolLayout title="URL Encoder / Decoder" description="Safely encode or decode URLs and query string parameters." icon={Link2} maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="URL Encoder / Decoder" 
+      description="Safely encode or decode URLs and query string parameters." 
+      icon={Link2} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
         <div className="space-y-4">

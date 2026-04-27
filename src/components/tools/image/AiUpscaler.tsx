@@ -8,71 +8,6 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
 
-/**
- * Lanczos3 kernel — self-contained, no remote model fetch.
- * Produces high-quality upscaling comparable to Photoshop's bicubic sharper.
- */
-function lanczos3(x: number): number {
-  if (x === 0) return 1
-  if (x < -3 || x > 3) return 0
-  const px = Math.PI * x
-  return (3 * Math.sin(px) * Math.sin(px / 3)) / (px * px)
-}
-
-function lanczosResample(
-  srcData: Uint8ClampedArray,
-  srcW: number,
-  srcH: number,
-  dstW: number,
-  dstH: number,
-  onProgress?: (p: number) => void
-): ImageData {
-  const dst = new ImageData(dstW, dstH)
-  const ratioX = srcW / dstW
-  const ratioY = srcH / dstH
-  const totalRows = dstH
-
-  for (let dy = 0; dy < dstH; dy++) {
-    for (let dx = 0; dx < dstW; dx++) {
-      const srcX = (dx + 0.5) * ratioX - 0.5
-      const srcY = (dy + 0.5) * ratioY - 0.5
-
-      let r = 0, g = 0, b = 0, a = 0, weightSum = 0
-
-      const x0 = Math.max(0, Math.floor(srcX) - 2)
-      const x1 = Math.min(srcW - 1, Math.floor(srcX) + 3)
-      const y0 = Math.max(0, Math.floor(srcY) - 2)
-      const y1 = Math.min(srcH - 1, Math.floor(srcY) + 3)
-
-      for (let sy = y0; sy <= y1; sy++) {
-        for (let sx = x0; sx <= x1; sx++) {
-          const weight = lanczos3(srcX - sx) * lanczos3(srcY - sy)
-          const idx = (sy * srcW + sx) * 4
-          r += srcData[idx] * weight
-          g += srcData[idx + 1] * weight
-          b += srcData[idx + 2] * weight
-          a += srcData[idx + 3] * weight
-          weightSum += weight
-        }
-      }
-
-      const dIdx = (dy * dstW + dx) * 4
-      if (weightSum > 0) {
-        dst.data[dIdx] = Math.max(0, Math.min(255, r / weightSum))
-        dst.data[dIdx + 1] = Math.max(0, Math.min(255, g / weightSum))
-        dst.data[dIdx + 2] = Math.max(0, Math.min(255, b / weightSum))
-        dst.data[dIdx + 3] = Math.max(0, Math.min(255, a / weightSum))
-      }
-    }
-
-    if (onProgress && dy % 20 === 0) {
-      onProgress(Math.round((dy / totalRows) * 100))
-    }
-  }
-
-  return dst
-}
-
 export function AiUpscaler() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
@@ -131,23 +66,38 @@ export function AiUpscaler() {
       const dstW = srcW * scale
       const dstH = srcH * scale
 
-      // Run Lanczos in a yielded manner so UI stays responsive
-      const resultData = await new Promise<ImageData>((resolve) => {
-        // Use setTimeout to yield to the browser before heavy compute
-        setTimeout(() => {
-          const data = lanczosResample(
-            srcData.data, srcW, srcH, dstW, dstH,
-            (p) => {
-              if (jobId === jobIdRef.current && isMountedRef.current) {
-                setProgress(5 + Math.round(p * 0.9)) // 5% to 95%
-              }
-            }
-          )
-          resolve(data)
-        }, 50)
+      // Run Lanczos in a Web Worker so UI stays responsive
+      const resultDataArray = await new Promise<Uint8ClampedArray>((resolve, reject) => {
+        const worker = new Worker(new URL("@/workers/upscale.worker.ts", import.meta.url), { type: 'module' });
+        
+        worker.onmessage = (e) => {
+          if (e.data.type === 'progress') {
+             if (jobId === jobIdRef.current && isMountedRef.current) {
+                setProgress(5 + Math.round(e.data.progress * 0.9))
+             }
+          } else if (e.data.type === 'done') {
+             worker.terminate()
+             resolve(e.data.data)
+          }
+        }
+        
+        worker.onerror = (err) => {
+          worker.terminate()
+          reject(err)
+        }
+        
+        worker.postMessage({
+          srcData: srcData.data,
+          srcW,
+          srcH,
+          dstW,
+          dstH
+        }, [srcData.data.buffer] as any)
       })
 
       if (jobId !== jobIdRef.current || !isMountedRef.current) return
+
+      const resultData = new ImageData(resultDataArray as any, dstW, dstH)
 
       // Write result to output canvas
       const outCanvas = document.createElement("canvas")
@@ -229,7 +179,7 @@ export function AiUpscaler() {
       title="Image Upscaler"
       description={`Processing: ${file.name}`}
       icon={Maximize2}
-      onBack={handleStartNew}
+      centered={true}
     >
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
         {isProcessing && (
@@ -279,12 +229,20 @@ export function AiUpscaler() {
               </p>
             )}
 
-            <button 
-              onClick={handleDownload}
-              className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-2 mx-auto"
-            >
-              <Download className="w-5 h-5" /> Export{scale}x Result
-            </button>
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+              <button 
+                onClick={handleDownload}
+                className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-105 transition-all flex items-center justify-center gap-2"
+              >
+                <Download className="w-5 h-5" /> Export {scale}x Result
+              </button>
+              <button 
+                onClick={handleStartNew}
+                className="px-12 py-4 bg-white/5 text-white font-bold rounded-full hover:bg-white/10 transition-all"
+              >
+                Start New
+              </button>
+            </div>
           </div>
         )}
       </div>

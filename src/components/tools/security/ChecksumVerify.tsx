@@ -51,8 +51,10 @@ export function ChecksumVerify() {
       title="Checksum Verifier"
       description="Verify file integrity and authenticity by calculating cryptographic hashes locally."
       icon={Fingerprint}
+      centered={true}
+      maxWidth="max-w-4xl"
     >
-      <div className="space-y-8">
+      <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
         {!file ? (
           <DropZone onDrop={handleDrop} label="Drop file to calculate checksums" />
         ) : (

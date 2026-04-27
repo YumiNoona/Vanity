@@ -36,6 +36,7 @@ export function UnitConverter() {
       title="Universal Unit Converter"
       description="Convert between metric and imperial units for length, weight, area, and more."
       icon={ArrowLeftRight}
+      centered={true}
     >
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="grid grid-cols-4 gap-2">

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Sparkles, RefreshCw, Monitor, Code, ShieldCheck, Copy, CheckCircle, Smartphone } from "lucide-react"
+import { Sparkles, RefreshCw, Monitor, Code, ShieldCheck, Copy, CheckCircle, Smartphone } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -77,12 +77,6 @@ export function ScreenshotToCode() {
     toast.success("HTML copied!")
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearPreviewUrl()
-    setCode("")
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout 
@@ -103,8 +97,7 @@ export function ScreenshotToCode() {
       title="Visual Coder" 
       description={`Translating pixels to responsive HTML · ${activeProvider}`} 
       icon={Code} 
-      onBack={handleBack} 
-      backLabel="New Screenshot" 
+      centered={true}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

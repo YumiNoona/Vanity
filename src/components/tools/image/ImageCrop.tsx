@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Crop, RefreshCcw } from "lucide-react"
+import { Download, Loader2, Crop, RefreshCcw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -172,9 +172,8 @@ export function ImageCrop() {
       title="Crop Image"
       description={`Editing: ${singleFile?.name}`}
       icon={Crop}
-      onBack={handleBack}
-      backLabel="Start Over"
       maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="glass-panel p-8 rounded-3xl flex flex-col items-center overflow-hidden border-white/10 bg-black/40 min-h-[500px] justify-center">
         <div ref={containerRef} className="relative inline-flex max-w-full select-none rounded-xl overflow-hidden shadow-2xl bg-black/20">
@@ -207,14 +206,22 @@ export function ImageCrop() {
             <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Position</span><div className="text-sm font-mono text-white">X: {Math.round(crop.x)}% Y: {Math.round(crop.y)}%</div></div>
             <div className="space-y-1"><span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest block">Size</span><div className="text-sm font-mono text-white">W: {Math.round(crop.width)}% H: {Math.round(crop.height)}%</div></div>
         </div>
-        <button 
-          onClick={handleSingleDownload} 
-          disabled={isExporting} 
-          className="mt-8 px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all disabled:opacity-50 shadow-lg active:scale-95"
-        >
-          {isExporting ? <Loader2 className="animate-spin w-6 h-6" /> : <Download className="w-6 h-6" />}
-          Export
-        </button>
+        <div className="flex gap-4 mt-8 w-full justify-center">
+          <button 
+            onClick={handleSingleDownload} 
+            disabled={isExporting} 
+            className="px-12 py-5 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center gap-3 hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.3)] transition-all disabled:opacity-50 shadow-lg active:scale-95"
+          >
+            {isExporting ? <Loader2 className="animate-spin w-6 h-6" /> : <Download className="w-6 h-6" />}
+            Export
+          </button>
+          <button 
+            onClick={handleBack}
+            className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all"
+          >
+            Start Over
+          </button>
+        </div>
       </div>
     </ToolLayout>
   )

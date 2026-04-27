@@ -13,6 +13,7 @@ export function CodeGenerator() {
       title="Scan Suite" 
       description="Professional barcode and QR generation for business and development."
       icon={Terminal}
+      centered={true}
     >
       <div className="relative animate-in fade-in duration-500">
         <div className="flex justify-center pt-6 pb-2 relative z-10 w-full mb-8">

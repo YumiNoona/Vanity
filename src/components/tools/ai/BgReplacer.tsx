@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Sparkles, RefreshCw, Wand2, ShieldCheck, Download, Trash2 } from "lucide-react"
+import { Sparkles, RefreshCw, Wand2, ShieldCheck, Download, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -80,13 +80,6 @@ export function BgReplacer() {
     }
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearSourceImageUrl()
-    clearNoBgUrl()
-    setGeneratedBg("")
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout 
@@ -107,8 +100,7 @@ export function BgReplacer() {
       title="AI Background Replacer" 
       description={`Hybrid local-AI scene generation · ${activeProvider}`} 
       icon={Wand2} 
-      onBack={handleBack} 
-      backLabel="Start New"
+      centered={true}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

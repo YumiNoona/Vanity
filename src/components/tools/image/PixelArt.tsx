@@ -79,8 +79,7 @@ export function PixelArt() {
       title="Pixel Studio"
       description="Control the resolution for maximum crunch."
       icon={Binary}
-      onBack={() => setFile(null)}
-      backLabel="Start Over"
+      centered={true}
       maxWidth="max-w-6xl"
     >
 
@@ -144,6 +143,13 @@ export function PixelArt() {
                 className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
               >
                 <Download className="w-5 h-5" /> Export </button>
+
+              <button 
+                onClick={() => setFile(null)}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+              >
+                Start New
+              </button>
            </div>
         </div>
       </div>

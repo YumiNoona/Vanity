@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHorizontal, Loader2 } from "lucide-react"
+import { Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHorizontal, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
@@ -185,12 +185,6 @@ export function PdfCrop() {
     a.click()
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearPreviewUrl()
-    clearResultUrl()
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout title="Crop PDF" description="Adjust page margins to remove whitespace or crop content." icon={Crop}>
@@ -212,8 +206,7 @@ export function PdfCrop() {
       title="Cropping Engine"
       description={file.name}
       icon={FileText}
-      onBack={handleBack}
-      backLabel="New File"
+      centered={true}
       maxWidth="max-w-5xl"
     >
       <div className="flex gap-4 mb-6">

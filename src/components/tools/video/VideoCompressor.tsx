@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Video, Download, ShieldCheck, Zap } from "lucide-react"
+import { Video, Download, ShieldCheck, Zap } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
@@ -68,11 +68,6 @@ export function VideoCompressor() {
     a.click()
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearResultUrl()
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout title="Video Compressor" description="Shrink MP4, WebM, or MOV files locally using high-performance FFMPEG.wasm." icon={Video}>
@@ -86,9 +81,8 @@ export function VideoCompressor() {
       title="Encoding Engine" 
       description={`${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`} 
       icon={Zap} 
-      onBack={handleBack} 
-      backLabel="Change Video" 
       maxWidth="max-w-5xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">

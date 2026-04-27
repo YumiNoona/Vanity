@@ -92,17 +92,12 @@ export function CsvJsonConverter() {
     }
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="Data Converter" 
       description="Switch between CSV and JSON formats effortlessly." 
       icon={FileSpreadsheet} 
-      onBack={handleBack} 
-      backLabel="Back" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react"
-import { ArrowLeft, Key, Copy, CheckCircle, RefreshCw, ShieldCheck, Hash } from "lucide-react"
+import { Key, Copy, CheckCircle, RefreshCw, ShieldCheck, Hash } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 
@@ -48,18 +48,13 @@ export function UuidHashGenerator() {
     calculateHash(val)
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="UUID & Hash Generator" 
       description="Generate secure UUIDs and cryptographic hashes locally." 
       icon={Key} 
-      onBack={handleBack} 
-      backLabel="Back" 
       maxWidth="max-w-5xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* UUID Generator */}

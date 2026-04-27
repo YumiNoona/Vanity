@@ -95,20 +95,27 @@ export function MergePdf() {
         title="Merge PDFs"
         description="Your new PDF is ready to download."
         icon={CheckCircle}
-        onBack={() => { setPdfs([]); clearResultUrl(); }}
-        backLabel="Start New Merge"
+        centered={true}
       >
         <div className="max-w-2xl mx-auto py-8 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
           <div className="inline-flex items-center justify-center p-8 bg-accent/10 rounded-full mb-8 text-accent shadow-2xl border border-accent/20">
             <CheckCircle className="w-16 h-16" />
           </div>
           
-          <button 
-            onClick={handleDownload}
-            className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-accent text-accent-foreground hover:bg-accent/90 rounded-2xl shadow-[0_0_40px_rgba(252,211,77,0.3)] transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-95 w-full md:w-auto justify-center"
-          >
-            <Download className="w-6 h-6" /> Export
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <button 
+              onClick={handleDownload}
+              className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-accent text-accent-foreground hover:bg-accent/90 rounded-2xl shadow-[0_0_40px_rgba(252,211,77,0.3)] transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-95 w-full md:w-auto justify-center"
+            >
+              <Download className="w-6 h-6" /> Export
+            </button>
+            <button 
+              onClick={() => { setPdfs([]); clearResultUrl(); }}
+              className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all w-full md:w-auto justify-center"
+            >
+              Start New
+            </button>
+          </div>
         </div>
       </ToolLayout>
     )
@@ -136,8 +143,7 @@ export function MergePdf() {
       title="Merge PDFs"
       description="Combine multiple PDF files into one. 100% locally on your machine."
       icon={Layers}
-      onBack={() => setPdfs([])}
-      backLabel="Clear All"
+      centered={true}
     >
       <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
 

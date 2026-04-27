@@ -76,6 +76,8 @@ export function NameFormatter() {
       title="Name Case Formatter"
       description="Bulk-fix capitalization in lists of names, including support for Mc/Mac prefixes and suffixes."
       icon={Type}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <div className="space-y-4 flex flex-col">

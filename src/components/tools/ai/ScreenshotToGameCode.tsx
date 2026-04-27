@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { ArrowLeft, Code2, Copy, Cpu, Loader2, Sparkles, TriangleAlert } from "lucide-react"
+import { Code2, Copy, Cpu, Loader2, Sparkles, TriangleAlert } from "lucide-react"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
@@ -174,22 +174,14 @@ export function ScreenshotToGameCode() {
     toast.success("Code copied!")
   }
 
-  const handleBack = () => {
-    requestControllerRef.current?.abort()
-    setFile(null)
-    clearPreviewUrl()
-    setOutputCode("")
-    setOcrWarning(false)
-  }
-
   if (!file) {
     return (
-      <ToolUploadLayout 
-        title="Screenshot to Game Code" 
-        description="Convert game code screenshots into clean, annotated source files using AI Vision." 
+      <ToolUploadLayout
+        title="Screenshot to Game Code"
+        description="Convert game code screenshots into clean, annotated text using AI."
         icon={Code2}
       >
-        <div className="flex flex-col space-y-6 w-full max-w-2xl mx-auto">
+        <div className="space-y-6">
           <div className="flex justify-center">
             <PillToggle
               activeId={mode}
@@ -212,9 +204,8 @@ export function ScreenshotToGameCode() {
       title="Screenshot to Game Code"
       description={`Provider: ${activeProvider} · Gemini Vision or Offline OCR fallback`}
       icon={Code2}
-      onBack={handleBack}
-      backLabel="Reset"
       maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4 space-y-6">

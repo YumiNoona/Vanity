@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Loader2, Sparkles, MessageSquare, Copy, CheckCircle, SlidersHorizontal } from "lucide-react"
+import { Loader2, Sparkles, MessageSquare, Copy, CheckCircle, SlidersHorizontal } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -80,12 +80,6 @@ JSON Structure requirement:
      setTimeout(() => setCopiedIndex(null), 2000)
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearImgUrl()
-    setCaptions([])
-  }
-
   if (!file || !imgUrl) {
     return (
        <ToolUploadLayout title="AI Caption Generator" description="Upload any image and let Claude write engaging, platform-perfect captions in seconds." icon={MessageSquare}>
@@ -100,8 +94,7 @@ JSON Structure requirement:
       title="AI Caption Generator" 
       description={`${file.name} · ${activeProvider}`} 
       icon={MessageSquare} 
-      onBack={handleBack} 
-      backLabel="Try Another" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

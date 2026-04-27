@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { ArrowLeft, Search, FileText, Clock, Hash, TrendingUp, Trash2 } from "lucide-react"
+import { Search, FileText, Clock, Hash, TrendingUp, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 export function TextAnalyser() {
@@ -34,18 +34,13 @@ export function TextAnalyser() {
     }
   }, [input])
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="Text Analyser" 
       description="Deep statistics and word frequency analysis." 
       icon={Search} 
-      onBack={handleBack} 
-      backLabel="Back" 
       maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}

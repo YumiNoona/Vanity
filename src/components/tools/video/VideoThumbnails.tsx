@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, ImagePlay, Loader2 } from "lucide-react"
+import { Download, ImagePlay, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 
@@ -148,7 +148,7 @@ export function VideoThumbnails() {
   }
 
   return (
-    <ToolLayout title="Video Grid Extractor" description={file.name} icon={ImagePlay} onBack={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }} backLabel="Load Different" maxWidth="max-w-6xl">
+    <ToolLayout title="Video Grid Extractor" description={file.name} icon={ImagePlay} centered={true} maxWidth="max-w-6xl">
 
       <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-8 border-indigo-500/10">
          
@@ -179,6 +179,12 @@ export function VideoThumbnails() {
               title="Download All JPGs Arrayed"
             >
               <Download className="w-4 h-4" /> All
+            </button>
+            <button 
+              onClick={() => { setFile(null); clearVideoUrl(); clearThumbnails(); }}
+              className="py-3 px-6 bg-white/5 text-white font-bold rounded-lg border border-white/10 transition-all text-xs"
+            >
+              Start New
             </button>
          </div>
 

@@ -25,6 +25,8 @@ export function PercentageCalc() {
       title="Percentage Calculator"
       description="Quickly calculate percentages, ratios, and percentage changes with visual breakdowns."
       icon={Percent}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         

@@ -45,8 +45,10 @@ export function BcryptHasher() {
       title="Bcrypt Hasher"
       description="Securely hash passwords and verify existing bcrypt hashes locally using the blowfish cipher."
       icon={Fingerprint}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Hashing Panel */}
         <div className="space-y-6">
            <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">
@@ -132,6 +134,7 @@ export function BcryptHasher() {
               )}
            </div>
         </div>
+      </div>
       </div>
     </ToolLayout>
   )

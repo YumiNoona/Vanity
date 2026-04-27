@@ -116,11 +116,7 @@ export function ImagesToPdf() {
       title="Images to PDF"
       description={`${images.length} images ready to convert`}
       icon={FileText}
-      onBack={() => {
-        clearUrls()
-        setImages([])
-        setResultBlob(null)
-      }}
+      centered={true}
       maxWidth="max-w-4xl"
     >
       <DropZone
@@ -186,12 +182,24 @@ export function ImagesToPdf() {
               {isProcessing ? "Converting..." : "Create PDF"}
             </button>
           ) : (
-            <button
-              onClick={handleDownload}
-              className="px-8 py-3 font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all flex items-center gap-2"
-            >
-              <Download className="w-5 h-5" /> Export
-            </button>
+           <div className="flex gap-4">
+             <button
+               onClick={handleDownload}
+               className="px-8 py-3 font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all flex items-center gap-2"
+             >
+               <Download className="w-5 h-5" /> Export
+             </button>
+             <button
+               onClick={() => {
+                 setImages([])
+                 setResultBlob(null)
+                 clearUrls()
+               }}
+               className="px-8 py-3 font-bold bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 transition-all"
+             >
+               Start New
+             </button>
+           </div>
           )}
         </div>
       </div>

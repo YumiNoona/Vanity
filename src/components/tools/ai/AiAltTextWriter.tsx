@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle, Info } from "lucide-react"
+import { Sparkles, RefreshCw, Eye, BrainCircuit, ShieldCheck, Copy, CheckCircle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -58,12 +58,6 @@ export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
     toast.success("Copied!")
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearPreviewUrl()
-    setAltText("")
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout 
@@ -72,7 +66,7 @@ export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
         icon={Eye}
         hideHeader={embedded}
       >
-        <div className="space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
           <AIProviderHint />
           <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop photo to describe" />
         </div>
@@ -85,8 +79,7 @@ export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
       title="AI Alt-Text Writer" 
       description={`Provider: ${activeProvider}`} 
       icon={BrainCircuit} 
-      onBack={handleBack} 
-      backLabel="Change Image" 
+      centered={true}
       maxWidth="max-w-6xl"
       hideHeader={embedded}
     >

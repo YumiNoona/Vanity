@@ -73,7 +73,13 @@ export function RegexTester() {
   ]
 
   return (
-    <ToolLayout title="Regex Tester" description="Live evaluate regular expressions with highlighting and group capture." icon={Terminal} maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="Regex Tester" 
+      description="Live evaluate regular expressions with highlighting and group capture." 
+      icon={Terminal} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-0">
         <div className="lg:col-span-2 space-y-6">

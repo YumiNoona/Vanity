@@ -352,42 +352,45 @@ export function ReadmeViewer() {
       description="Preview GitHub READMEs with templates, badges, and live rendering."
       icon={BookOpen}
       maxWidth="max-w-7xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Panel */}
         <div className="lg:col-span-5 flex flex-col space-y-4">
           {/* Top Controls */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <PillToggle
-              activeId={activeTab}
-              onChange={setActiveTab}
-              options={[
-                { id: "edit", label: "Editor", icon: BookOpen },
-                { id: "badges", label: "Badges", icon: Sparkles },
-              ]}
-            />
-            <div className="flex items-center gap-2">
-              <button onClick={handleCopy} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:bg-white/10 transition-all">
-                {copied ? <CheckCircle className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                {copied ? "Copied" : "Copy"}
-              </button>
-              <button onClick={handleDownload} className="px-3 py-1.5 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
-                <Download className="w-3 h-3" /> Export
-              </button>
+          <div className="flex flex-col items-center space-y-6 mb-2">
+            <div className="flex items-center justify-between w-full gap-4">
+              <PillToggle
+                activeId={activeTab}
+                onChange={setActiveTab}
+                options={[
+                  { id: "edit", label: "Editor", icon: BookOpen },
+                  { id: "badges", label: "Badges", icon: Sparkles },
+                ]}
+              />
+              <div className="flex items-center gap-2">
+                <button onClick={handleCopy} className="px-4 py-2 bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest rounded-xl flex items-center gap-2 hover:bg-white/10 transition-all">
+                  {copied ? <CheckCircle className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+                <button onClick={handleDownload} className="px-4 py-2 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest rounded-xl flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+                  <Download className="w-3 h-3" /> Export
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Templates Strip */}
-          <div className="flex gap-2">
-            {TEMPLATES.map(t => (
-              <button
-                key={t.id}
-                onClick={() => loadTemplate(t.id)}
-                className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 transition-all text-muted-foreground hover:text-white"
-              >
-                {t.name}
-              </button>
-            ))}
+            {/* Templates Strip */}
+            <div className="flex gap-2 flex-wrap justify-center">
+              {TEMPLATES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => loadTemplate(t.id)}
+                  className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:border-primary/30 transition-all text-muted-foreground hover:text-white"
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeTab === "edit" ? (

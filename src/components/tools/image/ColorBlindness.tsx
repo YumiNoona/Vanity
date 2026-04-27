@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Download, Eye, EyeOff, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
@@ -153,8 +153,7 @@ export function ColorBlindness() {
       title="Color Blindness Simulator" 
       description={`Visualizing ${mode.toUpperCase()} matrices directly against RGB pipelines locally.`} 
       icon={Eye} 
-      onBack={handleBack} 
-      backLabel="Go Back" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       {/* Hidden processing resources */}
@@ -227,6 +226,12 @@ export function ColorBlindness() {
               className="w-full py-4 mt-8 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
                <Download className="w-5 h-5" /> Export
+            </button>
+            <button 
+              onClick={handleBack}
+              className="w-full py-4 mt-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+            >
+               Start New
             </button>
          </div>
       </div>

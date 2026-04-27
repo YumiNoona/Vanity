@@ -250,7 +250,7 @@ export function ImageToSketch() {
       title="Sketch Studio"
       description="Adjust intensity for different artistic styles."
       icon={Pencil}
-      onBack={() => setFile(null)}
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
@@ -307,6 +307,13 @@ export function ImageToSketch() {
               className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-5 h-5" /> Export-Res Sketch
+            </button>
+
+            <button 
+              onClick={() => setFile(null)}
+              className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+            >
+              Start New
             </button>
           </div>
         </div>

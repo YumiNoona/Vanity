@@ -1,23 +1,24 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { FastForward, Download, Loader2, Play, ArrowLeft, Info } from "lucide-react"
+import { FastForward, Download, Loader2, Play, Info } from "lucide-react"
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function VideoSpeed() {
   const [file, setFile] = useState<File | null>(null)
   const [speed, setSpeed] = useState(1.0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultUrl(null)
+      clearResultUrl()
     }
   }
 
@@ -74,7 +75,7 @@ export function VideoSpeed() {
       })
 
       const blob = new Blob([data as any], { type: "video/mp4" })
-      setResultUrl(URL.createObjectURL(blob))
+      setResultUrl(blob)
       toast.success("Video speed adjusted!")
     } catch (error: any) {
       console.error(error)
@@ -98,6 +99,8 @@ export function VideoSpeed() {
       title="Video Speed Changer"
       description="Adjust video playback speed with intelligent audio pitch correction."
       icon={FastForward}
+      centered={true}
+      maxWidth="max-w-4xl"
     >
       <div className="space-y-6">
         {!file ? (
@@ -155,12 +158,20 @@ export function VideoSpeed() {
                           <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
                        </div>
                     </div>
-                  ) : resultUrl ? (
-                    <button 
-                      onClick={handleDownload}
-                      className="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
-                    >
-                      <Download className="w-5 h-5" /> Export </button>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full">
+                      <button 
+                        onClick={handleDownload}
+                        className="flex-1 py-4 bg-emerald-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-emerald-500/20"
+                      >
+                        <Download className="w-5 h-5" /> Export 
+                      </button>
+                      <button 
+                        onClick={() => { setFile(null); clearResultUrl(); }}
+                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                      >
+                        Start New
+                      </button>
+                    </div>
                   ) : (
                     <button 
                       onClick={processVideo}

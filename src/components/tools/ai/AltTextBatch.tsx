@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Loader2, Download, Layers, CheckCircle, Image as ImageIcon, Trash2, Eye } from "lucide-react"
+import { Loader2, Download, Layers, CheckCircle, Image as ImageIcon, Trash2, Eye } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -174,18 +174,13 @@ Return ONLY the raw string. No markdown.`
     URL.revokeObjectURL(tempUrl)
   }
 
-  const handleBack = () => {
-    setQueue([])
-    setResults([])
-    clearUrls()
-    clearResultUrl()
-  }
-
   if (queue.length === 0) {
     return (
       <ToolUploadLayout title="AI Alt-Text Writer (Batch)" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers} hideHeader={embedded}>
-         <AIProviderHint />
-         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
+        <div className="max-w-2xl mx-auto space-y-6">
+          <AIProviderHint />
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
+        </div>
       </ToolUploadLayout>
     )
   }
@@ -195,8 +190,7 @@ Return ONLY the raw string. No markdown.`
       title="AI Alt-Text Writer (Batch)" 
       description={`${queue.length} items loaded · ${activeProvider}`} 
       icon={Layers} 
-      onBack={handleBack} 
-      backLabel="Start Fresh" 
+      centered={true}
       maxWidth="max-w-6xl"
       hideHeader={embedded}
     >

@@ -68,6 +68,8 @@ export function UaParser() {
       title="User Agent Parser"
       description="Break down any User Agent string into browser, engine, OS, and device type instantly."
       icon={MonitorSmartphone}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="space-y-8">
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">

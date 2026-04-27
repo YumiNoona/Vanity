@@ -43,6 +43,8 @@ export function CssUnitConverter() {
       title="CSS Unit Converter" 
       description="Instantly translate pixels to relative and viewport units." 
       icon={Scissors}
+      maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 glass-panel p-8 rounded-2xl space-y-8">

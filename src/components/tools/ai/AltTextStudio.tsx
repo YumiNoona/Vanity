@@ -14,6 +14,7 @@ export function AltTextStudio() {
       title="AI Alt-Text Writer" 
       description="Professional accessibility descriptions for your images using AI Vision." 
       icon={Sparkles}
+      centered={true}
     >
       <div className="relative animate-in fade-in duration-500">
         <div className="flex justify-center pb-8 relative z-10">

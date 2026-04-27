@@ -67,17 +67,11 @@ export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
     reader.readAsDataURL(file)
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="Base64 Tool" 
       description="Encode or decode strings and files instantly." 
       icon={Hash} 
-      onBack={handleBack} 
-      backLabel="Back" 
       maxWidth="max-w-6xl"
       hideHeader={embedded}
     >

@@ -46,7 +46,13 @@ export function JwtDecoder() {
   }, [token])
 
   return (
-    <ToolLayout title="JWT Decoder" description="Decode JSON Web Tokens locally. No data leaves your browser." icon={ShieldCheck} maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="JWT Decoder" 
+      description="Decode JSON Web Tokens locally. No data leaves your browser." 
+      icon={ShieldCheck} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
         <div className="space-y-4">

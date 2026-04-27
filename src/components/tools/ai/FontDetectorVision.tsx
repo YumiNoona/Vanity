@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Type, Loader2, Sparkles, ExternalLink, Info } from "lucide-react"
+import { Type, Loader2, Sparkles, ExternalLink, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -94,12 +94,6 @@ JSON Structure requirement:
     }
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearImgUrl()
-    setMatches(null)
-  }
-
   if (!file || !imgUrl) {
     return (
        <ToolUploadLayout title="Font Matcher (Vision)" description="Drop a screenshot of any text to heuristically determine its closest typographic family." icon={Type}>
@@ -114,8 +108,7 @@ JSON Structure requirement:
       title="Font Matcher (Vision)" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Type} 
-      onBack={handleBack} 
-      backLabel="Load Different" 
+      centered={true}
       maxWidth="max-w-5xl"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

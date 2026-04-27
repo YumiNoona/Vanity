@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, FileText, Copy, CheckCircle, Languages } from "lucide-react"
+import { Download, Loader2, FileText, Copy, CheckCircle, Languages } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
@@ -8,8 +8,8 @@ import { safeImport } from "@/lib/utils/loader"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
-// Module-level cache for heavy library
-let tesseractModule: any = null
+// Managed worker for proper cleanup
+let tesseractWorker: any = null
 
 export function OcrExtractor() {
   const { validateFiles } = usePremium()
@@ -24,10 +24,9 @@ export function OcrExtractor() {
 
   useEffect(() => {
     return () => {
-      const maybeTerminate = (tesseractModule as { terminate?: () => Promise<void> } | null)?.terminate
-      if (typeof maybeTerminate === "function") {
-        void maybeTerminate().catch(() => {})
-        tesseractModule = null
+      if (tesseractWorker) {
+        void tesseractWorker.terminate().catch(() => {})
+        tesseractWorker = null
       }
     }
   }, [])
@@ -47,34 +46,38 @@ export function OcrExtractor() {
     setIsProcessing(true)
 
     try {
-      // 1. Action-triggered dynamic import with caching
-      if (!tesseractModule) {
-        setProgress(5) // Starter progress
-        tesseractModule = await safeImport(
+      // 1. Action-triggered dynamic import + Worker creation
+      if (!tesseractWorker) {
+        setProgress(5)
+        const Tesseract = await safeImport(
           () => import("tesseract.js"),
           "OCR engine"
         )
+        tesseractWorker = await Tesseract.createWorker(language, 1, {
+          logger: (m: any) => {
+            if (m.status === "recognizing text") {
+              setProgress(Math.round(m.progress * 100))
+            }
+          },
+        })
       }
 
-      const { recognize } = tesseractModule
+      // 2. Processing
+      const { data: { text } } = await tesseractWorker.recognize(uploadedFile)
 
-      // 2. Processing with logger
-      const result = await recognize(uploadedFile, language, {
-        logger: (m: any) => {
-          if (m.status === "recognizing text") {
-            setProgress(Math.round(m.progress * 100))
-          }
-        },
-      })
-
-      setExtractedText(result.data.text)
-      setResultUrl(new Blob([result.data.text], { type: "text/plain" }))
+      setExtractedText(text)
+      setResultUrl(new Blob([text], { type: "text/plain" }))
       setProgress(100)
       toast.success("Text extracted successfully!")
     } catch (error: any) {
       console.error(error)
       toast.error(error?.message || "OCR failed. Check your network.")
       setFile(null)
+      // Reset worker on error to be safe
+      if (tesseractWorker) {
+        await tesseractWorker.terminate().catch(() => {})
+        tesseractWorker = null
+      }
     } finally {
       setIsProcessing(false)
     }
@@ -144,12 +147,7 @@ export function OcrExtractor() {
       title="OCR — Image to Text"
       description={`Extracted from ${file.name}`}
       icon={Languages}
-      onBack={() => {
-        setFile(null)
-        setExtractedText(null)
-        clearPreviewUrl()
-        clearResultUrl()
-      }}
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
@@ -207,6 +205,17 @@ export function OcrExtractor() {
                 className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all disabled:opacity-50"
               >
                 <Download className="w-3 h-3" /> .txt
+              </button>
+              <button
+                onClick={() => {
+                  setFile(null)
+                  setExtractedText(null)
+                  clearPreviewUrl()
+                  clearResultUrl()
+                }}
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-bold rounded-lg transition-all"
+              >
+                Start New
               </button>
             </div>
           </div>

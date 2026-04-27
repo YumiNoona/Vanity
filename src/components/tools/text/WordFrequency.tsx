@@ -33,7 +33,13 @@ export function WordFrequency() {
   }, [text])
 
   return (
-    <ToolLayout title="Word Frequency Counter" description="Analyze text blocks to parse density patterns visually." icon={BarChart3} maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="Word Frequency Counter" 
+      description="Analyze text blocks to parse density patterns visually." 
+      icon={BarChart3} 
+      centered={true}
+      maxWidth="max-w-6xl"
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
          <div className="space-y-4">

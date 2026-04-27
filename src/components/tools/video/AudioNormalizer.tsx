@@ -1,10 +1,11 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { Music, Download, Loader2, Play, ArrowLeft, Info, Volume2 } from "lucide-react"
+import { Music, Download, Loader2, Play, Info, Volume2 } from "lucide-react"
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 const LUFS_PRESETS = [
   { label: "Spotify / YouTube", value: -14, description: "Standard for most streaming platforms." },
@@ -18,12 +19,12 @@ export function AudioNormalizer() {
   const [targetLufs, setTargetLufs] = useState(-14)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [resultUrl, setResultUrl] = useState<string | null>(null)
+  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const handleDrop = (files: File[]) => {
     if (files[0]) {
       setFile(files[0])
-      setResultUrl(null)
+      clearResultUrl()
     }
   }
 
@@ -52,7 +53,7 @@ export function AudioNormalizer() {
       })
 
       const blob = new Blob([data as any], { type: "audio/mp3" })
-      setResultUrl(URL.createObjectURL(blob))
+      setResultUrl(blob)
       toast.success("Audio normalized!")
     } catch (error: any) {
       console.error(error)
@@ -76,6 +77,8 @@ export function AudioNormalizer() {
       title="Audio Normalizer"
       description="Loudness-normalize audio files to target LUFS standards using the industry-standard loudnorm filter."
       icon={Music}
+      centered={true}
+      maxWidth="max-w-4xl"
     >
       <div className="space-y-6">
         {!file ? (

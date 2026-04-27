@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { ArrowLeft, Diff, SplitSquareHorizontal, Layout, Trash2, Copy, CheckCircle } from "lucide-react"
+import { Diff, SplitSquareHorizontal, Layout, Trash2, Copy, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { diff_match_patch } from "diff-match-patch"
 import { toast } from "sonner"
@@ -26,17 +26,12 @@ export function TextDiff() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="Text Diff Checker" 
       description="Compare two versions of text side-by-side." 
       icon={Diff} 
-      onBack={handleBack} 
-      backLabel="Back" 
+      centered={true}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 sm:px-0">

@@ -74,6 +74,7 @@ export function ScientificCalc() {
       title="Scientific Calculator"
       description="Advanced calculations including trigonometry, logarithms, and powers entirely in your browser."
       icon={Calculator}
+      centered={true}
     >
       <div className="max-w-xl mx-auto space-y-6">
          <div className="glass-panel p-8 rounded-[40px] border border-white/5 bg-black/20 shadow-2xl space-y-8">

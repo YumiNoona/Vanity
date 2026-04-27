@@ -67,9 +67,11 @@ export function RsaGen() {
       title="RSA Key Generator"
       description="Generate cryptographically strong RSA public and private key pairs locally in your browser."
       icon={ShieldCheck}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="space-y-8">
-        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 flex flex-wrap gap-6 items-center justify-between">
+        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 flex flex-wrap gap-8 items-center justify-center">
            <div className="flex items-center gap-4">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bit Size</label>
                <PillToggle

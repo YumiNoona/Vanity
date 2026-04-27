@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, SplitSquareHorizontal, FileText } from "lucide-react"
+import { Download, Loader2, SplitSquareHorizontal, FileText } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import JSZip from "jszip"
@@ -75,7 +75,7 @@ export function SplitPdf() {
   }
 
   return (
-    <ToolLayout title="Split PDF" description={`File: ${file.name}`} icon={SplitSquareHorizontal} onBack={handleBack}>
+    <ToolLayout title="Split PDF" description={`File: ${file.name}`} icon={SplitSquareHorizontal} centered={true}>
       <div className="glass-panel p-8 rounded-xl flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden">
         {isProcessing && (
           <div className="absolute inset-0 bg-background/80 backdrop-blur flex flex-col items-center justify-center z-10 transition-opacity">
@@ -95,11 +95,19 @@ export function SplitPdf() {
               <p className="text-muted-foreground mt-2">Your pages have been compressed into a ZIP file.</p>
             </div>
             
-            <button 
-              onClick={handleDownload}
-              className="px-8 py-4 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105"
-            >
-              <Download className="w-6 h-6" /> Export </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleDownload}
+                className="px-8 py-4 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-[0_0_30px_rgba(252,211,77,0.3)] transition-all flex items-center justify-center gap-3 hover:scale-105"
+              >
+                <Download className="w-6 h-6" /> Export </button>
+              <button 
+                onClick={handleBack}
+                className="px-8 py-4 text-lg font-bold bg-white/5 hover:bg-white/10 text-white rounded-full border border-white/10 transition-all flex items-center justify-center"
+              >
+                Start New
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -96,6 +96,7 @@ export function EnvEditor() {
       title="ENV File Editor"
       description="Securely edit environment variables locally in your browser."
       icon={FileCode}
+      centered={true}
     >
       <div className="space-y-6">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">

@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Stamp, Type, Settings2 } from "lucide-react"
+import { Download, Loader2, Stamp, Type, Settings2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
@@ -95,8 +95,7 @@ export function PdfWatermark() {
       title="PDF Watermark" 
       description={`Target: ${file.name}`} 
       icon={Stamp}
-      onBack={handleBack} 
-      backLabel="Start Over" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -173,12 +172,20 @@ export function PdfWatermark() {
                   Generate Watermarked PDF
                 </button>
               ) : (
-                <button 
-                  onClick={handleDownload}
-                  className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
-                >
-                  <Download className="w-5 h-5" /> Export
-                </button>
+                <div className="space-y-2">
+                  <button 
+                    onClick={handleDownload}
+                    className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-5 h-5" /> Export
+                  </button>
+                  <button 
+                    onClick={handleBack}
+                    className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all text-xs"
+                  >
+                    Start New
+                  </button>
+                </div>
               )}
            </div>
         </div>

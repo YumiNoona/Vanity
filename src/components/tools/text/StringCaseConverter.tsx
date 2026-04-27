@@ -71,7 +71,14 @@ export function StringCaseConverter() {
   ]
 
   return (
-    <ToolLayout title="String Case Converter" description="Convert text to camelCase, snake_case, PascalCase, and more simultaneously." icon={Type}>
+    <ToolLayout 
+      title="String Case Converter" 
+      description="Convert text to camelCase, snake_case, PascalCase, and more simultaneously." 
+      icon={Type}
+      centered={true}
+      maxWidth="max-w-4xl"
+    >
+      <div className="max-w-2xl mx-auto space-y-6">
 
       <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-8">
          <div className="space-y-4">
@@ -114,6 +121,7 @@ export function StringCaseConverter() {
               ))}
             </div>
          </div>
+      </div>
       </div>
     </ToolLayout>
   )

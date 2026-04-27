@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, RotateCw, Download, RefreshCw, Layers, CheckCircle } from "lucide-react"
+import { RotateCw, Download, RefreshCw, Layers, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument, degrees } from "pdf-lib"
 import { toast } from "sonner"
@@ -64,7 +64,7 @@ export function PdfRotate() {
   }
 
   return (
-    <ToolLayout title="Rotate PDF Pages" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File">
+    <ToolLayout title="Rotate PDF Pages" description={file.name} icon={Layers} centered={true}>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
          <div className="md:col-span-12 xl:col-span-12">

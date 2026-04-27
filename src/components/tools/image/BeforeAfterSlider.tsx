@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Copy, SplitSquareHorizontal, MoveHorizontal, Trash2 } from "lucide-react"
+import { Copy, SplitSquareHorizontal, MoveHorizontal, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -119,8 +119,7 @@ export function BeforeAfterSlider() {
       title="Comparison Deck"
       description="Drag the handle to reveal differences."
       icon={SplitSquareHorizontal}
-      onBack={reset}
-      backLabel="Start New"
+      centered={true}
       maxWidth="max-w-6xl"
     >
       {aspectWarning && (
@@ -181,12 +180,18 @@ export function BeforeAfterSlider() {
          <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-500">
             <SplitSquareHorizontal className="w-8 h-8" />
          </div>
-         <div className="space-y-1">
+          <div className="space-y-4 flex-1">
             <h4 className="text-lg font-bold text-white font-syne">Interactive Comparison</h4>
             <p className="text-sm text-muted-foreground leading-relaxed">
                Perfect for showing photo edits, color correction, or AI upscaling results. Both images are loaded locally in your browser memory and never uploaded to any server.
             </p>
-         </div>
+            <button 
+              onClick={reset}
+              className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+            >
+              Start New Comparison
+            </button>
+          </div>
       </div>
     </ToolLayout>
   )

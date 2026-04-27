@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, FileText, Loader2, Award, Zap, AlertCircle, Sparkles, Target, CheckCircle2 } from "lucide-react"
+import { FileText, Loader2, Award, Zap, AlertCircle, Sparkles, Target, CheckCircle2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import * as pdfjsLib from "pdfjs-dist"
@@ -129,11 +129,6 @@ Your response must exactly match this JSON structure:
      return "text-red-400"
   }
 
-  const handleBack = () => {
-    setFile(null)
-    setResult(null)
-  }
-
   if (!file) {
     return (
        <ToolUploadLayout 
@@ -152,8 +147,7 @@ Your response must exactly match this JSON structure:
       title="AI Resume Reviewer" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Award} 
-      onBack={handleBack} 
-      backLabel="Analyze Another" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       {!result && !isProcessing && (

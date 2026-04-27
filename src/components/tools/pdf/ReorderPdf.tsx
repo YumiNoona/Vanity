@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, ListOrdered, GripVertical, Trash2 } from "lucide-react"
+import { Download, Loader2, ListOrdered, GripVertical, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import { usePremium } from "@/hooks/usePremium"
@@ -106,7 +106,7 @@ export function ReorderPdf() {
   }
 
   return (
-    <ToolLayout title="Reorder PDF" description={file?.name} icon={ListOrdered} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Start Over">
+    <ToolLayout title="Reorder PDF" description={file?.name} icon={ListOrdered} centered={true}>
 
       <div className="glass-panel p-6 rounded-xl min-h-[400px]">
         <Reorder.Group axis="y" values={pages} onReorder={setPages} className="space-y-3">
@@ -156,12 +156,20 @@ export function ReorderPdf() {
             Compile PDF
           </button>
         ) : (
-          <button 
-            onClick={handleDownload}
-            className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
-          >
-            <Download className="w-5 h-5" /> Export
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={handleDownload}
+              className="px-12 py-4 bg-primary text-primary-foreground font-bold rounded-full shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" /> Export
+            </button>
+            <button 
+              onClick={() => { setFile(null); clearResultUrl(); }}
+              className="px-12 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-full border border-white/10 transition-all flex items-center justify-center"
+            >
+              Start New
+            </button>
+          </div>
         )}
       </div>
     </ToolLayout>

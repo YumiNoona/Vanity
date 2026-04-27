@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
-import { Download, ArrowLeft, Barcode as BarcodeIcon } from "lucide-react"
+import { Download, Barcode as BarcodeIcon } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import JsBarcode from "jsbarcode"
 import { toast } from "sonner"
@@ -80,7 +80,7 @@ export function BarcodeGenerator({ embedded = false }: { embedded?: boolean }) {
   }
 
   return (
-    <ToolLayout title="Barcode Generator" description="Generate commercial-grade barcodes instantly." hideHeader={embedded}>
+    <ToolLayout title="Barcode Generator" description="Generate commercial-grade barcodes instantly." centered={true} hideHeader={embedded}>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
         <div className="glass-panel p-6 rounded-xl space-y-6">

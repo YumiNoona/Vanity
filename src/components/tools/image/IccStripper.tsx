@@ -120,14 +120,16 @@ export function IccStripper({ embedded = false }: { embedded?: boolean }) {
            />
         </div>
 
-        <DropZone 
-          onDrop={handleProcess} 
-          accept={{ "image/*": [] }} 
-          label={
-            processMode === 'view' ? "Drop image to read ICC profile" :
-            "Drop image to normalize colors"
-          }
-        />
+        <div className="max-w-2xl mx-auto space-y-6">
+          <DropZone 
+            onDrop={handleProcess} 
+            accept={{ "image/*": [] }} 
+            label={
+              processMode === 'view' ? "Drop image to read ICC profile" :
+              "Drop image to normalize colors"
+            }
+          />
+        </div>
       </ToolUploadLayout>
     )
   }
@@ -137,7 +139,7 @@ export function IccStripper({ embedded = false }: { embedded?: boolean }) {
       title={processMode === 'remove' ? "Color Normalizer" : "ICC Inspector"}
       description={`Target: ${file?.name}`}
       icon={PaintBucket}
-      onBack={handleBack}
+      centered={true}
       maxWidth="max-w-4xl"
       hideHeader={embedded}
     >

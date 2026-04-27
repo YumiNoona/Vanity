@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Lock, Unlock, FileText, ShieldCheck } from "lucide-react"
+import { Download, Loader2, Lock, Unlock, FileText, ShieldCheck } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -162,8 +162,7 @@ export function PdfPassword() {
       title="PDF Passwords"
       description={file.name}
       icon={mode === "add" ? Lock : Unlock}
-      onBack={handleBack}
-      backLabel="Start Over"
+      centered={true}
       maxWidth="max-w-4xl"
     >
       <div className="glass-panel p-8 rounded-3xl space-y-8 relative overflow-hidden min-h-[400px] border-white/5 bg-black/40 flex flex-col items-center justify-center">
@@ -236,12 +235,20 @@ export function PdfPassword() {
               </p>
             </div>
 
-            <button
-              onClick={handleDownload}
-              className="px-12 py-5 bg-primary text-primary-foreground font-black rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 mx-auto uppercase tracking-widest text-sm active:scale-95"
-            >
-              <Download className="w-6 h-6" /> Export
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleDownload}
+                className="px-12 py-5 bg-primary text-primary-foreground font-black rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-sm active:scale-95"
+              >
+                <Download className="w-6 h-6" /> Export
+              </button>
+              <button
+                onClick={handleBack}
+                className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl border border-white/10 transition-all flex items-center justify-center uppercase tracking-widest text-sm"
+              >
+                Start New
+              </button>
+            </div>
           </div>
         )}
       </div>

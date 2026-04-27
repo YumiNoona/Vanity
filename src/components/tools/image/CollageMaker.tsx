@@ -5,6 +5,7 @@ import { Layout, Download, Grid, Layers, Trash2, Plus, Move, Image as ImageIcon,
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import * as fabric from "fabric"
+import { downloadBlob, exportCanvas } from "@/lib/canvas"
 
 // Setup custom fabric UI for interactive mode
 fabric.Object.prototype.set({
@@ -336,21 +337,19 @@ export function CollageMaker() {
     fabricCanvas.current.renderAll()
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!fabricCanvas.current) return
     fabricCanvas.current.discardActiveObject()
     fabricCanvas.current.renderAll()
     
-    const url = fabricCanvas.current.toDataURL({
-      format: 'png',
-      quality: 1,
-      multiplier: 2
-    })
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "vanity-collage.png"
-    a.click()
-    toast.success("Collage exported!")
+    try {
+      const fabricElement = fabricCanvas.current.toCanvasElement(2) // Export at 2x
+      const blob = await exportCanvas(fabricElement, "image/png", 1.0)
+      downloadBlob(blob, "vanity-collage.png")
+      toast.success("Collage exported!")
+    } catch (err) {
+      toast.error("Export failed. Try a smaller layout.")
+    }
   }
 
   // Empty state — show DropZone

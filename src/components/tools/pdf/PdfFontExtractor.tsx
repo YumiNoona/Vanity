@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Type, Download, AlertTriangle, CheckCircle, Search, RefreshCw, XCircle } from "lucide-react"
+import { Type, Download, AlertTriangle, CheckCircle, Search, RefreshCw, XCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import * as pdfjsLib from "pdfjs-dist"
 import { toast } from "sonner"
@@ -129,7 +129,7 @@ export function PdfFontExtractor() {
   }
 
   return (
-    <ToolLayout title="Discovery Table" description={file.name} icon={Search} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Load Different" maxWidth="max-w-6xl">
+    <ToolLayout title="Discovery Table" description={file.name} icon={Search} centered={true} maxWidth="max-w-6xl">
 
       <div className="glass-panel rounded-3xl overflow-hidden border-amber-500/10 shadow-2xl">
          {isProcessing ? (

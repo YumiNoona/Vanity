@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, Minimize2, Loader2, Info, ArrowLeft, Layers, Gauge, Image as ImageIcon, Trash2, CheckCircle } from "lucide-react"
+import { Download, Minimize2, Loader2, Info, Layers, Gauge, Image as ImageIcon, Trash2, CheckCircle } from "lucide-react"
 import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
@@ -62,6 +62,10 @@ export function ImageCompressor() {
 
       const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", quality))
       lastBlob = blob
+
+      // Cleanup canvas memory
+      canvas.width = 0
+      canvas.height = 0
 
       if (blob.size <= targetBytes) break
 
@@ -182,8 +186,7 @@ export function ImageCompressor() {
       title={activeTab === "single" ? "Image Compressor" : "Bulk Compress"}
       description={activeTab === "single" ? `Editing: ${file?.name}` : `${bulkFiles.length} images queued`}
       icon={activeTab === "single" ? Minimize2 : Layers}
-      onBack={handleBack}
-      backLabel="Start Over"
+      centered={true}
       maxWidth="max-w-6xl"
     >
       {activeTab === "single" ? (
@@ -225,12 +228,20 @@ export function ImageCompressor() {
                     <p className="text-lg font-mono font-bold text-emerald-500">{Math.round((1 - resultBlob!.size / file!.size) * 100)}%</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleDownload}
-                  className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
-                >
-                  <Download className="w-6 h-6" /> Export
-                </button>
+                <div className="flex gap-4 w-full justify-center">
+                  <button
+                    onClick={handleDownload}
+                    className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
+                  >
+                    <Download className="w-6 h-6" /> Export
+                  </button>
+                  <button
+                    onClick={handleBack}
+                    className="px-10 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all"
+                  >
+                    Start New
+                  </button>
+                </div>
               </div>
             ) : null}
           </div>

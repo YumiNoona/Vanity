@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Mic, Download, Zap, VideoOff, CheckCircle } from "lucide-react"
+import { Mic, Download, Zap, VideoOff, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
@@ -62,7 +62,13 @@ export function VideoToMp3() {
   }
 
   return (
-    <ToolLayout title="Audio Extractor" description={file.name} icon={Mic} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change Video" maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="Audio Extractor" 
+      description={file.name} 
+      icon={Mic} 
+      maxWidth="max-w-5xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
@@ -89,12 +95,20 @@ export function VideoToMp3() {
                        <h2 className="text-4xl font-bold font-syne text-white">MP3 Ready</h2>
                        <p className="text-muted-foreground italic text-sm">Bitrate: 192kbps | Sampling: 44.1kHz</p>
                     </div>
-                    <button 
-                      onClick={handleDownload}
-                      className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
-                    >
-                      <Download className="w-6 h-6" /> Export MP3
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <button 
+                        onClick={handleDownload}
+                        className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4"
+                      >
+                        <Download className="w-6 h-6" /> Export MP3
+                      </button>
+                      <button 
+                        onClick={() => { setFile(null); clearResultUrl(); }}
+                        className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                      >
+                        Start New
+                      </button>
+                    </div>
                  </div>
                ) : (
                 <button 

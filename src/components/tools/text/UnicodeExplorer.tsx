@@ -55,8 +55,10 @@ export function UnicodeExplorer() {
       title="Unicode Explorer"
       description="Type or paste any text to inspect deep character data and encoding details."
       icon={Languages}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
-      <div className="space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-4">
            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Input Text</label>
            <input 
@@ -131,6 +133,7 @@ export function UnicodeExplorer() {
               )}
            </div>
         </div>
+      </div>
       </div>
     </ToolLayout>
   )

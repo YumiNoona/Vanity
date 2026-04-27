@@ -41,6 +41,8 @@ export function GstCalc() {
       title="GST Calculator"
       description="Quickly compute tax-inclusive and tax-exclusive prices with standard GST rate breakdowns."
       icon={Receipt}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-5 space-y-6">

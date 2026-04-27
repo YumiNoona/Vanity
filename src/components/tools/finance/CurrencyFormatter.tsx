@@ -67,6 +67,8 @@ export function CurrencyFormatter() {
       title="Currency Converter"
       description="Real-time exchange rates for the world's 12 most traded currencies."
       icon={ArrowRightLeft}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="space-y-8">
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">

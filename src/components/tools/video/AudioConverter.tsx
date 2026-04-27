@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Music, Download, Zap, Headphones } from "lucide-react"
+import { Music, Download, Zap, Headphones } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
@@ -66,7 +66,7 @@ export function AudioConverter() {
   }
 
   return (
-    <ToolLayout title="Transcoding Hub" description={file.name} icon={Headphones} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-5xl">
+    <ToolLayout title="Transcoding Hub" description={file.name} icon={Headphones} centered={true} maxWidth="max-w-5xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -84,12 +84,20 @@ export function AudioConverter() {
               ) : resultUrl ? (
                 <div className="space-y-8 text-center animate-in zoom-in-95 duration-500">
                    <h2 className="text-4xl font-bold font-syne text-white">Audio Ready</h2>
-                   <button 
-                     onClick={handleDownload}
-                     className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] transition-all flex items-center gap-4 mx-auto"
-                   >
-                     <Download className="w-6 h-6" /> Export.{targetFormat.toUpperCase()} File
-                   </button>
+                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                     <button 
+                       onClick={handleDownload}
+                       className="px-12 py-5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-500/20 hover:scale-[1.05] transition-all flex items-center gap-4"
+                     >
+                       <Download className="w-6 h-6" /> Export.{targetFormat.toUpperCase()} File
+                     </button>
+                     <button 
+                       onClick={() => { setFile(null); clearResultUrl(); }}
+                       className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                     >
+                       Start New
+                     </button>
+                   </div>
                 </div>
               ) : (
                 <button 

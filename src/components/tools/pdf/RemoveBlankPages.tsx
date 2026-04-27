@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, FileMinus, Download, RefreshCw, Layers, ShieldCheck } from "lucide-react"
+import { FileMinus, Download, RefreshCw, Layers, ShieldCheck } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import * as pdfjsLib from "pdfjs-dist"
 import { PDFDocument } from "pdf-lib"
@@ -120,7 +120,7 @@ export function RemoveBlankPages() {
   }
 
   return (
-    <ToolLayout title="Sanitization Hub" description={file.name} icon={Layers} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
+    <ToolLayout title="Sanitization Hub" description={file.name} icon={Layers} centered={true} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
@@ -149,11 +149,20 @@ export function RemoveBlankPages() {
                         Verification complete. We identified and removed <strong>{removedCount}</strong> blank pages from your document.
                       </p>
                    </div>
-                   <button 
-                     onClick={handleDownload}
-                     className="px-12 py-5 bg-red-500 text-white font-bold rounded-2xl shadow-xl shadow-red-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4 mx-auto"
-                   >
-                     <Download className="w-6 h-6" /> Export </button>
+                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                     <button 
+                       onClick={handleDownload}
+                       className="px-12 py-5 bg-red-500 text-white font-bold rounded-2xl shadow-xl shadow-red-500/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-4"
+                     >
+                       <Download className="w-6 h-6" /> Export 
+                     </button>
+                     <button 
+                       onClick={() => { setFile(null); clearResultUrl(); }}
+                       className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                     >
+                       Start New
+                     </button>
+                   </div>
                 </div>
               ) : null}
            </div>

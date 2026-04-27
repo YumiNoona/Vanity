@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Pipette, Copy, CheckCircle } from "lucide-react"
+import { Pipette, Copy, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useImageProcessor } from "../../../hooks/useImageProcessor"
@@ -97,7 +97,7 @@ export function ColorPalette() {
   }
 
   return (
-    <ToolLayout title="Color Palette" description={`Derived from ${file.name}`} icon={Pipette} onBack={handleBack} backLabel="New Image">
+    <ToolLayout title="Color Palette" description={`Derived from ${file.name}`} icon={Pipette} centered={true}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="glass-panel p-4 rounded-xl flex items-center justify-center bg-black/40">
            {preview && <img src={preview} alt="Original" className="max-h-[400px] object-contain rounded" />}
@@ -124,6 +124,12 @@ export function ColorPalette() {
            <p className="text-[10px] text-muted-foreground pt-4 leading-relaxed">
              Click any color to copy its Hex code. These are extracted by analyzing pixel density across the image canvas.
            </p>
+           <button 
+             onClick={handleBack}
+             className="w-full py-4 mt-8 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all shadow-lg"
+           >
+             Start New Extraction
+           </button>
         </div>
       </div>
     </ToolLayout>

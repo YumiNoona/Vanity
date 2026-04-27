@@ -69,6 +69,8 @@ export function LoremIpsumGenerator() {
       title="Lorem Ipsum Generator" 
       description="Generate customizable placeholder text instantly for your mockups." 
       icon={AlignLeft}
+      centered={true}
+      maxWidth="max-w-2xl"
     >
       <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-6">
         <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6">

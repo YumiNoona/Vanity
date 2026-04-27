@@ -67,7 +67,10 @@ export function DnsLookup() {
       title="DNS Lookup"
       description="Resolve A, MX, TXT, and CNAME records via Cloudflare's secure DNS-over-HTTPS."
       icon={Globe2}
+      centered={true}
+      maxWidth="max-w-4xl"
     >
+      <div className="max-w-3xl mx-auto space-y-8">
       <div className="space-y-8">
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">
            <div className="flex flex-col md:flex-row gap-4">
@@ -125,6 +128,7 @@ export function DnsLookup() {
              <p className="text-sm">Enter a domain above to inspect its public DNS configuration.</p>
           </div>
         )}
+      </div>
       </div>
     </ToolLayout>
   )

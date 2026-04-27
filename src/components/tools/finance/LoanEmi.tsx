@@ -38,6 +38,8 @@ export function LoanEmi() {
       title="Loan / EMI Calculator"
       description="Calculate monthly installments and total interest payable for home, car, or personal loans."
       icon={Landmark}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-5 space-y-6">

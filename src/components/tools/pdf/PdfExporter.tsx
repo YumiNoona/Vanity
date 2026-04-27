@@ -238,7 +238,7 @@ export function PdfExporter() {
       title="Export Hub" 
       description={file.name} 
       icon={FileSearch} 
-      onBack={handleStartNew} 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <PillToggle

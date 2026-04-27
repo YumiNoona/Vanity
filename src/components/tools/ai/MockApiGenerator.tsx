@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
-import { ArrowLeft, Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Trash2 } from "lucide-react"
+import { Loader2, Database, Copy, CheckCircle, SlidersHorizontal, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -99,17 +99,13 @@ ${schema}`
      a.click()
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
 
   return (
     <ToolLayout 
       title="Mock JSON Generator" 
       description="Synthesize strict deterministic schema arrays seamlessly." 
       icon={Database} 
-      onBack={handleBack} 
-      backLabel="Back" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

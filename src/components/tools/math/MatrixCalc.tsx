@@ -13,6 +13,12 @@ export function MatrixCalc() {
   const [result, setResult] = useState<Matrix | number | null>(null)
   const [operation, setOperation] = useState<"add" | "multiply" | "det" | "transpose">("add")
 
+  const reset = () => {
+    setMatrixA(Array(5).fill(0).map(() => Array(5).fill(0)))
+    setMatrixB(Array(5).fill(0).map(() => Array(5).fill(0)))
+    setResult(null)
+  }
+
   const updateMatrix = (m: "A" | "B", r: number, c: number, val: string) => {
     const num = parseFloat(val) || 0
     if (m === "A") {
@@ -71,32 +77,34 @@ export function MatrixCalc() {
       title="Matrix Calculator"
       description="Perform linear algebra operations on matrices up to 5x5 locally in your browser."
       icon={Calculator}
+      centered={true}
+      maxWidth="max-w-5xl"
     >
       <div className="space-y-8">
-        <div className="flex flex-wrap gap-4 items-center justify-between glass-panel p-4 rounded-2xl border-white/5 bg-black/20">
-           <div className="flex items-center gap-4">
-              <PillToggle
-                activeId={size.toString()}
-                onChange={(id) => setSize(parseInt(id))}
-                options={[
-                  { id: "2", label: "2x2" },
-                  { id: "3", label: "3x3" },
-                  { id: "4", label: "4x4" },
-                  { id: "5", label: "5x5" },
-                ]}
-              />
-           </div>
-           
-           <PillToggle
-              activeId={operation}
-              onChange={(id) => setOperation(id as any)}
-              options={[
-                { id: "add", icon: Plus, label: "Add" },
-                { id: "multiply", icon: X, label: "Multiply" },
-                { id: "det", icon: Calculator, label: "Det" },
-                { id: "transpose", icon: RotateCcw, label: "Trans" },
-              ]}
-           />
+        <div className="flex flex-wrap gap-8 items-center justify-center glass-panel p-4 rounded-2xl border-white/5 bg-black/20">
+          <PillToggle
+            activeId={size.toString()}
+            onChange={(id) => setSize(parseInt(id))}
+            options={[
+              { id: "2", label: "2x2" },
+              { id: "3", label: "3x3" },
+              { id: "4", label: "4x4" },
+              { id: "5", label: "5x5" },
+            ]}
+          />
+          
+          <div className="w-px h-8 bg-white/10 hidden md:block" />
+
+          <PillToggle
+            activeId={operation}
+            onChange={(id) => setOperation(id as any)}
+            options={[
+              { id: "add", icon: Plus, label: "Add" },
+              { id: "multiply", icon: X, label: "Multiply" },
+              { id: "det", icon: Calculator, label: "Det" },
+              { id: "transpose", icon: RotateCcw, label: "Trans" },
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -114,7 +122,8 @@ export function MatrixCalc() {
                            type="number"
                            value={matrixA[r][c] || ""}
                            onChange={e => updateMatrix("A", r, c, e.target.value)}
-                           className="bg-white/5 border border-white/10 rounded-lg p-2 text-center font-mono text-xs focus:border-primary/50 outline-none"
+                           className="bg-white/5 border border-white/10 rounded-xl p-3 text-center font-mono text-sm focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:opacity-20"
+                           placeholder="0"
                          />
                        )))}
                     </div>
@@ -128,25 +137,35 @@ export function MatrixCalc() {
                       </label>
                       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}>
                          {Array(size).fill(0).map((_, r) => Array(size).fill(0).map((_, c) => (
-                           <input 
-                             key={`${r}-${c}`}
-                             type="number"
-                             value={matrixB[r][c] || ""}
-                             onChange={e => updateMatrix("B", r, c, e.target.value)}
-                             className="bg-white/5 border border-white/10 rounded-lg p-2 text-center font-mono text-xs focus:border-accent/50 outline-none"
-                           />
+                          <input 
+                            key={`${r}-${c}`}
+                            type="number"
+                            value={matrixB[r][c] || ""}
+                            onChange={e => updateMatrix("B", r, c, e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded-xl p-3 text-center font-mono text-sm focus:border-accent/50 focus:bg-white/10 outline-none transition-all placeholder:opacity-20"
+                            placeholder="0"
+                          />
                          )))}
                       </div>
                    </div>
                  )}
               </div>
 
-              <button 
-                onClick={calculate}
-                className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
-              >
-                <Calculator className="w-5 h-5" /> Calculate
-              </button>
+              <div className="flex gap-4">
+                <button 
+                  onClick={calculate}
+                  className="flex-1 h-14 bg-primary text-primary-foreground font-bold rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                >
+                  <Calculator className="w-5 h-5" /> Calculate
+                </button>
+                <button 
+                  onClick={reset}
+                  className="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-muted-foreground hover:bg-white/10 hover:text-white transition-all"
+                  title="Reset Matrices"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </button>
+              </div>
            </div>
 
            <div className="lg:col-span-4 space-y-6">

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, ShieldAlert, Square, Circle, Info } from "lucide-react"
+import { Download, Loader2, ShieldAlert, Square, Circle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "../../../hooks/usePremium"
 import { toast } from "sonner"
@@ -151,7 +151,7 @@ export function SmartCensor() {
   }
 
   return (
-    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} onBack={handleBack} maxWidth="max-w-7xl">
+    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} centered={true} maxWidth="max-w-7xl">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         <div className="lg:col-span-9">
           <div className="glass-panel p-2 rounded-2xl flex items-center justify-center bg-black/40 shadow-inner overflow-hidden relative group border border-white/5">
@@ -208,6 +208,13 @@ export function SmartCensor() {
                 className="w-full py-5 bg-primary text-primary-foreground font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
                 <Download className="w-5 h-5" /> Export </button>
+
+              <button 
+                onClick={handleBack}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+              >
+                Start New
+              </button>
            </div>
         </div>
       </div>

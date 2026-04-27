@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, CheckCircle, Type, Image as ImageIcon, Trash2, Plus, Sparkles, Palette, ALargeSmall, Bold, Italic, ChevronDown } from "lucide-react"
+import { Download, Loader2, CheckCircle, Type, Image as ImageIcon, Trash2, Plus, Sparkles, Palette, ALargeSmall, Bold, Italic, ChevronDown } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -236,7 +236,9 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
   if (!file) {
     return (
       <ToolUploadLayout title="Deep Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles} hideHeader={embedded}>
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+        <div className="max-w-2xl mx-auto">
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+        </div>
       </ToolUploadLayout>
     )
   }
@@ -246,7 +248,7 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
       title="Watermark Editor" 
       description="Rotate, scale, and place watermarks anywhere." 
       maxWidth="max-w-7xl"
-      onBack={() => setFile(null)}
+      centered={true}
       hideHeader={embedded}
     >
 
@@ -409,6 +411,13 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
               >
                 {isProcessing ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
                 Export Watermarked
+              </button>
+
+              <button 
+                onClick={() => setFile(null)}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+              >
+                Start New Project
               </button>
             </div>
           </div>

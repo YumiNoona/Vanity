@@ -64,7 +64,13 @@ export function CronBuilder() {
   ]
 
   return (
-    <ToolLayout title="CRON Expression Tester" description="Validate expressions and visualize the next 5 precision run times." icon={Calendar} maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="CRON Expression Tester" 
+      description="Validate expressions and visualize the next 5 precision run times." 
+      icon={Calendar} 
+      maxWidth="max-w-5xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0">
          <div className="space-y-6">

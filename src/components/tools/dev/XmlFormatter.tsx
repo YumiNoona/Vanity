@@ -49,8 +49,9 @@ export function XmlFormatter() {
       title="XML Formatter"
       description="Prettify, minify, and validate XML data structures locally."
       icon={FileCode}
+      centered={true}
     >
-      <div className="space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
         <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-4">
            <div className="flex justify-between items-center">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">XML Input</label>

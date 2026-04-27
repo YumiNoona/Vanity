@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Sparkles, Eraser, RefreshCw, Layers } from "lucide-react"
+import { Download, Loader2, Sparkles, Eraser, RefreshCw, Layers } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -156,25 +156,18 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
     }
   }
 
-  const handleBack = async () => {
-    releaseCanvas(canvasRef.current)
-    releaseCanvas(maskCanvasRef.current)
-    setFile(null)
-    clearResultUrl()
-    clearCurrent()
-    updateProgress(0)
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout title="Watermark Remover" description="Upload an image and brush over the watermark to remove it using local AI." icon={Eraser} hideHeader={embedded}>
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+        <div className="max-w-2xl mx-auto">
+          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+        </div>
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." onBack={handleBack} backLabel="Start New" maxWidth="max-w-6xl" hideHeader={embedded}>
+    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." centered={true} maxWidth="max-w-6xl" hideHeader={embedded}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-6 rounded-xl space-y-6">

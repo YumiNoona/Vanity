@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Mic, Scissors, Download, Loader2, FastForward } from "lucide-react"
+import { Mic, Scissors, Download, Loader2, FastForward } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { fetchFile } from "@ffmpeg/util"
 import { toast } from "sonner"
@@ -213,14 +213,7 @@ export function AudioWaveform() {
       title="Audio Waveform Visualizer" 
       description={file.name} 
       icon={Mic} 
-      onBack={async () => {
-        if (audioCtxRef.current) await audioCtxRef.current.close().catch(() => {});
-        setFile(null); 
-        clearAudioUrl();
-        clearTrimmedUrl();
-        setAudioBuffer(null);
-      }} 
-      backLabel="Load Different" 
+      centered={true}
       maxWidth="max-w-5xl"
     >
       <div className="space-y-8 animate-in fade-in duration-500 pb-20">

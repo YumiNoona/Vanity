@@ -29,7 +29,12 @@ export function TimestampConverter() {
   }
 
   return (
-    <ToolLayout title="Timestamp Converter" description="Convert Unix epoch to human-readable date and back." icon={Clock}>
+    <ToolLayout 
+      title="Timestamp Converter" 
+      description="Convert Unix epoch to human-readable date and back." 
+      icon={Clock}
+      centered={true}
+    >
 
       <div className="glass-panel p-8 rounded-2xl mx-4 sm:mx-0 space-y-8">
          <div className="space-y-4">

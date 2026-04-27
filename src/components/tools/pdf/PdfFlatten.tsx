@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, FileCheck, Download, RefreshCw, FileText, CheckCircle, Loader2 } from "lucide-react"
+import { FileCheck, Download, RefreshCw, FileText, CheckCircle, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
@@ -107,7 +107,7 @@ export function PdfFlatten() {
   }
 
   return (
-    <ToolLayout title="Flattening Suite" description={file.name} icon={FileText} onBack={() => { setFile(null); clearPreviewUrl(); clearResultUrl(); }} backLabel="Change File">
+    <ToolLayout title="Flattening Suite" description={file.name} icon={FileText} centered={true}>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
         <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center bg-black/40 border-white/5 shadow-2xl relative overflow-hidden min-h-[500px]">

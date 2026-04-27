@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, SlidersHorizontal, ArrowLeft, RefreshCw, Loader2, Layers } from "lucide-react"
+import { Download, SlidersHorizontal, RefreshCw, Loader2, Layers } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -87,8 +87,7 @@ export function ImageEffects() {
       title="Image Effects" 
       description={`Editing: ${file.name}`} 
       icon={Layers}
-      onBack={handleBack} 
-      backLabel="Try another image" 
+      centered={true}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
@@ -117,20 +116,28 @@ export function ImageEffects() {
             ))}
           </div>
 
-          <div className="pt-4 flex gap-4">
-            <button 
-              onClick={() => setSettings({ brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, blur: 0 })}
-              className="px-4 py-2 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg flex-1 transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" /> Reset
-            </button>
-            <button 
-              onClick={handleDownload}
-              disabled={isProcessing || !sourceImage}
-              className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg flex-1 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export
-            </button>
+          <div className="pt-4 flex flex-col gap-3">
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setSettings({ brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, blur: 0 })}
+                  className="px-4 py-2 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg flex-1 transition-colors flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" /> Reset
+                </button>
+                <button 
+                  onClick={handleDownload}
+                  disabled={isProcessing || !sourceImage}
+                  className="px-4 py-2 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg flex-1 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export
+                </button>
+             </div>
+             <button 
+               onClick={handleBack}
+               className="w-full py-3 text-xs font-bold bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-all"
+             >
+               Start New Extraction
+             </button>
           </div>
         </div>
 

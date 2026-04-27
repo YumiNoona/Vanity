@@ -112,6 +112,8 @@ export function PasswordGenerator() {
       title="Password Generator"
       description="Generate strong, secure, and memorable passwords locally using cryptographically strong APIs."
       icon={KeyRound}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Settings Panel */}

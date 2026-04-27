@@ -107,9 +107,8 @@ export function NoiseGrain() {
       title="Grain Studio" 
       description="Fine-tune the analog look and feel." 
       icon={Sparkles} 
-      onBack={handleBack} 
-      backLabel="New Photo" 
       maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -171,6 +170,13 @@ export function NoiseGrain() {
                 className="w-full py-5 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
               >
                 <Download className="w-5 h-5" /> Export-Res Texture
+              </button>
+
+              <button 
+                onClick={handleBack}
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+              >
+                Start New
               </button>
            </div>
         </div>

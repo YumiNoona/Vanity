@@ -71,7 +71,13 @@ export function HtmlFormatter() {
   }
 
   return (
-    <ToolLayout title="HTML Formatter" description="Prettify or minify raw HTML code locally." icon={Code} maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="HTML Formatter" 
+      description="Prettify or minify raw HTML code locally." 
+      icon={Code} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4 sm:px-0">
          <div className="space-y-4">

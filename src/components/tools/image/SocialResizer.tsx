@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Maximize, Smartphone, Share2, Share, Briefcase, ImageIcon, RefreshCw, AlertCircle } from "lucide-react"
+import { Download, Maximize, Smartphone, Share2, Share, Briefcase, ImageIcon, RefreshCw, AlertCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -154,7 +154,13 @@ export function SocialResizer() {
   }
 
   return (
-    <ToolLayout title="Social Media Resizer" description="Drag to reposition. Export at target resolution." icon={Smartphone} onBack={() => { setFile(null); clearImgPreviewUrl(); }} backLabel="Start New" maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="Social Media Resizer" 
+      description="Drag to reposition. Export at target resolution." 
+      icon={Smartphone} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Column 1: Platform Selection */}
@@ -261,6 +267,13 @@ export function SocialResizer() {
               >
                 {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
                 Export for {activePreset.name.split(' ')[0]}
+              </button>
+
+              <button 
+                onClick={() => { setFile(null); clearImgPreviewUrl(); }}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
+              >
+                Start New
               </button>
            </div>
            

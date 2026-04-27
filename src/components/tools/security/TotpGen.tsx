@@ -96,6 +96,7 @@ export function TotpGen() {
       title="TOTP Generator"
       description="Generate 6-digit 2FA authentication codes locally using native browser SubtleCrypto. No external libraries."
       icon={KeyRound}
+      centered={true}
     >
       <div className="max-w-xl mx-auto space-y-8">
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-8 text-center">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { Table, Copy, CheckCircle, Download, FileCode, ArrowLeftRight, Braces, ClipboardList } from "lucide-react"
+import { Table, Copy, CheckCircle, Download, FileCodeRight, Braces, ClipboardList } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
@@ -60,6 +60,8 @@ export function TableToMd() {
       title="Table to Markdown / HTML"
       description="Convert spreadsheet selections, TSV, or CSV into perfectly formatted Markdown or HTML tables."
       icon={Table}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <div className="space-y-4 flex flex-col">

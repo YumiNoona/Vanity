@@ -14,6 +14,7 @@ export function ImagePrivacy() {
       title="Privacy Vault" 
       description="Protect your identity by removing hidden metadata and device footprints."
       icon={ShieldCheck}
+      centered={true}
     >
       <div className="relative animate-in fade-in duration-500">
         <div className="flex justify-center relative z-10">

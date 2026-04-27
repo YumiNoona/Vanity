@@ -12,6 +12,7 @@ export function Base64Studio() {
       title="Base64 Studio" 
       description="Universal encoder and decoder for text and binary data."
       icon={Database}
+      centered={true}
     >
       <div className="relative animate-in fade-in duration-500">
         <div className="flex justify-center pt-6 pb-2 relative z-10 w-full px-4 mb-8">

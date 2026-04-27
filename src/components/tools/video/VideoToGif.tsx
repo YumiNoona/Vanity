@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Download, Film, Zap } from "lucide-react"
+import { Download, Film, Zap } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useProcessingState } from "@/hooks/useProcessingState"
 import { toast } from "sonner"
@@ -70,7 +70,13 @@ export function VideoToGif() {
   }
 
   return (
-    <ToolLayout title="GIF Transcoder" description={file.name} icon={Film} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change Video" maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="GIF Transcoder" 
+      description={file.name} 
+      icon={Film} 
+      maxWidth="max-w-5xl"
+      centered={true}
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
@@ -100,11 +106,20 @@ export function VideoToGif() {
                          <span className="text-[10px] font-bold text-white uppercase tracking-widest">Preview Only</span>
                       </div>
                    </div>
-                   <button 
-                     onClick={handleDownload}
-                     className="px-12 py-5 bg-pink-600 text-white font-bold rounded-2xl shadow-xl shadow-pink-500/20 hover:scale-[1.05] transition-all flex items-center gap-4 mx-auto"
-                   >
-                     <Download className="w-6 h-6" /> Export </button>
+                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                     <button 
+                       onClick={handleDownload}
+                       className="px-12 py-5 bg-pink-600 text-white font-bold rounded-2xl shadow-xl shadow-pink-500/20 hover:scale-[1.05] transition-all flex items-center gap-4"
+                     >
+                       <Download className="w-6 h-6" /> Export 
+                     </button>
+                     <button 
+                       onClick={() => { setFile(null); clearResultUrl(); }}
+                       className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                     >
+                       Start New
+                     </button>
+                   </div>
                 </div>
               ) : (
                 <div className="space-y-8">

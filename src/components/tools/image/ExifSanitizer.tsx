@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, ShieldCheck, Info, FileArchive, RefreshCw } from "lucide-react"
+import { Download, Loader2, ShieldCheck, Info, FileArchive, RefreshCw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "../../../hooks/usePremium"
 import { useImageProcessor } from "../../../hooks/useImageProcessor"
@@ -139,14 +139,16 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
            />
         </div>
 
-        <DropZone 
-          onDrop={handleProcess} 
-          accept={{ "image/*": [] }} 
-          label={
-            processMode === 'view' ? "Drop image to read metadata" :
-            "Drop image to sanitize"
-          }
-        />
+        <div className="max-w-2xl mx-auto space-y-6">
+          <DropZone 
+            onDrop={handleProcess} 
+            accept={{ "image/*": [] }} 
+            label={
+              processMode === 'view' ? "Drop image to read metadata" :
+              "Drop image to sanitize"
+            }
+          />
+        </div>
       </ToolUploadLayout>
     )
   }
@@ -156,7 +158,7 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
       title={processMode === 'remove' ? "Privacy Shield" : "Metadata Viewer"}
       description={`Target: ${file?.name}`}
       icon={ShieldCheck}
-      onBack={handleBack}
+      centered={true}
       maxWidth="max-w-6xl"
       hideHeader={embedded}
     >
@@ -207,12 +209,20 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
                  </div>
               )}
 
-              <button 
-                onClick={() => { setProcessMode('remove'); handleProcess([file!]) }}
-                className="w-full py-5 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest rounded-2xl transition-all border border-white/5 flex items-center justify-center gap-3"
-              >
-                <ShieldCheck className="w-5 h-5" /> Sanitize Now
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={() => { setProcessMode('remove'); handleProcess([file!]) }}
+                  className="flex-1 py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-primary hover:text-white flex items-center justify-center gap-3"
+                >
+                  <ShieldCheck className="w-5 h-5" /> Sanitize Now
+                </button>
+                <button 
+                  onClick={handleBack}
+                  className="flex-1 py-5 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest rounded-2xl transition-all border border-white/5 flex items-center justify-center gap-3"
+                >
+                  <RefreshCw className="w-5 h-5" /> Load Different
+                </button>
+              </div>
            </div>
 
            <div className="glass-panel p-6 rounded-2xl border border-white/5 flex gap-5 bg-white/[0.01]">

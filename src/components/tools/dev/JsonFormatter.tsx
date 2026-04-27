@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react"
-import { ArrowLeft, Copy, CheckCircle, Braces, AlignLeft, Minimize, Trash2, AlertCircle } from "lucide-react"
+import { Copy, CheckCircle, Braces, AlignLeft, Minimize, Trash2, AlertCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -62,18 +62,14 @@ export function JsonFormatter() {
     })
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
 
   return (
     <ToolLayout 
       title="JSON Formatter" 
       description="Prettify, minify, and validate locally." 
       icon={Braces} 
-      onBack={handleBack} 
-      backLabel="Back" 
       maxWidth="max-w-6xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}

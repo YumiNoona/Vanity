@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
+import { Sparkles, RefreshCw, FileText, BrainCircuit, ShieldAlert } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
@@ -95,12 +95,6 @@ export function PdfSummariser() {
     }
   }
 
-  const handleBack = () => {
-    setFile(null)
-    setSummary("")
-    setProgress(0)
-  }
-
   if (!file) {
     return (
       <ToolUploadLayout 
@@ -121,8 +115,7 @@ export function PdfSummariser() {
       title="AI PDF Summarizer" 
       description={`${file.name} (${progress}% processed) · ${activeProvider}`} 
       icon={Sparkles} 
-      onBack={handleBack} 
-      backLabel="New File" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

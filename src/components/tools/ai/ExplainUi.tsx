@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Monitor, Loader2, Glasses, ListTree, MousePointer2 } from "lucide-react"
+import { Monitor, Loader2, Glasses, ListTree, MousePointer2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -95,12 +95,6 @@ JSON Structure requirement:
     }
   }
 
-  const handleBack = () => {
-    setFile(null)
-    clearImgUrl()
-    setBreakdown(null)
-  }
-
   if (!file || !imgUrl) {
     return (
        <ToolUploadLayout title="Explain UI" description="Upload a screenshot of any application and let AI reverse-engineer its UX hierarchy." icon={Monitor}>
@@ -115,8 +109,7 @@ JSON Structure requirement:
       title="Explain UI" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Monitor} 
-      onBack={handleBack} 
-      backLabel="Load Different" 
+      centered={true}
       maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -39,6 +39,8 @@ export function SipCalc() {
       title="SIP / Investment Calculator"
       description="Project the future value of your recurring mutual fund investments with compound growth charts."
       icon={Coins}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-5 space-y-6">

@@ -12,6 +12,7 @@ interface ToolLayoutProps {
   onBack?: () => void
   maxWidth?: string
   hideHeader?: boolean
+  centered?: boolean
 }
 
 export function ToolLayout({
@@ -24,6 +25,7 @@ export function ToolLayout({
   onBack,
   maxWidth = "max-w-4xl",
   hideHeader = false,
+  centered = false,
 }: ToolLayoutProps) {
   const colorMap = {
     primary: {
@@ -39,17 +41,17 @@ export function ToolLayout({
   const colors = colorMap[iconColor]
 
   return (
-    <div className={cn(maxWidth, "mx-auto space-y-8")}>
+    <div className={cn(maxWidth, "mx-auto space-y-8", centered && "text-center")}>
       {!hideHeader && (
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-4">
+        <div className={cn("mt-4 flex", centered ? "flex-col items-center gap-6" : "items-center justify-between")}>
+          <div className={cn("flex items-center", centered ? "flex-col gap-4" : "gap-4")}>
             {Icon && (
               <div className={`inline-flex items-center justify-center p-3 ${colors.bg} rounded-full ${colors.text}`}>
-                <Icon className="w-6 h-6" />
+                <Icon className={centered ? "w-8 h-8" : "w-6 h-6"} />
               </div>
             )}
-            <div>
-              <h1 className="text-3xl font-bold font-syne mb-1">{title}</h1>
+            <div className={centered ? "text-center" : ""}>
+              <h1 className={cn("font-bold font-syne mb-1", centered ? "text-4xl" : "text-3xl")}>{title}</h1>
               <p className="text-muted-foreground text-sm">{description}</p>
             </div>
           </div>
@@ -57,7 +59,10 @@ export function ToolLayout({
           {onBack && (
             <button
               onClick={onBack}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors"
+              className={cn(
+                "text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors",
+                centered && "mt-2"
+              )}
             >
               <ArrowLeft className="w-4 h-4" />
               {backLabel || "Start New"}

@@ -102,6 +102,8 @@ export function FakeData() {
       title="Fake Data Generator"
       description="Synthesize realistic datasets for testing and development instantly."
       icon={Database}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Config Panel */}

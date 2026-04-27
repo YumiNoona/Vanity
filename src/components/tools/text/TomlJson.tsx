@@ -66,6 +66,8 @@ export function TomlJson() {
       title="TOML ↔ JSON"
       description="Instant, bidirectional conversion between TOML configuration and JSON."
       icon={Repeat}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <div className="space-y-4 flex flex-col">

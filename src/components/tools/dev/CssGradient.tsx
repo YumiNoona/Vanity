@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { ArrowLeft, Copy, CheckCircle, Zap, RefreshCw, MoveRight } from "lucide-react"
+import { Copy, CheckCircle, Zap, RefreshCw, MoveRight } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -27,12 +27,14 @@ export function CssGradient() {
     setAngle(Math.floor(Math.random() * 361))
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
-    <ToolLayout title="Gradient Builder" description="Visual CSS linear gradient generator." icon={Zap} onBack={handleBack} backLabel="Back" maxWidth="max-w-5xl">
+    <ToolLayout 
+      title="Gradient Builder" 
+      description="Visual CSS linear gradient generator." 
+      icon={Zap} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Preview & Controls */}
         <div className="md:col-span-8 space-y-6">

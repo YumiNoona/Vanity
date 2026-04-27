@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Minimize2, CheckCircle, AlertTriangle, ShieldCheck, Info, Gauge, Zap, Layers, Trash2 } from "lucide-react"
+import { Download, Loader2, Minimize2, CheckCircle, AlertTriangle, ShieldCheck, Info, Gauge, Zap, Layers, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -322,36 +322,25 @@ export function CompressPdf() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-             {activeTab === "single" ? <Minimize2 className="w-6 h-6" /> : <Layers className="w-6 h-6" />}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-syne">{activeTab === "single" ? "Compress PDF" : "Bulk PDF Compress"}</h1>
-            {activeTab === "single" && file ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                <span>{file.name}</span>
-                <span>•</span>
-                <span className="font-mono">{originalKB.toFixed(1)} KB</span>
-                <span>•</span>
-                <span>{pageCount} Pages</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                <span>{bulkFiles.length} files queued</span>
-              </div>
-            )}
-          </div>
+    <ToolLayout
+      title={activeTab === "single" ? "Smart PDF Compressor" : "Bulk PDF Compressor"}
+      description={activeTab === "single" ? (file ? `Optimizing: ${file.name}` : "The most intelligent PDF optimizer.") : `Batched: ${bulkFiles.length} files`}
+      icon={activeTab === "single" ? Minimize2 : Layers}
+      centered={true}
+      maxWidth="max-w-7xl"
+    >
+      {activeTab === "single" && (
+        <div className="mb-10 flex justify-center">
+          <PillToggle
+            activeId={activeTab}
+            onChange={(id) => setActiveTab(id as any)}
+            options={[
+              { id: "single", label: "Single PDF", icon: Minimize2 },
+              { id: "bulk", label: "Bulk PDF", icon: Layers }
+            ]}
+          />
         </div>
-        <button 
-          onClick={handleBack} 
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium flex items-center gap-2 transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" /> Start New
-        </button>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-6">
@@ -369,7 +358,7 @@ export function CompressPdf() {
               )}
 
               {resultUrl && !isProcessing && (
-                <div className="text-center space-y-8 animate-in zoom-in-95 duration-500">
+                <div className="text-center space-y-8 animate-in zoom-in-95 duration-500 w-full">
                   <div className="inline-flex items-center justify-center p-10 bg-accent/20 rounded-full text-accent shadow-[0_0_40px_rgba(252,211,77,0.2)]">
                      <CheckCircle className="w-24 h-24" />
                   </div>
@@ -390,14 +379,23 @@ export function CompressPdf() {
                     )}
                   </div>
                   
-                  <button 
-                    onClick={() => {
-                      if (!file) return;
-                      const a = document.createElement("a"); a.href = resultUrl; a.download = `vanity-compressed-${file.name}`; a.click();
-                    }}
-                    className="px-10 py-5 text-xl font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_40px_rgba(252,211,77,0.4)] transition-all flex items-center justify-center gap-3 mx-auto hover:scale-105 active:scale-95"
-                  >
-                    <Download className="w-6 h-6" /> Export </button>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button 
+                      onClick={() => {
+                        if (!file) return;
+                        const a = document.createElement("a"); a.href = resultUrl; a.download = `vanity-compressed-${file.name}`; a.click();
+                      }}
+                      className="px-10 py-5 text-xl font-bold bg-accent text-accent-foreground hover:bg-accent/90 rounded-full shadow-[0_0_40px_rgba(252,211,77,0.4)] transition-all flex items-center justify-center gap-3 hover:scale-105 active:scale-95"
+                    >
+                      <Download className="w-6 h-6" /> Export 
+                    </button>
+                    <button 
+                      onClick={handleBack}
+                      className="px-10 py-5 text-xl font-bold bg-white/5 hover:bg-white/10 text-white rounded-full border border-white/10 transition-all flex items-center justify-center"
+                    >
+                      Start New
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -419,13 +417,21 @@ export function CompressPdf() {
                          Target too low. Minimum for this doc is {Math.ceil(absoluteMin)}KB.
                       </div>
                    )}
-                   <button 
-                     onClick={handleProcessSingle}
-                     className="group px-12 py-5 bg-accent text-accent-foreground font-bold rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(252,211,77,0.2)] flex items-center gap-3 mx-auto"
-                   >
-                     <Zap className="w-5 h-5 fill-current" />
-                     Compress Now
-                   </button>
+                   <div className="flex flex-col gap-4">
+                     <button 
+                       onClick={handleProcessSingle}
+                       className="group px-12 py-5 bg-accent text-accent-foreground font-bold rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(252,211,77,0.2)] flex items-center justify-center gap-3"
+                     >
+                       <Zap className="w-5 h-5 fill-current" />
+                       Compress Now
+                     </button>
+                     <button 
+                       onClick={handleBack}
+                       className="px-12 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-full border border-white/10 transition-all text-sm"
+                     >
+                       Change File
+                     </button>
+                   </div>
                 </div>
               )}
             </div>
@@ -616,6 +622,12 @@ export function CompressPdf() {
                    {isBulkProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "Start Bulk Compress"}
                  </button>
                )}
+               <button 
+                 onClick={handleBack}
+                 className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all text-xs"
+               >
+                 Clear Bulk Queue
+               </button>
                <div className="h-24 border-2 border-dashed border-white/10 rounded-xl relative hover:border-accent/50 hover:bg-accent/5 transition-all text-center flex flex-col items-center justify-center cursor-pointer">
                  <input type="file" multiple accept="application/pdf" onChange={(e) => e.target.files && handleDrop(Array.from(e.target.files))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Add More Files</span>
@@ -624,6 +636,6 @@ export function CompressPdf() {
            )}
         </div>
       </div>
-    </div>
+    </ToolLayout>
   )
 }

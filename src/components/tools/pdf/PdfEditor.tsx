@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import {
   Download,
-  ArrowLeft,
   Loader2,
   Type,
   PenTool,
@@ -317,7 +316,7 @@ export function PdfEditor() {
       title="PDF Editor"
       description={`Editing: ${file.name} — Page ${currentPage + 1} of ${pageImages.length}`}
       icon={FileEdit}
-      onBack={handleBack}
+      centered={true}
       maxWidth="max-w-7xl"
     >
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 pb-20">
@@ -468,6 +467,12 @@ export function PdfEditor() {
                 <Download className="w-5 h-5" /> Export
               </button>
             )}
+            <button
+              onClick={handleBack}
+              className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all text-xs"
+            >
+              Start New Project
+            </button>
           </div>
         </div>
 

@@ -338,8 +338,7 @@ showpage
     return (
       <ToolUploadLayout title="Image Converter" description="Professional-grade image transcoding between various formats." icon={ArrowLeftRight}>
         {renderTabSwitcher()}
-        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6 mb-8">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Target Format</label>
+        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {FORMATS.map(f => {
               const isUnsupported = unsupportedFormats.has(f.id)
@@ -349,7 +348,7 @@ showpage
                   onClick={() => !isUnsupported && setTargetFormat(f.id)}
                   disabled={isUnsupported}
                   className={cn(
-                    "p-4 rounded-2xl border text-left transition-all group",
+                    "py-2.5 px-5 rounded-2xl border text-left transition-all group",
                     isUnsupported
                       ? "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
                       : targetFormat === f.id ? "bg-primary/20 border-primary shadow-lg" : "bg-white/5 border-white/5 hover:bg-white/10"
@@ -371,8 +370,7 @@ showpage
     return (
       <ToolUploadLayout title="Bulk Image Converter" description="Convert entire batches of images locally and securely." icon={Layers}>
         {renderTabSwitcher()}
-        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6 mb-8">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Target Format</label>
+        <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {FORMATS.map(f => {
               const isUnsupported = unsupportedFormats.has(f.id)
@@ -382,7 +380,7 @@ showpage
                   onClick={() => !isUnsupported && setTargetFormat(f.id)}
                   disabled={isUnsupported}
                   className={cn(
-                    "p-4 rounded-2xl border text-left transition-all group",
+                    "py-2.5 px-5 rounded-2xl border text-left transition-all group",
                     isUnsupported
                       ? "bg-white/[0.02] border-white/5 opacity-40 cursor-not-allowed"
                       : targetFormat === f.id ? "bg-primary/20 border-primary shadow-lg" : "bg-white/5 border-white/5 hover:bg-white/10"
@@ -405,9 +403,8 @@ showpage
       title={activeTab === "single" ? "Image Converter" : "Bulk Convert"}
       description={activeTab === "single" ? `Editing: ${file?.name}` : `${bulkFiles.length} images queued`}
       icon={activeTab === "single" ? ArrowLeftRight : Layers}
-      onBack={handleBack}
-      backLabel="Start Over"
       maxWidth="max-w-6xl"
+      centered={true}
     >
       {activeTab === "single" ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">

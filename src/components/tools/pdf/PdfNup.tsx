@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { 
-  ArrowLeft, Layout, Download, RefreshCw, FileText, CheckCircle, 
+  Layout, Download, RefreshCw, FileText, CheckCircle, 
   Settings2, Smartphone, Monitor, Maximize2, AlertCircle, Info,
   ChevronRight, List
 } from "lucide-react"
@@ -240,7 +240,7 @@ export function PdfNup() {
   }
 
   return (
-    <ToolLayout title="N-up Imposition" description={file.name} icon={FileText} onBack={() => { setFile(null); clearResultUrl(); }} backLabel="Change File" maxWidth="max-w-6xl">
+    <ToolLayout title="N-up Imposition" description={file.name} icon={FileText} centered={true} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
          {/* Sidebar Controls */}
@@ -393,11 +393,20 @@ export function PdfNup() {
                     <h1 className="text-4xl font-bold font-syne text-white uppercase tracking-tighter italic">Sheet Processing Ready</h1>
                     <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">N-up imposition complete for {file.name}</p>
                   </div>
-                  <button 
-                    onClick={handleDownload}
-                    className="px-12 py-5 bg-white text-black font-bold rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
-                  >
-                    <Download className="w-6 h-6" /> Export </button>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button 
+                      onClick={handleDownload}
+                      className="px-12 py-5 bg-white text-black font-bold rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+                    >
+                      <Download className="w-6 h-6" /> Export 
+                    </button>
+                    <button 
+                      onClick={() => { setFile(null); clearResultUrl(); }}
+                      className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all flex items-center justify-center"
+                    >
+                      Start New
+                    </button>
+                  </div>
                </div>
             ) : (
                <div className="w-full space-y-8 animate-in fade-in duration-1000">

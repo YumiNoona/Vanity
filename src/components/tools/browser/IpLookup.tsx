@@ -53,6 +53,8 @@ export function IpLookup() {
       title="IP Lookup"
       description="Inspect geolocation, ISP, and ASN data for any IP address or domain instantly."
       icon={MapPin}
+      centered={true}
+      maxWidth="max-w-6xl"
     >
       <div className="space-y-8">
         <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-6">

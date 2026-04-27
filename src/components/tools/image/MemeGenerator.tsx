@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, ArrowLeft, Loader2, Sparkles, Type, Plus, MessageSquare } from "lucide-react"
+import { Download, Loader2, Sparkles, Type, Plus, MessageSquare } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
@@ -193,6 +193,9 @@ export function MemeGenerator() {
             setIsRecording(false)
             setIsProcessing(false)
             
+            // Clean up stream tracks to prevent leaks/active camera indicator
+            stream.getTracks().forEach(track => track.stop())
+            
             // Resume preview render loop
             const renderLoop = () => {
                if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
@@ -258,7 +261,13 @@ export function MemeGenerator() {
   }
 
   return (
-    <ToolLayout title="Meme Generator" description="Double click text to edit. Drag to reposition." icon={MessageSquare} onBack={handleBack} backLabel="Change Template" maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="Meme Generator" 
+      description="Double click text to edit. Drag to reposition." 
+      icon={MessageSquare} 
+      maxWidth="max-w-6xl"
+      centered={true}
+    >
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
            <div className="glass-panel p-6 rounded-xl space-y-4">
@@ -287,6 +296,13 @@ export function MemeGenerator() {
               >
                 {isProcessing || isRecording ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
                 {isRecording ? "Recording Meme..." : "Download Meme"}
+              </button>
+
+              <button 
+                onClick={handleBack}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs transition-all border border-white/5"
+              >
+                Change Template
               </button>
            </div>
         </div>

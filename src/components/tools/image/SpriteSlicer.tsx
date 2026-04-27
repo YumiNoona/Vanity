@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Grid3X3, Download, RefreshCw, Scissors, AlertCircle, FileArchive } from "lucide-react"
+import { Grid3X3, Download, RefreshCw, Scissors, AlertCircle, FileArchive } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import JSZip from "jszip"
@@ -194,7 +194,7 @@ export function SpriteSlicer() {
   }
 
   return (
-    <ToolLayout title="Slice Sheet" description="Define row/col grid and export all tiles." icon={Grid3X3} onBack={() => { setFile(null); clearTilePreview(); clearZipUrl(); }} backLabel="Start New" maxWidth="max-w-7xl">
+    <ToolLayout title="Slice Sheet" description="Define row/col grid and export all tiles." icon={Grid3X3} centered={true} maxWidth="max-w-7xl">
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Controls */}

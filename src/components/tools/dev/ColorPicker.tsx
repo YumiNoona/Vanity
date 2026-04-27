@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { ArrowLeft, Copy, CheckCircle, Palette, RefreshCw } from "lucide-react"
+import { Copy, CheckCircle, Palette, RefreshCw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -59,12 +59,13 @@ export function ColorPicker() {
     updateFromHex(newHex)
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
-    <ToolLayout title="Color Converter" description="Convert between HEX, RGB, and HSL." icon={Palette} onBack={handleBack} backLabel="Back">
+    <ToolLayout 
+      title="Color Converter" 
+      description="Convert between HEX, RGB, and HSL." 
+      icon={Palette} 
+      centered={true}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Visual Picker */}
         <div className="space-y-6">

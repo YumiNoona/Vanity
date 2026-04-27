@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { ArrowLeft, Eye, Layout, Copy, CheckCircle, Download, FileJson } from "lucide-react"
+import { Eye, Layout, Copy, CheckCircle, Download, FileJson } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { marked } from "marked"
 import { toast } from "sonner"
@@ -35,18 +35,13 @@ export function MarkdownPreview() {
     a.click()
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   return (
     <ToolLayout 
       title="Markdown Studio" 
       description="Write markdown, get beautiful live rendering." 
       icon={Eye} 
-      onBack={handleBack} 
-      backLabel="Back" 
       maxWidth="max-w-7xl"
+      centered={true}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12 h-[calc(100vh-250px)]">
         {/* Editor Area */}

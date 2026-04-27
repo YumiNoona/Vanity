@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { ArrowLeft, Images, Download, RefreshCw, Trash2, SlidersHorizontal, AlertCircle, XCircle } from "lucide-react"
+import { Images, Download, RefreshCw, Trash2, SlidersHorizontal, AlertCircle, XCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import gifshot from "gifshot"
@@ -82,7 +82,6 @@ export function GifMaker() {
     try {
       // 1. Process & Rezise Frames
       let aggregatePixels = 0
-
       for (let i = 0; i < files.length; i++) {
         if (isCancelledRef.current) {
           cleanupFrames()
@@ -90,37 +89,39 @@ export function GifMaker() {
         }
 
         const url = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            const img = new Image()
-            img.onload = async () => {
-              const { width, height } = guardDimensions(img.width, img.height)
-              aggregatePixels += width * height
-              
-              if (aggregatePixels > MAX_TOTAL_PX) {
-                reject(new Error("Image set is too large for device memory. Reduce frames or resolution."))
-                return
-              }
-
-              const canvas = document.createElement("canvas")
-              canvas.width = width
-              canvas.height = height
-              const ctx = canvas.getContext("2d")
-              if (ctx) {
-                ctx.imageSmoothingEnabled = true
-                ctx.drawImage(img, 0, 0, width, height)
-              }
-              const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.75))
-              const url = blob ? URL.createObjectURL(blob) : ""
-              
-              canvas.width = 0
-              canvas.height = 0
-              resolve(url)
+          const img = new Image()
+          const tempUrl = URL.createObjectURL(files[i])
+          img.onload = async () => {
+            const { width, height } = guardDimensions(img.width, img.height)
+            aggregatePixels += width * height
+            
+            if (aggregatePixels > MAX_TOTAL_PX) {
+              URL.revokeObjectURL(tempUrl)
+              reject(new Error("Image set is too large for device memory. Reduce frames or resolution."))
+              return
             }
-            img.src = e.target?.result as string
+
+            const canvas = document.createElement("canvas")
+            canvas.width = width
+            canvas.height = height
+            const ctx = canvas.getContext("2d")
+            if (ctx) {
+              ctx.imageSmoothingEnabled = true
+              ctx.drawImage(img, 0, 0, width, height)
+            }
+            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.75))
+            const url = blob ? URL.createObjectURL(blob) : ""
+            
+            canvas.width = 0
+            canvas.height = 0
+            URL.revokeObjectURL(tempUrl)
+            resolve(url)
           }
-          reader.onerror = () => reject(new Error("Failed to read file"))
-          reader.readAsDataURL(files[i])
+          img.onerror = () => {
+            URL.revokeObjectURL(tempUrl)
+            reject(new Error("Failed to load image"))
+          }
+          img.src = tempUrl
         })
 
         frameUrls.push(url)
@@ -181,10 +182,6 @@ export function GifMaker() {
     }
   }
 
-  const handleBack = () => {
-    window.history.back()
-  }
-
   if (files.length === 0) {
     return (
       <ToolUploadLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images}>
@@ -194,7 +191,7 @@ export function GifMaker() {
   }
 
   return (
-    <ToolLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images} onBack={handleBack} backLabel="Back">
+    <ToolLayout title="GIF Maker" description="Combine image sequence into an animated GIF." icon={Images} centered={true}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
            <DropZone onDrop={handleDrop} accept={{"image/*": []}} multiple label="Add More Frames" />
