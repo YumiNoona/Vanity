@@ -62,7 +62,7 @@
 | **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend. |
 | **Remove Blank Pages** | Smart pixel-density analysis to auto-sanitize documents. |
 
-### 🤖 AI Utilities (Anthropic BYOK)
+### 🤖 AI Utilities
 | Tool | Description |
 |---|---|
 | **Screenshot to Code** | Convert UI mockups into clean **Tailwind CSS + HTML** code. |
@@ -75,12 +75,12 @@
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Runtime** | React 19, TypeScript 6 | Type-safe component architecture |
-| **Build** | Vite 8 | Sub-second HMR, optimized code splitting |
+| **Runtime** | React, TypeScript | Type-safe component architecture |
+| **Build** | Vite | Sub-second HMR, optimized code splitting |
 | **Animation** | Framer Motion | Smooth layout transitions and interactive toggles |
-| **Canvas Engine** | Fabric.js 7 | Rich interactive canvas editing & composition |
-| **Video Engine** | `ffmpeg.wasm` v0.12 | Multi-threaded browser video processing |
-| **Archiver** | `jszip` | Chunked client-side ZIP generation |
+| **Canvas Engine** | Fabric.js | Rich interactive canvas editing & composition |
+| **Video Engine** | `ffmpeg.wasm` | Multi-threaded browser video processing |
+| **Serverless API** | Vercel Functions | Secure AI API key proxying (Gemini & Groq) |
 | **Icons** | Lucide React | Consistent icon system across all tools |
 
 ---
@@ -88,13 +88,15 @@
 ## 📂 Project Structure
 
 ```text
+├── api/                             # Vercel Serverless Functions (AI Proxy)
+│   ├── ai-proxy.ts                  # Secure proxy for Gemini/Groq API calls
 ├── server/                          # Local PDF encryption backend
 │   ├── server.js                    # Express + qpdf bridge
 ├── src/
 │   ├── components/
 │   │   ├── layout/                  # ToolLayout, ToolUploadLayout, Navbar
 │   │   ├── shared/                  # PillToggle, ModeToggle, DropZone
-│   │   ├── tools/                   # 100+ Categorized tools
+│   │   ├── tools/                   # 110+ Categorized tools
 │   │   └── ui/                      # shadcn/ui primitives
 │   ├── hooks/
 │   │   ├── useObjectUrl.ts          # Centralized memory management
