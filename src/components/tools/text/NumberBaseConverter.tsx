@@ -125,7 +125,6 @@ export function NumberBaseConverter() {
           />
         </div>
       </div>
-        </div>
       </div>
     </ToolLayout>
   )

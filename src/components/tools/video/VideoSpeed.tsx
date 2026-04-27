@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { FastForward, Download, Loader2, Play, Info } from "lucide-react"
+import { FastForward, Download, Loader2, Play, Info, ArrowLeft } from "lucide-react"
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
@@ -158,6 +158,7 @@ export function VideoSpeed() {
                           <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
                        </div>
                     </div>
+                  ) : resultUrl ? (
                     <div className="flex flex-col sm:flex-row gap-4 w-full">
                       <button 
                         onClick={handleDownload}

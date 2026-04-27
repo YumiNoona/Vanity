@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { Table, Copy, CheckCircle, Download, FileCodeRight, Braces, ClipboardList } from "lucide-react"
+import { Table, Copy, CheckCircle, ClipboardList } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"

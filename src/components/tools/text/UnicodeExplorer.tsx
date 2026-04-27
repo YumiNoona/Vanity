@@ -134,7 +134,6 @@ export function UnicodeExplorer() {
            </div>
         </div>
       </div>
-      </div>
     </ToolLayout>
   )
 }

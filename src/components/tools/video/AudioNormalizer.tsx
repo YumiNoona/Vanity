@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { Music, Download, Loader2, Play, Info, Volume2 } from "lucide-react"
+import { Music, Download, Loader2, Play, Info, Volume2, ArrowLeft } from "lucide-react"
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"

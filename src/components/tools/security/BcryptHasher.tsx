@@ -135,7 +135,6 @@ export function BcryptHasher() {
            </div>
         </div>
       </div>
-      </div>
     </ToolLayout>
   )
 }
