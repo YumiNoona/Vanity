@@ -40,6 +40,11 @@ vanity-*.docx
 server/node_modules/
 server/uploads/*
 
+# --- API Functions (Vercel) ---
+api/*.js
+api/*.tsbuildinfo
+
+
 # --- AI & Assistant Artifacts ---
 .gemini/
 artifacts/
