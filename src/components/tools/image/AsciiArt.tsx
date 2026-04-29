@@ -6,6 +6,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 const CHAR_SETS = {
   standard: "@%#*+=-:. ",
@@ -21,7 +22,7 @@ export function AsciiArt() {
   const [ascii, setAscii] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -78,11 +79,8 @@ export function AsciiArt() {
   }, [file, charSet, resolution, generateAscii])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(ascii)
-    setCopied(true)
-    toast.success("ASCII copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(ascii, "ASCII copied to clipboard")
+    }
 
   const handleDownloadTxt = () => {
     if (!resultUrl) return

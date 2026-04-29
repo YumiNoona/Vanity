@@ -4,12 +4,13 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function CsvJsonConverter() {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"csv-to-json" | "json-to-csv">("csv-to-json")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   const csvToJson = (csv: string) => {
@@ -69,11 +70,8 @@ export function CsvJsonConverter() {
 
   const handleCopy = () => {
     if (!output) return
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    toast.success("Copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(output, "Copied to clipboard")
+    }
 
   const handleDownload = () => {
     if (!resultUrl) return

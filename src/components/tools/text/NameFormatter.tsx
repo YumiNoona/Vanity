@@ -3,11 +3,14 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Type, Copy, CheckCircle, ListRestart, Download, Scissors } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { useDownload } from "@/hooks/useDownload"
 
 export function NameFormatter() {
   const [input, setInput] = useState("JOHN DOE\njane smith-jones\nmcdonald o'grady\nWILLIAM III")
   const [output, setOutput] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
+  const { download } = useDownload()
 
   const formatName = (name: string) => {
     return name
@@ -55,20 +58,12 @@ export function NameFormatter() {
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(output)
     toast.success("Copied to clipboard")
   }
 
   const handleDownload = () => {
-    const blob = new Blob([output], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "formatted-names.txt"
-    a.click()
-    URL.revokeObjectURL(url)
+    download(output, "formatted-names.txt")
   }
 
   return (

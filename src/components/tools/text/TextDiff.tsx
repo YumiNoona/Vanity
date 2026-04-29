@@ -3,11 +3,12 @@ import { Diff, SplitSquareHorizontal, Layout, Trash2, Copy, CheckCircle } from "
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { diff_match_patch } from "diff-match-patch"
 import { toast } from "sonner"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function TextDiff() {
   const [text1, setText1] = useState("")
   const [text2, setText2] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const diffResult = useMemo(() => {
     if (!text1.trim() && !text2.trim()) return null
@@ -20,11 +21,8 @@ export function TextDiff() {
   const handleCopy = () => {
     if (!diffResult) return
     const text = (diffResult as [number, string][]).map(([op, data]: [number, string]) => data).join("")
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    toast.success("Merged text copied!")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(text, "Merged text copied!")
+    }
 
   return (
     <ToolLayout 

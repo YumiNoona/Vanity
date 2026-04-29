@@ -1,16 +1,10 @@
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { FileMinus, Download, RefreshCw, Layers, ShieldCheck } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import * as pdfjsLib from "pdfjs-dist"
-import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-
-// Set up worker
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-
+// pdfjs-dist is loaded dynamically in renderPreview
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function RemoveBlankPages() {
@@ -18,6 +12,7 @@ export function RemoveBlankPages() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+
   const [removedCount, setRemovedCount] = useState(0)
 
   const handleDrop = async (files: File[]) => {
@@ -61,11 +56,16 @@ export function RemoveBlankPages() {
     setRemovedCount(0)
 
     try {
+      // Dynamic import
+      const pdfjs = await import("pdfjs-dist")
+      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
+      pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
+      
+      const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await pdfFile.arrayBuffer()
       
       // 1. Scan for blank pages using pdfjs-dist
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
-      const pdf = await loadingTask.promise
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
       const blankPages: number[] = []
 
       for (let i = 1; i <= pdf.numPages; i++) {

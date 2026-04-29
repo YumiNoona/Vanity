@@ -5,7 +5,7 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { callAI } from "@/lib/ai-providers"
-import { extractPdfText } from "@/lib/pdf-text"
+import { extractPdfText, prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
 
 export function PdfSummariser() {
@@ -19,6 +19,7 @@ export function PdfSummariser() {
   const isMountedRef = useRef(true)
 
   useEffect(() => {
+    prewarmPdf()
     return () => {
       isMountedRef.current = false
       requestControllerRef.current?.abort()

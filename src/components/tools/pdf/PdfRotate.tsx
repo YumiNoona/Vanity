@@ -2,7 +2,8 @@ import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { RotateCw, Download, RefreshCw, Layers, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument, degrees } from "pdf-lib"
+// pdf-lib is loaded dynamically in applyRotation
+import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -13,6 +14,10 @@ export function PdfRotate() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [rotation, setRotation] = useState(90)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+
+  React.useEffect(() => {
+    prewarmPdf()
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     if (files[0]) {
@@ -26,6 +31,7 @@ export function PdfRotate() {
     setIsProcessing(true)
 
     try {
+      const { PDFDocument, degrees } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const pages = pdfDoc.getPages()

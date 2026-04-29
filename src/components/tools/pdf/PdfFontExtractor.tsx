@@ -2,14 +2,10 @@ import React, { useState, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Type, Download, AlertTriangle, CheckCircle, Search, RefreshCw, XCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import * as pdfjsLib from "pdfjs-dist"
 import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
-// Set up worker
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-
+// pdfjs-dist is loaded dynamically in handleDrop
 export interface PdfFont {
   id: string
   name: string
@@ -38,6 +34,10 @@ export function PdfFontExtractor() {
     setProgress(0)
     
     try {
+      const pdfjsLib = await import("pdfjs-dist")
+      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+
       const arrayBuffer = await pdfFile.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       

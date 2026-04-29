@@ -3,14 +3,13 @@ import { motion } from "framer-motion"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, PaintBucket, Info, RefreshCw, ShieldCheck } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { usePremium } from "../../../hooks/usePremium"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
+import { usePremium } from "@/hooks/usePremium"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
-import { cn } from "../../../lib/utils"
+import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
-// @ts-ignore
-import * as ExifReader from "../../../lib/exif-reader"
+import exifr from 'exifr'
 
 interface IccMetadata {
   [key: string]: {
@@ -57,22 +56,31 @@ export function IccStripper({ embedded = false }: { embedded?: boolean }) {
       setFile(uploadedFile)
       
       try {
-        const tags = await ExifReader.load(uploadedFile)
+        const tags = await exifr.parse(uploadedFile, {
+            icc: true,
+            tiff: false,
+            exif: false,
+            xmp: false,
+            iptc: false
+        })
+
         const icc: IccMetadata = {}
         
-        Object.entries(tags).forEach(([name, tag]: [string, any]) => {
-          if (name.startsWith("icc")) {
-            icc[name] = {
-              value: tag.value,
-              description: tag.description
-            }
-          }
-        })
+        if (tags) {
+            Object.entries(tags).forEach(([name, val]: [string, any]) => {
+              if (name.toLowerCase().startsWith("icc")) {
+                icc[name] = {
+                  value: val,
+                  description: typeof val === 'string' ? val : String(val)
+                }
+              }
+            })
+        }
 
         setIccData(Object.keys(icc).length > 0 ? icc : null)
         if (Object.keys(icc).length === 0) toast.error("No ICC profile found")
       } catch (err) {
-        console.error("ExifReader error:", err)
+        console.error("exifr error:", err)
         toast.error("Could not read profile")
       }
       return

@@ -4,11 +4,12 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { marked } from "marked"
 import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function MarkdownPreview() {
   const [input, setInput] = useState("# Welcome to Vanity\n\nStart typing **Markdown** to see the magic happen.\n\n- Local processing\n- Zero tracking\n- Instant preview\n\n```javascript\nconsole.log('Hello World');\n```")
   const [html, setHtml] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
   useEffect(() => {
@@ -21,11 +22,8 @@ export function MarkdownPreview() {
   }, [input, setResultUrl])
 
   const handleCopyHtml = () => {
-    navigator.clipboard.writeText(html)
-    setCopied(true)
-    toast.success("HTML copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(html, "HTML copied to clipboard")
+    }
 
   const handleDownloadMd = () => {
     if (!resultUrl) return

@@ -1,16 +1,15 @@
 import React, { useState } from "react"
 import { Type, Copy, CheckCircle, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function StringCaseConverter() {
   const [input, setInput] = useState("hello world, make this camelCase")
-  const [copied, setCopied] = useState<string | null>(null)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(id)
-    setTimeout(() => setCopied(null), 2000)
-  }
+    copy(text)
+    }
 
   // Tokenization split logic (handles space, snake, kebab, camel splitting)
   const tokenize = (str: string): string[] => {

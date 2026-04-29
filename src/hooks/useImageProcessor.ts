@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { loadImage, type LoadedImage } from "../lib/canvas/loadImage";
+import { loadImage } from "../lib/canvas/loadImage";
 import { guardDimensions, maybeYield } from "../lib/utils";
 
 export interface ImageProcessResult {
@@ -89,7 +89,7 @@ export const useImageProcessor = () => {
       }
       return null;
     }
-  }, [clearCurrent, updateProgress]);
+  }, [updateProgress]);
 
   // Expose current jobId for tools to check against
   const getJobId = useCallback(() => jobIdRef.current, []);

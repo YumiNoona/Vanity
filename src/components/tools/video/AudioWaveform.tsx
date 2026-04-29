@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Mic, Scissors, Download, Loader2, FastForward } from "lucide-react"
+import { Mic, Scissors, Download, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { fetchFile } from "@ffmpeg/util"
 import { toast } from "sonner"
@@ -10,7 +10,7 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function AudioWaveform() {
   const [file, setFile] = useState<File | null>(null)
-  const { url: audioUrl, setUrl: setAudioUrl, clear: clearAudioUrl } = useObjectUrl()
+  const { url: audioUrl, setUrl: setAudioUrl } = useObjectUrl()
   
   const [isDecoding, setIsDecoding] = useState(false)
   const [isTrimming, setIsTrimming] = useState(false)
@@ -145,7 +145,7 @@ export function AudioWaveform() {
        ])
 
        const data = await ffmpeg.readFile(outName)
-       const blob = new Blob([new Uint8Array((data as Uint8Array).buffer) as any], { type: "audio/wav" })
+       const blob = new Blob([data as any], { type: "audio/wav" })
        setTrimmedUrl(blob)
        toast.success("Audio trimmed successfully!")
        
@@ -162,10 +162,9 @@ export function AudioWaveform() {
     }
   }
 
-  const handleDragUpdate = (e: React.MouseEvent | React.TouchEvent, handle: 'start' | 'end') => {
+  const handleDragUpdate = useCallback((clientX: number, handle: 'start' | 'end') => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
     const pct = Math.max(0, Math.min((clientX - rect.left) / rect.width, 1))
 
     if (handle === 'start') {
@@ -173,7 +172,31 @@ export function AudioWaveform() {
     } else {
        if (pct > trimStart + 0.05) setTrimEnd(pct)
     }
-  }
+  }, [trimEnd, trimStart])
+
+  const [activeHandle, setActiveHandle] = useState<'start' | 'end' | null>(null)
+
+  useEffect(() => {
+    if (!activeHandle) return
+
+    const handleMouseMove = (e: MouseEvent) => handleDragUpdate(e.clientX, activeHandle)
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) handleDragUpdate(e.touches[0].clientX, activeHandle)
+    }
+    const handleUp = () => setActiveHandle(null)
+
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleUp)
+    document.addEventListener("touchmove", handleTouchMove, { passive: false })
+    document.addEventListener("touchend", handleUp)
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleUp)
+      document.removeEventListener("touchmove", handleTouchMove)
+      document.removeEventListener("touchend", handleUp)
+    }
+  }, [activeHandle, handleDragUpdate])
 
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "00:00.0"
@@ -195,7 +218,7 @@ export function AudioWaveform() {
   useEffect(() => {
     return () => {
       if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(console.error)
+        audioCtxRef.current.close().catch(() => {})
       }
     }
   }, [])
@@ -246,16 +269,8 @@ export function AudioWaveform() {
                <div 
                   className="absolute top-0 bottom-0 w-4 -ml-2 cursor-col-resize flex items-center justify-center z-20 group"
                   style={{ left: `${trimStart * 100}%` }}
-                  onMouseDown={(e) => {
-                     const move = (ev: MouseEvent) => handleDragUpdate(ev as any, 'start')
-                     const up = () => { document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up) }
-                     document.addEventListener("mousemove", move); document.addEventListener("mouseup", up)
-                  }}
-                  onTouchStart={(e) => {
-                     const move = (ev: TouchEvent) => handleDragUpdate(ev as any, 'start')
-                     const up = () => { document.removeEventListener("touchmove", move); document.removeEventListener("touchend", up) }
-                     document.addEventListener("touchmove", move, {passive: false}); document.addEventListener("touchend", up)
-                  }}
+                  onMouseDown={() => setActiveHandle('start')}
+                  onTouchStart={() => setActiveHandle('start')}
                >
                   <div className="w-[3px] h-[50%] bg-white group-hover:bg-purple-400 rounded-full transition-colors drop-shadow-[0_0_5px_rgba(0,0,0,1)]" />
                </div>
@@ -263,16 +278,8 @@ export function AudioWaveform() {
                <div 
                   className="absolute top-0 bottom-0 w-4 -ml-2 cursor-col-resize flex items-center justify-center z-20 group"
                   style={{ left: `${trimEnd * 100}%` }}
-                  onMouseDown={(e) => {
-                     const move = (ev: MouseEvent) => handleDragUpdate(ev as any, 'end')
-                     const up = () => { document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up) }
-                     document.addEventListener("mousemove", move); document.addEventListener("mouseup", up)
-                  }}
-                  onTouchStart={(e) => {
-                     const move = (ev: TouchEvent) => handleDragUpdate(ev as any, 'end')
-                     const up = () => { document.removeEventListener("touchmove", move); document.removeEventListener("touchend", up) }
-                     document.addEventListener("touchmove", move, {passive: false}); document.addEventListener("touchend", up)
-                  }}
+                  onMouseDown={() => setActiveHandle('end')}
+                  onTouchStart={() => setActiveHandle('end')}
                >
                   <div className="w-[3px] h-[50%] bg-white group-hover:bg-purple-400 rounded-full transition-colors drop-shadow-[0_0_5px_rgba(0,0,0,1)]" />
                </div>

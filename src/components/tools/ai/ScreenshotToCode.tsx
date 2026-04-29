@@ -9,13 +9,14 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function ScreenshotToCode() {
   const [file, setFile] = useState<File | null>(null)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [code, setCode] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
   const activeProvider = useActiveProvider()
   const requestControllerRef = useRef<AbortController | null>(null)
@@ -71,9 +72,7 @@ export function ScreenshotToCode() {
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(code)
     toast.success("HTML copied!")
   }
 

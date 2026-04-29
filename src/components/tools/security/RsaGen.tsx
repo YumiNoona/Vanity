@@ -4,12 +4,13 @@ import { ShieldCheck, Download, Copy, CheckCircle, Loader2, RefreshCw, Key, Info
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function RsaGen() {
   const [keys, setKeys] = useState<{ public: string; private: string } | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [bitSize, setBitSize] = useState(2048)
-  const [copied, setCopied] = useState<"pub" | "priv" | null>(null)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
     let binary = ""
@@ -56,9 +57,7 @@ export function RsaGen() {
   }
 
   const handleCopy = (text: string, type: "pub" | "priv") => {
-    navigator.clipboard.writeText(text)
-    setCopied(type)
-    setTimeout(() => setCopied(null), 2000)
+    copy(text)
     toast.success(`${type === "pub" ? "Public" : "Private"} key copied`)
   }
 

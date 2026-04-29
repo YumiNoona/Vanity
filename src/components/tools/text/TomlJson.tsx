@@ -1,41 +1,32 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useMemo } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { ArrowLeftRight, Copy, CheckCircle, Download, FileJson, Repeat, AlertCircle } from "lucide-react"
+import { ArrowLeftRight, Copy, CheckCircle, Download, Repeat, AlertCircle } from "lucide-react"
 import * as toml from "smol-toml"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { useDownload } from "@/hooks/useDownload"
 
 export function TomlJson() {
   const [input, setInput] = useState(`[package]\nname = "vanity"\nversion = "0.1.0"\nedition = "2021"\n\n[dependencies]\nreact = "18.2.0"`)
-  const [output, setOutput] = useState("")
   const [direction, setDirection] = useState<"toml-to-json" | "json-to-toml">("toml-to-json")
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
+  const { download } = useDownload()
 
-  const convert = () => {
-    if (!input.trim()) {
-      setOutput("")
-      setError(null)
-      return
-    }
-
+  const { output, error } = useMemo(() => {
+    if (!input.trim()) return { output: "", error: null }
     try {
       if (direction === "toml-to-json") {
         const parsed = toml.parse(input)
-        setOutput(JSON.stringify(parsed, null, 2))
+        return { output: JSON.stringify(parsed, null, 2), error: null }
       } else {
         const parsed = JSON.parse(input)
-        setOutput(toml.stringify(parsed))
+        return { output: toml.stringify(parsed), error: null }
       }
-      setError(null)
-    } catch (err: any) {
-      setError(err.message)
-      setOutput("")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      return { output: "", error: message }
     }
-  }
-
-  useEffect(() => {
-    convert()
   }, [input, direction])
 
   const toggleDirection = () => {
@@ -44,21 +35,13 @@ export function TomlJson() {
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(output)
     toast.success("Copied to clipboard")
   }
 
   const handleDownload = () => {
     const ext = direction === "toml-to-json" ? "json" : "toml"
-    const blob = new Blob([output], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `converted.${ext}`
-    a.click()
-    URL.revokeObjectURL(url)
+    download(output, `converted.${ext}`)
   }
 
   return (

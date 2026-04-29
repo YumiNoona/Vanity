@@ -1,30 +1,49 @@
 import React, { useState, useMemo } from "react"
-import { Search, AlertCircle, Copy, CheckCircle, Regex, Terminal } from "lucide-react"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { toast } from "sonner"
+import { Search, AlertCircle, Copy, CheckCircle, Terminal, Repeat, Book, HelpCircle, ArrowRight } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
+import { PillToggle } from "@/components/shared/PillToggle"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { cn } from "@/lib/utils"
+
+type ToolMode = "test" | "replace"
+
+const COMMON_PATTERNS = [
+  { label: "Email Address", value: "([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)\\.([a-zA-Z0-9_-]+)", flags: "gm", desc: "Matches standard email formats" },
+  { label: "IPv4 Address", value: "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)", flags: "gm", desc: "Matches 0.0.0.0 to 255.255.255.255" },
+  { label: "URL (HTTP/S)", value: "https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)", flags: "gm", desc: "Matches standard web URLs" },
+  { label: "Date (YYYY-MM-DD)", value: "\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])", flags: "gm", desc: "ISO 8601 date format" },
+  { label: "Phone (International)", value: "\\+(?:[0-9] ?){6,14}[0-9]", flags: "gm", desc: "E.164 phone number format" },
+  { label: "HTML Tag", value: "<([a-z1-6]+)([^>]*)>(.*?)<\\/\\1>", flags: "gms", desc: "Matches balanced HTML tags" },
+]
 
 export function RegexTester() {
+  const [mode, setMode] = useState<ToolMode>("test")
   const [pattern, setPattern] = useState("([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)\\.([a-zA-Z0-9_-]+)")
   const [flags, setFlags] = useState("gm")
   const [testString, setTestString] = useState("Extract these emails: hello@vanity.venusapp.in\nAnd another: admin@example.com")
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [replacement, setReplacement] = useState("REPLACED")
+  
+  const { copiedId, copy } = useCopyToClipboard()
 
-  const { matches, error, highlightedText } = useMemo(() => {
-    if (!pattern) return { matches: [], error: null, highlightedText: [{ text: testString, isMatch: false }] }
+  const { matches, error, highlightedText, replacedText } = useMemo(() => {
+    if (!pattern) return { matches: [], error: null, highlightedText: [{ text: testString, isMatch: false }], replacedText: testString }
     
     try {
       const regex = new RegExp(pattern, flags)
       const matchesData = []
       let match
       
-      regex.lastIndex = 0;
+      const tempRegex = new RegExp(pattern, flags)
+      tempRegex.lastIndex = 0;
       
       if (flags.includes('g')) {
-        while ((match = regex.exec(testString)) !== null) {
+        while ((match = tempRegex.exec(testString)) !== null) {
           matchesData.push(match)
-          if (match[0].length === 0) regex.lastIndex++
+          if (match[0].length === 0) tempRegex.lastIndex++
         }
       } else {
-        match = regex.exec(testString)
+        match = tempRegex.exec(testString)
         if (match) matchesData.push(match)
       }
 
@@ -33,170 +52,234 @@ export function RegexTester() {
         let currentIndex = 0
         matchesData.forEach((m, idx) => {
           if (m.index > currentIndex) {
-            textChunks.push({ text: testString.slice(currentIndex, m.index), isMatch: false, matchIndex: -1 })
+            textChunks.push({ text: testString.slice(currentIndex, m.index), isMatch: false })
           }
           textChunks.push({ text: m[0], isMatch: true, matchIndex: idx })
           currentIndex = m.index + m[0].length
         })
         if (currentIndex < testString.length) {
-          textChunks.push({ text: testString.slice(currentIndex), isMatch: false, matchIndex: -1 })
+          textChunks.push({ text: testString.slice(currentIndex), isMatch: false })
         }
       } else {
-        textChunks = [{ text: testString, isMatch: false, matchIndex: -1 }]
+        textChunks = [{ text: testString, isMatch: false }]
       }
 
-      return { matches: matchesData, error: null, highlightedText: textChunks }
-    } catch (e: any) {
-      return { matches: [], error: e.message, highlightedText: [{ text: testString, isMatch: false, matchIndex: -1 }] }
-    }
-  }, [pattern, flags, testString])
+      const replaced = testString.replace(regex, replacement)
 
-  const toggleFlag = (flag: string) => {
-    if (flags.includes(flag)) {
-      setFlags(flags.replace(flag, ""))
-    } else {
-      setFlags(flags + flag)
+      return { matches: matchesData, error: null, highlightedText: textChunks, replacedText: replaced }
+    } catch (e: any) {
+      return { matches: [], error: e.message, highlightedText: [{ text: testString, isMatch: false }], replacedText: testString }
     }
+  }, [pattern, flags, testString, replacement])
+
+  const applyPattern = (p: typeof COMMON_PATTERNS[0]) => {
+    setPattern(p.value)
+    setFlags(p.flags)
+    toast.success(`${p.label} pattern applied`)
   }
 
-  const copyToClipboard = (text: string, index: number) => {
-    navigator.clipboard.writeText(text)
-    setCopiedIndex(index)
-    setTimeout(() => setCopiedIndex(null), 2000)
+  const toggleFlag = (flag: string) => {
+    setFlags(prev => prev.includes(flag) ? prev.replace(flag, "") : prev + flag)
   }
 
   const availableFlags = [
     { id: "g", label: "Global", desc: "Don't return after first match" },
-    { id: "i", label: "Case Insensitive", desc: "Case-insensitive matching" },
-    { id: "m", label: "Multiline", desc: "^ and $ match start/end of line" },
-    { id: "s", label: "DotAll", desc: "Dot (.) matches newline" }
+    { id: "i", label: "Case Insensitive", desc: "Ignore casing" },
+    { id: "m", label: "Multiline", desc: "^ and $ match lines" },
+    { id: "s", label: "DotAll", desc: "Dot matches newline" }
   ]
 
   return (
     <ToolLayout 
-      title="Regex Tester" 
-      description="Live evaluate regular expressions with highlighting and group capture." 
+      title="Regex Tester & Replacer" 
+      description="Live evaluate, test, and perform bulk replacements with regular expressions." 
       icon={Terminal} 
-      maxWidth="max-w-6xl"
+      maxWidth="max-w-7xl"
       centered={true}
     >
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-0">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="glass-panel p-6 rounded-xl space-y-4">
-             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Regular Expression</label>
-             <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-lg p-2 focus-within:border-blue-500/50 transition-colors">
-               <span className="text-muted-foreground font-mono text-xl pl-2">/</span>
-               <input 
-                 value={pattern}
-                 onChange={(e) => setPattern(e.target.value)}
-                 className="flex-1 bg-transparent border-none outline-none font-mono text-sm"
-                 placeholder="pattern..."
-                 spellCheck={false}
-               />
-               <span className="text-muted-foreground font-mono text-xl">/</span>
-               <div className="flex items-center bg-white/5 rounded pl-2">
-                 <input 
-                   value={flags}
-                   onChange={(e) => setFlags(e.target.value)}
-                   className="w-16 bg-transparent border-none outline-none font-mono text-sm text-primary tracking-widest"
-                   placeholder="gim"
-                   spellCheck={false}
-                 />
-               </div>
-             </div>
-             
-             {error && (
-               <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive text-sm rounded-lg">
-                 <AlertCircle className="w-4 h-4" /> {error}
-               </div>
-             )}
-
-             <div className="flex flex-wrap gap-2 pt-2">
-                {availableFlags.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => toggleFlag(f.id)}
-                    title={f.desc}
-                    className={`px-3 py-1.5 rounded-md text-xs font-bold border transition-colors ${flags.includes(f.id) ? 'bg-primary/20 border-primary/30 text-primary' : 'bg-transparent border-white/5 hover:bg-white/5 text-muted-foreground'}`}
-                  >
-                    {f.id} — {f.label}
-                  </button>
-                ))}
-             </div>
-          </div>
-
-          <div className="glass-panel p-6 rounded-xl space-y-4">
-            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Test String</label>
-             <div className="relative isolate group">
-                <textarea 
-                  value={testString}
-                  onChange={(e) => setTestString(e.target.value)}
-                  className="w-full min-h-[300px] bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm resize-y outline-none focus:border-blue-500/30 transition-all z-10 relative text-transparent caret-white"
-                  spellCheck={false}
-                />
-                
-                {/* Highlight Overlay */}
-                <div 
-                  className="absolute inset-0 p-4 font-mono text-sm whitespace-pre-wrap break-words pointer-events-none z-0"
-                  style={{ color: '#fff' }}
-                >
-                  {highlightedText.map((chunk, i) => (
-                    <span 
-                      key={i} 
-                      className={chunk.isMatch ? "bg-blue-500/40 text-blue-100 rounded-[2px]" : "text-muted-foreground/60"}
-                    >
-                      {chunk.text}
-                    </span>
-                  ))}
-                </div>
-             </div>
-          </div>
+      <div className="space-y-8 pb-20">
+        <div className="flex justify-center">
+          <PillToggle 
+            activeId={mode}
+            onChange={(id) => setMode(id as ToolMode)}
+            options={[
+              { id: "test", label: "Match & Test", icon: Search },
+              { id: "replace", label: "Regex Replace", icon: Repeat },
+            ]}
+          />
         </div>
 
-        <div className="glass-panel p-6 rounded-xl space-y-6 h-fit max-h-[80vh] overflow-y-auto custom-scrollbar">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Match Results</label>
-            <span className="text-xs px-2 py-1 bg-white/5 rounded text-primary font-bold">{matches.length} matches</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Editor Column */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Regex Config */}
+            <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6">
+               <div className="flex items-center justify-between">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pattern Configuration</label>
+                 <div className="flex gap-2">
+                   {availableFlags.map(f => (
+                     <button
+                       key={f.id}
+                       onClick={() => toggleFlag(f.id)}
+                       title={f.desc}
+                       className={cn(
+                         "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all border",
+                         flags.includes(f.id) ? "bg-primary border-primary text-primary-foreground" : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                       )}
+                     >
+                       {f.id}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+               
+               <div className="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-4 focus-within:border-primary/50 transition-all">
+                 <span className="text-muted-foreground font-mono text-2xl">/</span>
+                 <input 
+                   value={pattern}
+                   onChange={(e) => setPattern(e.target.value)}
+                   className="flex-1 bg-transparent border-none outline-none font-mono text-lg text-white"
+                   placeholder="regex pattern here..."
+                   spellCheck={false}
+                 />
+                 <span className="text-muted-foreground font-mono text-2xl">/</span>
+                 <span className="text-primary font-mono text-xl font-bold min-w-[40px] text-center">{flags}</span>
+               </div>
+
+               {error && (
+                 <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl animate-in slide-in-from-top-2">
+                   <AlertCircle className="w-4 h-4 shrink-0" />
+                   <p className="font-medium">{error}</p>
+                 </div>
+               )}
+
+               {mode === "replace" && (
+                 <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Replacement String</label>
+                    <input 
+                      value={replacement}
+                      onChange={(e) => setReplacement(e.target.value)}
+                      placeholder="Replacement text..."
+                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono outline-none focus:border-primary/50 transition-all"
+                    />
+                 </div>
+               )}
+            </div>
+
+            {/* Input & Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Test String</label>
+                 <textarea 
+                   value={testString}
+                   onChange={(e) => setTestString(e.target.value)}
+                   className="w-full h-80 bg-black/40 border border-white/10 rounded-2xl p-6 font-mono text-xs outline-none focus:border-primary/50 resize-none transition-all text-white/90"
+                   spellCheck={false}
+                   placeholder="Enter text to test against..."
+                 />
+               </div>
+
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                   {mode === "test" ? "Match Preview" : "Replaced Result"}
+                 </label>
+                 <div className="w-full h-80 bg-black/40 border border-white/10 rounded-2xl p-6 font-mono text-xs overflow-auto custom-scrollbar relative">
+                   {mode === "test" ? (
+                     <div className="whitespace-pre-wrap break-words leading-relaxed">
+                       {highlightedText.map((chunk, i) => (
+                         <span 
+                           key={i} 
+                           className={cn(
+                             chunk.isMatch ? "bg-primary/30 text-primary-foreground rounded-sm ring-1 ring-primary/20 mx-[1px]" : "text-muted-foreground/60"
+                           )}
+                         >
+                           {chunk.text}
+                         </span>
+                       ))}
+                     </div>
+                   ) : (
+                     <div className="whitespace-pre-wrap break-words leading-relaxed text-emerald-400">
+                       {replacedText}
+                     </div>
+                   )}
+                   <button 
+                     onClick={() => copy(mode === "test" ? testString : replacedText)} 
+                     className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                   >
+                     {copiedId === 'main' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                   </button>
+                 </div>
+               </div>
+            </div>
           </div>
 
-          {!pattern || matches.length === 0 ? (
-            <div className="py-12 flex flex-col items-center justify-center text-center text-muted-foreground">
-              <Search className="w-8 h-8 opacity-20 mb-4" />
-              <p className="text-sm">No matches found</p>
+          {/* Sidebar */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Library */}
+            <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6">
+              <div className="flex items-center gap-2">
+                <Book className="w-4 h-4 text-primary" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Common Patterns</span>
+              </div>
+              <div className="space-y-2">
+                {COMMON_PATTERNS.map(p => (
+                  <button
+                    key={p.label}
+                    onClick={() => applyPattern(p)}
+                    className="w-full text-left p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-primary/30 transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white group-hover:text-primary transition-colors">{p.label}</span>
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{p.desc}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {matches.map((match, idx) => (
-                <div key={idx} className="bg-black/30 border border-white/5 rounded-lg overflow-hidden">
-                  <div className="p-3 border-b border-white/5 flex items-center justify-between group bg-white/[0.02]">
-                    <span className="text-xs font-bold text-primary">Match {idx + 1}</span>
-                    <button 
-                      onClick={() => copyToClipboard(match[0], idx)}
-                      className="text-muted-foreground hover:text-white transition-colors"
-                    >
-                      {copiedIndex === idx ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <div className="p-3 font-mono text-sm break-all text-blue-100">
-                    {match[0]}
-                  </div>
-                  
-                  {match.length > 1 && (
-                    <div className="p-3 pt-0 space-y-2">
-                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold block mb-2">Capture Groups</span>
-                       {Array.from(match).slice(1).map((group, groupIdx) => (
-                         <div key={groupIdx} className="flex gap-3 text-xs font-mono">
-                           <span className="text-muted-foreground w-4 text-right">{groupIdx + 1}.</span>
-                           <span className="text-white break-all">{group !== undefined ? group : <span className="opacity-30">undefined</span>}</span>
-                         </div>
-                       ))}
+
+            {/* Results List (Test Mode Only) */}
+            {mode === "test" && (
+              <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6 max-h-[400px] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                     <Terminal className="w-4 h-4 text-emerald-500" />
+                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Match Groups</span>
+                   </div>
+                   <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{matches.length}</span>
+                </div>
+                <div className="flex-1 overflow-auto custom-scrollbar space-y-4 pr-2">
+                  {matches.length > 0 ? (
+                    matches.map((m, i) => (
+                      <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-black text-primary uppercase">Match {i+1}</span>
+                          <button onClick={() => copy(m[0], `match-${i}`)} className="p-1 hover:text-white transition-all">
+                             {copiedId === `match-${i}` ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          </button>
+                        </div>
+                        <p className="font-mono text-[10px] break-all text-white/80">{m[0]}</p>
+                        {m.length > 1 && (
+                          <div className="pt-2 border-t border-white/5 space-y-1">
+                             {Array.from(m).slice(1).map((g, gi) => (
+                               <div key={gi} className="flex gap-2 text-[9px] font-mono">
+                                 <span className="text-muted-foreground">{gi+1}:</span>
+                                 <span className="text-blue-400 break-all">{g || "null"}</span>
+                               </div>
+                             ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="h-40 flex flex-col items-center justify-center text-muted-foreground opacity-20 italic text-xs">
+                      No matches
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </ToolLayout>

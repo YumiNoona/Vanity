@@ -1,24 +1,20 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useMemo } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Table, Copy, CheckCircle, ClipboardList } from "lucide-react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function TableToMd() {
   const [input, setInput] = useState("Name\tRole\tDepartment\nJohn Doe\tDesigner\tCreative\nJane Smith\tEngineer\tProduct")
-  const [output, setOutput] = useState("")
   const [format, setFormat] = useState<"markdown" | "html">("markdown")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
-  const convert = () => {
-    if (!input.trim()) {
-      setOutput("")
-      return
-    }
+  const output = useMemo(() => {
+    if (!input.trim()) return ""
 
     const lines = input.split("\n").map(l => l.trim()).filter(l => l.length > 0)
-    if (lines.length === 0) return
+    if (lines.length === 0) return ""
 
     const data = lines.map(line => {
       if (line.includes("\t")) return line.split("\t")
@@ -33,25 +29,19 @@ export function TableToMd() {
       const mdHeaders = `| ${headers.join(" | ")} |`
       const mdSeparator = `| ${headers.map(() => "---").join(" | ")} |`
       const mdRows = rows.map(row => `| ${row.join(" | ")} |`).join("\n")
-      setOutput(`${mdHeaders}\n${mdSeparator}\n${mdRows}`)
+      return `${mdHeaders}\n${mdSeparator}\n${mdRows}`
     } else {
       const htmlHeaders = headers.map(h => `    <th>${h}</th>`).join("\n")
       const htmlRows = rows.map(row => {
         const cells = row.map(c => `    <td>${c}</td>`).join("\n")
         return `  <tr>\n${cells}\n  </tr>`
       }).join("\n")
-      setOutput(`<table>\n  <thead>\n  <tr>\n${htmlHeaders}\n  </tr>\n  </thead>\n  <tbody>\n${htmlRows}\n  </tbody>\n</table>`)
+      return `<table>\n  <thead>\n  <tr>\n${htmlHeaders}\n  </tr>\n  </thead>\n  <tbody>\n${htmlRows}\n  </tbody>\n</table>`
     }
-  }
-
-  useEffect(() => {
-    convert()
   }, [input, format])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(output)
     toast.success("Copied to clipboard")
   }
 
@@ -78,7 +68,7 @@ export function TableToMd() {
           <div className="flex items-center justify-between">
             <PillToggle
               activeId={format}
-              onChange={(id) => setFormat(id as any)}
+              onChange={(id) => setFormat(id as "markdown" | "html")}
               options={[
                 { id: "markdown", label: "Markdown" },
                 { id: "html", label: "HTML" }

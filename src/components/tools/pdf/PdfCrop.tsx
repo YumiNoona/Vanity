@@ -2,18 +2,13 @@ import React, { useState, useCallback, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHorizontal, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument } from "pdf-lib"
+// pdf-lib and pdfjs-dist are loaded dynamically
+import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { toBlob } from "@/lib/utils/blob"
 
-// Static worker import for pdfjs
-import * as pdfjsLib from "pdfjs-dist"
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-
-if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-}
+// exifr is now used inside a worker
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -24,6 +19,10 @@ export function PdfCrop() {
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [pageSize, setPageSize] = useState<{ width: number; height: number } | null>(null)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
   
   // Interaction State
   const containerRef = useRef<HTMLDivElement>(null)
@@ -105,6 +104,10 @@ export function PdfCrop() {
   const renderPreview = async (file: File) => {
     setIsRendering(true)
     try {
+      const pdfjsLib = await import("pdfjs-dist")
+      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       const page = await pdf.getPage(1)
@@ -146,6 +149,7 @@ export function PdfCrop() {
     setIsProcessing(true)
 
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const pages = pdfDoc.getPages()

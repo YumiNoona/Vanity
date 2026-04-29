@@ -3,9 +3,9 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, Sparkles, SlidersHorizontal, RefreshCw, ImageIcon } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
-import { useObjectUrl } from "../../../hooks/useObjectUrl"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { cn } from "../../../lib/utils"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { cn } from "@/lib/utils"
 
 export function NoiseGrain() {
   const [file, setFile] = useState<File | null>(null)

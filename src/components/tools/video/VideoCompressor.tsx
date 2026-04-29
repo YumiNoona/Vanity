@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Video, Download, ShieldCheck, Zap } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
@@ -7,9 +7,15 @@ import { toast } from "sonner"
 
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { prewarmFFmpeg } from "@/lib/ffmpeg"
 
 export function VideoCompressor() {
   const [file, setFile] = useState<File | null>(null)
+  
+  // Pre-warm the heavy FFmpeg engine as soon as the user enters the tool
+  useEffect(() => {
+    prewarmFFmpeg()
+  }, [])
   const { isProcessing, progress, startProcessing, updateProgress, finishProcessing } = useProcessingState()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [crf, setCrf] = useState(28) // Compression level

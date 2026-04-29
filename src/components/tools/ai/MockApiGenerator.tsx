@@ -6,6 +6,7 @@ import { useActiveProvider } from "@/components/shared/ApiKeyManager"
 import { AIProviderHint } from "@/components/shared/AIProviderHint"
 import { AIProviderError, callAI } from "@/lib/ai-providers"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function MockApiGenerator() {
   const activeProvider = useActiveProvider()
@@ -16,7 +17,7 @@ export function MockApiGenerator() {
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultJson, setResultJson] = useState<string>("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const requestControllerRef = useRef<AbortController | null>(null)
 
@@ -85,10 +86,7 @@ ${schema}`
   }
 
   const handleCopy = () => {
-     window.navigator.clipboard.writeText(resultJson)
-     setCopied(true)
-     toast.success("JSON copied to clipboard!")
-     setTimeout(() => setCopied(false), 2000)
+     copy(resultJson, "JSON copied to clipboard!")
   }
 
   const handleDownload = () => {

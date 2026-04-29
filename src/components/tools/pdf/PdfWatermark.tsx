@@ -1,12 +1,10 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, Stamp, Type, Settings2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib"
+import { prewarmPdf } from "@/lib/pdf-text"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import { downloadBlob } from "@/lib/canvas"
-
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 export function PdfWatermark() {
@@ -19,6 +17,10 @@ export function PdfWatermark() {
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
+
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
@@ -26,18 +28,21 @@ export function PdfWatermark() {
     clearResultUrl()
   }
 
-  const hexToRgb = (hex: string) => {
-    const r = parseInt(hex.slice(1, 3), 16) / 255
-    const g = parseInt(hex.slice(3, 5), 16) / 255
-    const b = parseInt(hex.slice(5, 7), 16) / 255
-    return rgb(r, g, b)
-  }
 
   const applyWatermark = async () => {
     if (!file || !text) return
     setIsProcessing(true)
     
     try {
+      const { PDFDocument, rgb, StandardFonts, degrees } = await import("pdf-lib")
+      
+      const hexToRgb = (hex: string) => {
+        const r = parseInt(hex.slice(1, 3), 16) / 255
+        const g = parseInt(hex.slice(3, 5), 16) / 255
+        const b = parseInt(hex.slice(5, 7), 16) / 255
+        return rgb(r, g, b)
+      }
+
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold)

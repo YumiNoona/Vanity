@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { Search, Info, Copy, CheckCircle, Languages, Binary, Code, Hash } from "lucide-react"
+import { Info, Copy, Languages, Binary, Code, Hash } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 

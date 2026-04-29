@@ -358,8 +358,8 @@ export const getActiveProvider = (): ActiveProvider => {
 
 // Watch for storage changes from other tabs
 if (typeof window !== "undefined") {
-  window.addEventListener("storage", (e) => {
-    if (Object.values(providers).some(p => p.storageKey === e.key)) {
+  window.addEventListener("storage", (event) => {
+    if (Object.values(providers).some(p => p.storageKey === event.key)) {
       invalidateProviderCache()
     }
   })
@@ -425,12 +425,13 @@ export async function callAI({
       return await callProxyText(prompt, systemPrompt, signal)
     }
     return await active.provider.call(active.apiKey!, prompt, systemPrompt, signal)
-  } catch (err: any) {
-    if (err?.name === "AbortError") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
       throw new AIProviderError("Request was cancelled.", "NETWORK_ERROR")
     }
     if (err instanceof AIProviderError) throw err
-    throw new AIProviderError(err?.message || "AI request failed.", "NETWORK_ERROR")
+    const message = err instanceof Error ? err.message : "AI request failed."
+    throw new AIProviderError(message, "NETWORK_ERROR")
   }
 }
 
@@ -458,11 +459,12 @@ export async function callAIVision({
       return await callProxyVision(file, prompt, systemPrompt, signal)
     }
     return await active.provider.callVision(active.apiKey!, file, prompt, systemPrompt, signal)
-  } catch (err: any) {
-    if (err?.name === "AbortError") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
       throw new AIProviderError("Request was cancelled.", "NETWORK_ERROR")
     }
     if (err instanceof AIProviderError) throw err
-    throw new AIProviderError(err?.message || "AI vision request failed.", "NETWORK_ERROR")
+    const message = err instanceof Error ? err.message : "AI vision request failed."
+    throw new AIProviderError(message, "NETWORK_ERROR")
   }
 }

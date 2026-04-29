@@ -9,6 +9,7 @@ import { AIProviderError } from "@/lib/ai-providers"
 import { useAIVisionTask } from "@/hooks/useAIVisionTask"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function ImageCaptionGenerator() {
   const activeProvider = useActiveProvider()

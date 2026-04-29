@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react"
 import { Link2, ArrowLeftRight, Copy, CheckCircle, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function UrlEncoder() {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"encode" | "decode">("encode")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   useEffect(() => {
     try {
@@ -34,10 +35,8 @@ export function UrlEncoder() {
 
   const handleCopy = () => {
     if (!output || output.startsWith("Error")) return
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(output)
+    }
 
   return (
     <ToolLayout 

@@ -7,6 +7,7 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { safeImport } from "@/lib/utils/loader"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 // Managed worker for proper cleanup
 let tesseractWorker: any = null
@@ -17,7 +18,7 @@ export function OcrExtractor() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [extractedText, setExtractedText] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const [language, setLanguage] = useState("eng")
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
@@ -85,11 +86,8 @@ export function OcrExtractor() {
 
   const handleCopy = () => {
     if (!extractedText) return
-    navigator.clipboard.writeText(extractedText)
-    setCopied(true)
-    toast.success("Copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(extractedText, "Copied to clipboard")
+    }
 
   const handleDownloadText = () => {
     if (!resultUrl) return

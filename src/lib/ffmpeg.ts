@@ -1,5 +1,5 @@
-import { FFmpeg } from "@ffmpeg/ffmpeg"
-import { toBlobURL } from "@ffmpeg/util"
+import type { FFmpeg } from "@ffmpeg/ffmpeg"
+import { PreloadPool } from "./preload-pool"
 
 let ffmpegInstance: FFmpeg | null = null
 let initPromise: Promise<FFmpeg> | null = null
@@ -18,7 +18,7 @@ const isCrossOriginIsolated = () => {
 
 /**
  * Returns a shared FFmpeg instance.
- * Ensures that only one load process is ever in flight.
+ * Ensures that only one load process is ever in flight and libraries are loaded on demand.
  */
 export async function getFFmpeg(): Promise<FFmpeg> {
   if (ffmpegInstance?.loaded) {
@@ -31,6 +31,10 @@ export async function getFFmpeg(): Promise<FFmpeg> {
 
   initPromise = (async () => {
     try {
+      // Dynamic import to keep the main bundle lean
+      const { FFmpeg } = await import("@ffmpeg/ffmpeg")
+      const { toBlobURL } = await import("@ffmpeg/util")
+
       const ffmpeg = new FFmpeg()
 
       const loadFromBase = async (baseUrl: string) => {
@@ -43,7 +47,12 @@ export async function getFFmpeg(): Promise<FFmpeg> {
 
       // Prefer multi-threaded core only when isolated (COOP/COEP)
       if (isCrossOriginIsolated()) {
-        await loadFromBase(MT_BASE_URL)
+        try {
+          await loadFromBase(MT_BASE_URL)
+        } catch (e) {
+          console.warn("FFmpeg MT load failed, falling back to ST", e)
+          await loadFromBase(ST_BASE_URL)
+        }
       } else {
         await loadFromBase(ST_BASE_URL)
       }
@@ -51,19 +60,6 @@ export async function getFFmpeg(): Promise<FFmpeg> {
       ffmpegInstance = ffmpeg
       return ffmpeg
     } catch (error) {
-      // If we tried MT and it failed (common when COOP/COEP is missing), retry ST once.
-      try {
-        const ffmpeg = new FFmpeg()
-        await ffmpeg.load({
-          coreURL: await toBlobURL(`${ST_BASE_URL}/ffmpeg-core.js`, "text/javascript"),
-          wasmURL: await toBlobURL(`${ST_BASE_URL}/ffmpeg-core.wasm`, "application/wasm"),
-          workerURL: await toBlobURL(`${ST_BASE_URL}/ffmpeg-core.worker.js`, "text/javascript"),
-        })
-        ffmpegInstance = ffmpeg
-        return ffmpeg
-      } catch {
-        // fallthrough to reset initPromise below
-      }
       initPromise = null // Reset on failure so the user can try again
       throw error
     }
@@ -76,7 +72,21 @@ export async function getFFmpeg(): Promise<FFmpeg> {
  * Optional: Pre-warm the FFmpeg instance during app idle time
  */
 export function prewarmFFmpeg() {
-  getFFmpeg().catch(() => {
-    // Silently fail on pre-warm, the actual tool will handle the error
-  })
+  PreloadPool.ffmpeg(() => getFFmpeg())
+}
+
+/**
+ * Terminate the FFmpeg instance and free memory
+ */
+export function disposeFFmpeg() {
+  if (ffmpegInstance) {
+    try {
+      ffmpegInstance.terminate()
+    } catch (e) {
+      console.warn("FFmpeg termination error", e)
+    }
+    ffmpegInstance = null
+    initPromise = null
+    console.log("[FFmpeg] Instance disposed.")
+  }
 }

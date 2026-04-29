@@ -10,6 +10,7 @@ import { safeImport } from "@/lib/utils/loader"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { callAIVision } from "@/lib/ai-providers"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 let tesseractModule: any = null
 
@@ -91,7 +92,7 @@ export function ScreenshotToGameCode() {
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [outputCode, setOutputCode] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const [ocrWarning, setOcrWarning] = useState(false)
   const requestControllerRef = useRef<AbortController | null>(null)
   const activeProvider = useActiveProvider()
@@ -168,10 +169,7 @@ export function ScreenshotToGameCode() {
 
   const handleCopy = () => {
     if (!outputCode) return
-    navigator.clipboard.writeText(outputCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-    toast.success("Code copied!")
+    copy(outputCode, "Code copied!")
   }
 
   if (!file) {

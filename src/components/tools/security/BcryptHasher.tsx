@@ -4,6 +4,7 @@ import { Fingerprint, ShieldCheck, Copy, CheckCircle, RefreshCw, Key, Info, Lock
 
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function BcryptHasher() {
   const [input, setInput] = useState("")
@@ -12,7 +13,7 @@ export function BcryptHasher() {
   const [verifyInput, setVerifyInput] = useState("")
   const [verifyHash, setVerifyHash] = useState("")
   const [isMatch, setIsMatch] = useState<boolean | null>(null)
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const handleHash = async () => {
     if (!input) return
@@ -84,7 +85,8 @@ export function BcryptHasher() {
                 <div className="pt-4 space-y-2 animate-in fade-in slide-in-from-top-2">
                    <div className="flex justify-between items-center">
                       <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bcrypt Hash</label>
-                      <button onClick={() => { navigator.clipboard.writeText(hash); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="text-primary hover:text-white transition-colors">
+                      <button onClick={() => { copy(hash)
+    }} className="text-primary hover:text-white transition-colors">
                         {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       </button>
                    </div>

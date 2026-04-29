@@ -8,13 +8,14 @@ import { useAIVisionTask } from "@/hooks/useAIVisionTask"
 import { toast } from "sonner"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
   const [file, setFile] = useState<File | null>(null)
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   const [altText, setAltText] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
   const activeProvider = useActiveProvider()
   const { isRunning, run } = useAIVisionTask()
 
@@ -52,9 +53,7 @@ export function AiAltTextWriter({ embedded = false }: { embedded?: boolean }) {
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(altText)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(altText)
     toast.success("Copied!")
   }
 

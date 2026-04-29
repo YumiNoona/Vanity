@@ -10,12 +10,13 @@ import {
   Plus,
   FileEdit,
 } from "lucide-react"
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
+import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+// pdf-lib and pdfjs-dist are loaded dynamically
+import { prewarmPdf } from "@/lib/pdf-text"
+import { useObjectUrls } from "@/hooks/useObjectUrl"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { useObjectUrls } from "@/hooks/useObjectUrl"
 
 interface TextAnnotation {
   id: string
@@ -57,7 +58,9 @@ export function PdfEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [currentStroke, setCurrentStroke] = useState<{ x: number; y: number }[]>([])
-
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -72,7 +75,8 @@ export function PdfEditor() {
 
     try {
       const pdfjs = await import("pdfjs-dist")
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
+      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
+      pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
 
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
@@ -219,6 +223,7 @@ export function PdfEditor() {
     setIsProcessing(true)
 
     try {
+      const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica)

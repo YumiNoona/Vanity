@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { AlignLeft, Copy, CheckCircle, RefreshCcw } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 const DICTIONARIES = {
   classic: ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat"],
@@ -13,7 +14,7 @@ export function LoremIpsumGenerator() {
   const [unit, setUnit] = useState<"paragraphs" | "sentences" | "words">("paragraphs")
   const [count, setCount] = useState<number>(3)
   const [output, setOutput] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const generate = () => {
     let result = ""
@@ -59,10 +60,8 @@ export function LoremIpsumGenerator() {
   }, [type, unit, count])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(output)
+    }
 
   return (
     <ToolLayout 

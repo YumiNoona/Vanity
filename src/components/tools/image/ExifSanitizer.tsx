@@ -3,15 +3,14 @@ import { motion } from "framer-motion"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, ShieldCheck, Info, FileArchive, RefreshCw } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { usePremium } from "../../../hooks/usePremium"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
+import { usePremium } from "@/hooks/usePremium"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
 import { PillToggle } from "@/components/shared/PillToggle"
-import { cn } from "../../../lib/utils"
+import { cn } from "@/lib/utils"
 
-// @ts-ignore
-import * as ExifReader from "../../../lib/exif-reader"
+// exifr is now used inside a worker
 
 interface ExifTag {
   value: any
@@ -59,38 +58,60 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
     if (files.length === 0) return
     if (!validateFiles(files)) return
     setError(null)
-    console.log(`[ExifSanitizer] Processing ${files.length} files in ${processMode} mode`);
+
 
     if (processMode === 'view') {
       const uploadedFile = files[0]
       setFile(uploadedFile)
       
       try {
-        const tags = await ExifReader.load(uploadedFile)
-        const groups: ExifReport = {}
+        const arrayBuffer = await uploadedFile.arrayBuffer()
         
-        Object.entries(tags).forEach(([name, tag]: [string, any]) => {
-          let groupName = "Other"
+        // Offload heavy binary parsing to worker
+        const groups = await new Promise<ExifReport>((resolve, reject) => {
+          const worker = new Worker(new URL("@/workers/exifr.worker.ts", import.meta.url), { type: 'module' });
           
-          if (name.startsWith("exif")) groupName = "EXIF"
-          else if (name.startsWith("xmp")) groupName = "XMP"
-          else if (name.startsWith("iptc")) groupName = "IPTC"
-          else if (name.startsWith("icc")) groupName = "ICC_Profile"
-          else if (name.startsWith("photoshop")) groupName = "Photoshop"
-          else if (["Image Width", "Image Height", "FileType", "MIMEType"].includes(name)) groupName = "File"
-          else if (name.startsWith("gps")) groupName = "GPS"
-
-          if (!groups[groupName]) groups[groupName] = {}
-          groups[groupName][name] = {
-            value: tag.value,
-            description: tag.description
+          worker.onmessage = (e) => {
+            if (e.data.type === 'done') {
+              worker.terminate()
+              resolve(e.data.data)
+            } else if (e.data.type === 'error') {
+              worker.terminate()
+              reject(new Error(e.data.error))
+            }
           }
+          
+          worker.onerror = (err) => {
+            worker.terminate()
+            reject(err)
+          }
+          
+          worker.postMessage({ 
+            file: arrayBuffer, 
+            options: {
+              pick: [
+                'Make', 'Model', 'Software', 'DateTimeOriginal', 'ModifyDate',
+                'ExposureTime', 'FNumber', 'ISO', 'FocalLength', 'LensModel',
+                'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection',
+                'ImageWidth', 'ImageHeight', 'XResolution', 'YResolution',
+                'Orientation', 'Copyright', 'Artist', 'UserComment'
+              ],
+              xmp: true,
+              icc: true,
+              iptc: true,
+            }
+          }, [arrayBuffer]) // Use transferable objects to avoid memory duplication
         })
 
+        if (!groups || Object.keys(groups).length === 0) {
+          setExifReport({})
+          toast.error("No metadata found")
+          return
+        }
+
         setExifReport(groups)
-        if (Object.keys(groups).length === 0) toast.error("No metadata found")
       } catch (err) {
-        console.error("ExifReader error:", err)
+        console.error("Worker error:", err)
         toast.error("Could not parse image metadata")
       }
       return

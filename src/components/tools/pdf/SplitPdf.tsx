@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, SplitSquareHorizontal, FileText } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument } from "pdf-lib"
-import JSZip from "jszip"
+// pdf-lib and jszip are loaded dynamically in handleDrop
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { prewarmPdf } from "@/lib/pdf-text"
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -16,6 +16,10 @@ export function SplitPdf() {
   const { url: resultZipUrl, setUrl: setResultZipUrl, clear: clearResultZipUrl } = useObjectUrl()
   const [pageCount, setPageCount] = useState(0)
 
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
+
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
@@ -25,6 +29,10 @@ export function SplitPdf() {
     clearResultZipUrl()
 
     try {
+      const { PDFDocument } = await import("pdf-lib")
+      const JSZipModule = await import("jszip")
+      const JSZip = JSZipModule.default
+
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       const count = pdfDoc.getPageCount()

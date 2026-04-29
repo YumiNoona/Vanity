@@ -3,7 +3,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Grid3X3, Download, RefreshCw, Scissors, AlertCircle, FileArchive } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
-import JSZip from "jszip"
+// JSZip is loaded dynamically in exportZip
 import { guardDimensions, maybeYield } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -144,6 +144,8 @@ export function SpriteSlicer() {
     setIsProcessing(true)
     
     try {
+      const JSZipModule = await import("jszip")
+      const JSZip = JSZipModule.default
       const zip = new JSZip()
       const tileW = Math.floor(imgData.width / cols)
       const tileH = Math.floor(imgData.height / rows)

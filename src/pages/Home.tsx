@@ -1,40 +1,107 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CATEGORIES, ALL_TOOLS } from "@/config/tools"
-import type { Tool } from "@/config/tools"
+import type { Tool, Category } from "@/config/tools"
 import { Link } from "react-router-dom"
-import { ArrowRight, ShieldCheck, Zap, ServerOff, Search, Clock, Sparkles } from "lucide-react"
+import { ArrowRight, Zap, Search, Clock, Sparkles } from "lucide-react"
 import { preloadTool, loaders } from "@/App"
+
+const ToolCard = React.memo(function ToolCard({ 
+  tool, 
+  category, 
+  onTrack 
+}: { 
+  tool: Tool, 
+  category: Category, 
+  onTrack: (id: string) => void 
+}) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const Icon = tool.icon
+  const isPopular = tool.isPopular
+  const loader = loaders[tool.id as keyof typeof loaders]
+
+  useEffect(() => {
+    // Intent Detection: Preload if tool enters viewport and is popular/heavy
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (isPopular && loader) {
+          preloadTool(loader)
+        }
+        observer.disconnect()
+      }
+    }, { threshold: 0.1 })
+
+    if (cardRef.current) observer.observe(cardRef.current)
+    return () => observer.disconnect()
+  }, [isPopular, loader])
+
+  const handleMouseEnter = useCallback(() => {
+    if (loader) {
+      preloadTool(loader)
+    }
+  }, [loader])
+
+  return (
+    <motion.div 
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <Link
+        to={tool.path}
+        onClick={() => onTrack(tool.id)}
+        onMouseEnter={handleMouseEnter}
+        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl glass-panel p-8 shadow-sm transition-all hover:bg-white/[0.04] hover:-translate-y-1 h-full border-white/5 hover:border-white/10"
+      >
+        <div>
+          <div className="mb-6 inline-flex items-center justify-between w-full">
+            <div className={`inline-flex items-center justify-center rounded-xl bg-${category.color}/10 p-3.5 text-${category.color} group-hover:scale-110 transition-transform`}>
+              <Icon className="h-6 w-6" />
+            </div>
+            <div className="flex items-center gap-2">
+              {tool.isBulk && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Bulk</span>
+                </div>
+              )}
+              {isPopular && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full border border-primary/10">
+                  <Sparkles className="w-3 h-3" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Popular</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <h3 className="mb-2 font-syne text-xl font-bold group-hover:text-primary transition-colors tracking-tight">{tool.title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {tool.description}
+          </p>
+        </div>
+        
+        <div className={`mt-8 flex items-center text-xs font-black uppercase tracking-widest text-${category.color}/70 group-hover:text-${category.color} transition-colors`}>
+          Launch Tool <ArrowRight className="ml-2 h-3.5 w-3.5 transition-all group-hover:translate-x-1" />
+        </div>
+      </Link>
+    </motion.div>
+  )
+})
 
 export function Home() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [recentToolIds, setRecentToolIds] = useState<string[]>([])
-
-  useEffect(() => {
+  const [recentToolIds, setRecentToolIds] = useState<string[]>(() => {
     const saved = localStorage.getItem("recentTools")
-    if (saved) {
-      setRecentToolIds(JSON.parse(saved))
-    }
+    return saved ? JSON.parse(saved) : []
+  })
+
+  const trackToolClick = useCallback((toolId: string) => {
+    setRecentToolIds(prev => {
+      const updated = [toolId, ...prev.filter(id => id !== toolId)].slice(0, 5)
+      localStorage.setItem("recentTools", JSON.stringify(updated))
+      return updated
+    })
   }, [])
-
-  const trackToolClick = (toolId: string) => {
-    const updated = [toolId, ...recentToolIds.filter(id => id !== toolId)].slice(0, 5)
-    setRecentToolIds(updated)
-    localStorage.setItem("recentTools", JSON.stringify(updated))
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  }
 
   const recentTools = useMemo(() => {
     return recentToolIds
@@ -133,12 +200,7 @@ export function Home() {
         </motion.div>
       </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="space-y-24"
-      >
+      <div className="space-y-24">
         {/* Recently Used Section */}
         <AnimatePresence>
           {recentTools.length > 0 && !searchQuery && (
@@ -158,7 +220,7 @@ export function Home() {
                 {recentTools.map((tool) => {
                   const Icon = tool.icon
                   return (
-                    <motion.div key={tool.id} variants={itemVariants}>
+                    <motion.div key={tool.id}>
                       <Link
                         to={tool.path}
                         onClick={() => trackToolClick(tool.id)}
@@ -192,56 +254,14 @@ export function Home() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {category.tools.map((tool) => {
-                const Icon = tool.icon
-                const isPopular = tool.isPopular
-                const loader = loaders[tool.id as keyof typeof loaders]
-                
-                return (
-                  <motion.div key={tool.id} variants={itemVariants}>
-                    <Link
-                      to={tool.path}
-                      onClick={() => trackToolClick(tool.id)}
-                      onMouseEnter={() => {
-                        if (isPopular && loader) {
-                          preloadTool(loader)
-                        }
-                      }}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl glass-panel p-8 shadow-sm transition-all hover:bg-white/[0.04] hover:-translate-y-1 h-full border-white/5 hover:border-white/10"
-                    >
-                      <div>
-                        <div className="mb-6 inline-flex items-center justify-between w-full">
-                          <div className={`inline-flex items-center justify-center rounded-xl bg-${category.color}/10 p-3.5 text-${category.color} group-hover:scale-110 transition-transform`}>
-                            <Icon className="h-6 w-6" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {tool.isBulk && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">Bulk</span>
-                              </div>
-                            )}
-                            {isPopular && (
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-full border border-primary/10">
-                                <Sparkles className="w-3 h-3" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest">Popular</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <h3 className="mb-2 font-syne text-xl font-bold group-hover:text-primary transition-colors tracking-tight">{tool.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {tool.description}
-                        </p>
-                      </div>
-                      
-                      <div className={`mt-8 flex items-center text-xs font-black uppercase tracking-widest text-${category.color}/70 group-hover:text-${category.color} transition-colors`}>
-                        Launch Tool <ArrowRight className="ml-2 h-3.5 w-3.5 transition-all group-hover:translate-x-1" />
-                      </div>
-                    </Link>
-                  </motion.div>
-                )
-              })}
+              {category.tools.map((tool) => (
+                <ToolCard 
+                  key={tool.id} 
+                  tool={tool} 
+                  category={category} 
+                  onTrack={trackToolClick} 
+                />
+              ))}
             </div>
           </section>
         ))}
@@ -251,7 +271,7 @@ export function Home() {
             <p className="text-2xl font-syne font-bold text-muted-foreground/30 italic">No tools found matching your request</p>
           </div>
         )}
-      </motion.div>
+      </div>
       
       <div className="mt-32 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30">
         Privacy First • Local Processing • Zero Data Collection

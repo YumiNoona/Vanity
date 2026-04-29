@@ -6,7 +6,8 @@ import {
   ChevronRight, List
 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument, rgb } from "pdf-lib"
+// pdf-lib is loaded dynamically
+import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { toBlob } from "@/lib/utils/blob"
@@ -65,6 +66,10 @@ export function PdfNup() {
   const [progress, setProgress] = useState({ current: 0, total: 0, status: "" })
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
+
   // Configuration
   const [nup, setNup] = useState(4)
   const [sheetSize, setSheetSize] = useState<keyof typeof SHEET_SIZES>("A4")
@@ -87,6 +92,7 @@ export function PdfNup() {
     setProgress({ current: 0, total: 0, status: "Initializing PDF engine..." })
 
     try {
+      const { PDFDocument, rgb } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const srcDoc = await PDFDocument.load(arrayBuffer)
       const totalSrcPages = srcDoc.getPageCount()

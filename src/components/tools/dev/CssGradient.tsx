@@ -3,22 +3,20 @@ import { Copy, CheckCircle, Zap, RefreshCw, MoveRight } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function CssGradient() {
   const [color1, setColor1] = useState("#4f46e5")
   const [color2, setColor2] = useState("#ec4899")
   const [angle, setAngle] = useState(135)
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const gradientSize = `linear-gradient(${angle}deg, ${color1}, ${color2})`
 
   const handleCopy = () => {
     const css = `background: ${color1};\nbackground: ${gradientSize};`
-    navigator.clipboard.writeText(css)
-    setCopied(true)
-    toast.success("Gradient CSS copied!")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(css, "Gradient CSS copied!")
+    }
 
   const randomGradient = () => {
     const r1 = () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')

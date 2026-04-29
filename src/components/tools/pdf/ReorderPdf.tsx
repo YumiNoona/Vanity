@@ -2,9 +2,10 @@ import React, { useState, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, ListOrdered, GripVertical, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument } from "pdf-lib"
+// pdf-lib is loaded dynamically
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
+import { prewarmPdf } from "@/lib/pdf-text"
 import { Reorder, AnimatePresence } from "framer-motion"
 import { downloadBlob } from "@/lib/canvas"
 
@@ -23,6 +24,10 @@ export function ReorderPdf() {
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const jobIdRef = useRef(0)
 
+  React.useEffect(() => {
+    prewarmPdf()
+  }, [])
+
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
     if (!uploadedFile || !validateFiles([uploadedFile])) return
@@ -33,6 +38,7 @@ export function ReorderPdf() {
     setResultUrl(null)
 
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       
@@ -64,6 +70,7 @@ export function ReorderPdf() {
     setIsProcessing(true)
     
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const srcDoc = await PDFDocument.load(arrayBuffer)
       const newDoc = await PDFDocument.create()

@@ -1,9 +1,8 @@
 import React, { useState } from "react"
+import { FastForward, Download, Play, Info, ArrowLeft } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
-import { FastForward, Download, Loader2, Play, Info, ArrowLeft } from "lucide-react"
 import { runFFmpegJob } from "@/lib/ffmpeg-job"
-import { downloadBlob } from "@/lib/canvas"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
@@ -77,7 +76,7 @@ export function VideoSpeed() {
       const blob = new Blob([data as any], { type: "video/mp4" })
       setResultUrl(blob)
       toast.success("Video speed adjusted!")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error)
       toast.error("Failed to process video")
     } finally {

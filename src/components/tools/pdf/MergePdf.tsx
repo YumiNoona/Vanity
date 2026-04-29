@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Layers, FileText, Trash2, ArrowUp, ArrowDown, Loader2, CheckCircle } from "lucide-react"
-import { PDFDocument } from "pdf-lib"
+// pdf-lib is loaded dynamically in handleMerge
+import { prewarmPdf } from "@/lib/pdf-text"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 
 import { motion, Reorder } from "framer-motion"
@@ -22,6 +23,10 @@ export function MergePdf() {
   const [pdfs, setPdfs] = useState<PdfFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
 
   const handleDrop = (files: File[]) => {
     if (!validateFiles(files, pdfs.length)) return
@@ -53,6 +58,7 @@ export function MergePdf() {
     setIsProcessing(true)
     
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const mergedPdf = await PDFDocument.create()
       
       for (const pdf of pdfs) {

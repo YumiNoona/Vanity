@@ -15,7 +15,7 @@ interface ToolLayoutProps {
   centered?: boolean
 }
 
-export function ToolLayout({
+export const ToolLayout = React.memo(function ToolLayout({
   title,
   description,
   icon: Icon,
@@ -74,7 +74,7 @@ export function ToolLayout({
       {children}
     </div>
   )
-}
+})
 
 /**
  * ToolLayout for the initial "upload" state of a tool.
@@ -89,7 +89,7 @@ interface ToolUploadLayoutProps {
   hideHeader?: boolean
 }
 
-export function ToolUploadLayout({
+export const ToolUploadLayout = React.memo(function ToolUploadLayout({
   title,
   description,
   icon: Icon,
@@ -124,4 +124,4 @@ export function ToolUploadLayout({
       {children}
     </div>
   )
-}
+})

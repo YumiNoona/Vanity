@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Mail, Copy, CheckCircle, MessageSquare, Lightbulb, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 interface ContactModalProps {
   isOpen: boolean
@@ -9,14 +10,11 @@ interface ContactModalProps {
 }
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
-  const [copied, setCopied] = useState(false)
   const email = "rushikeshingale2001@gmail.com"
+  const { isCopied, copy } = useCopyToClipboard()
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(email)
-    setCopied(true)
-    toast.success("Email copied to clipboard!")
-    setTimeout(() => setCopied(false), 2000)
+    copy(email, "Email copied to clipboard!")
   }
 
   const contactOptions = [
@@ -107,7 +105,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       onClick={handleCopy}
                       className="p-2 hover:bg-white/10 rounded-xl transition-colors text-muted-foreground hover:text-white"
                     >
-                      {copied ? <CheckCircle className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
+                      {isCopied ? <CheckCircle className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>

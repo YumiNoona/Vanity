@@ -1,23 +1,23 @@
 import { 
-  Image, Layers, Crop, FileText, SplitSquareHorizontal, 
+  Image, Layers, Crop, SplitSquareHorizontal, 
   Minimize2, Lock, Images, FileCode, Pipette, 
   ShieldAlert, ShieldCheck, QrCode, MessageSquare, Sparkles, 
   ListOrdered, Stamp, Maximize2, Languages, FileEdit, FileImage,
   Monitor, Layout, Pencil, Smartphone,
-  FileSpreadsheet, RotateCw, Scissors, Braces, 
-  Palette, Hash, Video, ArrowLeftRight, FileJson, 
+  FileSpreadsheet, RotateCw, Scissors, 
+  Palette, Hash, Video, ArrowLeftRight, 
   FileMinus, Binary, Type, Zap,
-  Grid, Search, Diff, Key, BrainCircuit, Mic, Music, Eye, FileCheck,
+  Grid, Search, Diff, Key, BrainCircuit, Mic, Eye, FileCheck,
   ImagePlus, Sigma, Code2,
   Terminal, Clock, Link2, Calendar, Code, AlignLeft, KeyRound, BarChart3,
   EyeOff, ImagePlay, FastForward, Award, Database, FileSearch,
   Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
-  Percent, Coins, Wallet, Landmark, Receipt, Repeat, Table,
+  Percent, Wallet, Receipt, Repeat, Table,
   BookOpen
 } from "lucide-react"
 
 // Types to allow easier custom icons
-export type ToolIcon = any;
+export type ToolIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
 export interface Tool {
   id: string;
@@ -28,6 +28,13 @@ export interface Tool {
   isPopular?: boolean;
   isBulk?: boolean;
   keywords?: string[]; // For smart search
+}
+
+export interface Category {
+  id: string;
+  title: string;
+  tools: Tool[];
+  color: string;
 }
 
 export const IMAGE_TOOLS: Tool[] = [
@@ -91,10 +98,11 @@ export const AI_TOOLS: Tool[] = [
 ]
 
 export const DEV_TOOLS: Tool[] = [
-  { id: "readme-viewer", title: "README Previewer", description: "Preview markdown with GitHub styling, copy code blocks, and generate badges.", icon: FileText, path: "/tools/text/readme", keywords: ["markdown", "github", "badges", "documentation"] },
-  { id: "json-formatter", title: "JSON Formatter", description: "Prettify, minify, and validate JSON data.", icon: Braces, path: "/tools/dev/json", isPopular: true, keywords: ["pretty", "minify", "validate"] },
+
+  { id: "code-formatter", title: "Code Formatter Studio", description: "Consolidated prettifier and minifier for JSON, HTML, SQL, and XML.", icon: Code, path: "/tools/dev/formatter", isPopular: true, keywords: ["pretty", "minify", "json", "html", "sql", "xml"] },
   { id: "color-picker", title: "Color Converter", description: "Pick any color, convert between HEX, RGB, HSL, CMYK.", icon: Palette, path: "/tools/dev/color", isPopular: true },
   { id: "base64-studio", title: "Base64 Studio", description: "Encode/Decode text, images, or files to base64 strings.", icon: Code2, path: "/tools/dev/base64-studio", isPopular: true, keywords: ["string", "encode", "embed"] },
+  { id: "http-builder", title: "HTTP Request Builder", description: "Compose and test API requests with custom headers, body, and methods.", icon: Globe2, path: "/tools/dev/http-builder", isPopular: true, keywords: ["api", "rest", "postman", "curl"] },
   { id: "url-encoder", title: "URL Encoder / Decoder", description: "Encode or decode query strings and full URLs safely.", icon: Link2, path: "/tools/dev/url", isPopular: true },
   { id: "regex-tester", title: "Regex Tester", description: "Live regex matching with highlighting, group capture, and flags.", icon: Terminal, path: "/tools/dev/regex", keywords: ["test", "match", "regular"] },
   { id: "uuid-hash", title: "UUID & Hash Generator", description: "Generate UUIDs, MD5, and SHA-256 hashes.", icon: Key, path: "/tools/dev/uuid-hash" },
@@ -102,24 +110,19 @@ export const DEV_TOOLS: Tool[] = [
   { id: "timestamp-converter", title: "Timestamp Converter", description: "Unix epoch to human-readable date and back with timezones.", icon: Clock, path: "/tools/dev/timestamp", keywords: ["time", "unix", "date"] },
   { id: "jwt-decoder", title: "JWT Decoder", description: "Decode JSON Web Tokens visually locally without validation.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["token", "auth", "base64"] },
   { id: "cron-builder", title: "CRON Expression Tester", description: "Validate CRON strings and preview immediate run times.", icon: Calendar, path: "/tools/dev/cron", keywords: ["schedule", "time", "job"] },
-  { id: "html-formatter", title: "HTML Formatter", description: "Prettify or minify raw HTML structures instantly.", icon: Code, path: "/tools/dev/html", keywords: ["minify", "prettify", "indent"] },
   { id: "css-unit-converter", title: "CSS Unit Converter", description: "Convert px to rem, em, vw, vh instantly based on rules.", icon: Scissors, path: "/tools/dev/css-units", keywords: ["size", "font", "rem"] },
   { id: "env-editor", title: "ENV File Editor", description: "Upload and edit .env files in a clean table UI locally.", icon: FileCode, path: "/tools/dev/env", keywords: ["config", "environment", "dotenv"] },
   { id: "json-to-csv", title: "JSON to CSV / Excel", description: "Convert JSON arrays or objects into CSV or spreadsheet formats.", icon: FileSpreadsheet, path: "/tools/dev/json-to-csv", keywords: ["export", "excel", "table"] },
-  { id: "xml-formatter", title: "XML Formatter", description: "Prettify, minify, and validate XML data structures.", icon: FileJson, path: "/tools/dev/xml", keywords: ["soap", "pretty", "validate"] },
-  { id: "sql-formatter", title: "SQL Formatter", description: "Prettify and indent raw SQL queries with keyword casing.", icon: Database, path: "/tools/dev/sql", keywords: ["query", "mysql", "postgres"] },
 ]
 
 export const VIDEO_TOOLS: Tool[] = [
   { id: "video-compressor", title: "Video Compressor", description: "Compress MP4/WebM files locally with FFMPEG.", icon: Minimize2, path: "/tools/video/compress", isPopular: true },
   { id: "video-trimmer", title: "Video Trimmer", description: "Slice and exact clip segments via native stream-copying.", icon: Scissors, path: "/tools/video/trimmer", isPopular: true, keywords: ["cut", "slice", "mp4"] },
-  { id: "video-to-mp3", title: "Video to MP3", description: "Strip audio tracks from any video file instantly.", icon: Mic, path: "/tools/video/video-to-mp3", isPopular: true },
-  { id: "audio-converter", title: "Audio Converter", description: "Convert between MP3, WAV, OGG, M4A via FFMPEG.", icon: Music, path: "/tools/video/audio-convert", isPopular: true },
+  { id: "audio-studio", title: "Audio Studio", description: "Consolidated converter, normalizer, and video-to-audio extraction.", icon: Mic, path: "/tools/video/audio-studio", isPopular: true, keywords: ["mp3", "wav", "extract", "normalize"] },
   { id: "video-to-gif", title: "Video to GIF", description: "Clip short video captures and save as GIFs.", icon: Video, path: "/tools/video/to-gif" },
   { id: "video-thumbnails", title: "Video Grid Extractor", description: "Rapidly pull high-resolution thumbnail sheets securely.", icon: ImagePlay, path: "/tools/video/thumbnails", keywords: ["grid", "frames", "snapshot"] },
   { id: "audio-waveform", title: "Audio Waveform Visualizer", description: "Visually inspect audio tracks and precision trim segments.", icon: FastForward, path: "/tools/video/waveform", keywords: ["trim", "cut", "mp3"] },
   { id: "video-speed", title: "Video Speed Changer", description: "Speed up or slow down video (0.25x-4x) with pitch correction.", icon: FastForward, path: "/tools/video/speed", keywords: ["slowmo", "fast", "ffmpeg"] },
-  { id: "audio-normalizer", title: "Audio Normalizer", description: "Loudness-normalize audio files to target LUFS standards.", icon: Music, path: "/tools/video/normalize", keywords: ["lufs", "spotify", "podcast"] },
 ]
 
 export const TEXT_TOOLS: Tool[] = [
@@ -163,8 +166,7 @@ export const MATH_TOOLS: Tool[] = [
 ]
 
 export const FINANCE_TOOLS: Tool[] = [
-  { id: "loan-emi", title: "Loan / EMI Calculator", description: "Calculate monthly payments and total interest for loans.", icon: Landmark, path: "/tools/finance/loan", keywords: ["mortgage", "bank", "interest"] },
-  { id: "sip-calc", title: "SIP / Investment", description: "Project maturity amounts for recurring investments.", icon: Coins, path: "/tools/finance/sip", keywords: ["mutual", "fund", "growth"] },
+  { id: "finance-studio", title: "Finance Studio", description: "Consolidated loan EMI, mortgage, and investment SIP calculators.", icon: Calculator, path: "/tools/finance/studio", isPopular: true, keywords: ["mortgage", "bank", "sip", "investment"] },
   { id: "currency-formatter", title: "Currency Formatter", description: "Format numbers into any world currency locale correctly.", icon: Wallet, path: "/tools/finance/currency", keywords: ["intl", "money", "lakhs"] },
   { id: "gst-calc", title: "GST Calculator", description: "Compute tax-inclusive and tax-exclusive prices.", icon: Receipt, path: "/tools/finance/gst", keywords: ["vat", "tax", "india"] },
 ]

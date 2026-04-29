@@ -3,10 +3,10 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Pipette, Copy, CheckCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { useObjectUrl } from "../../../hooks/useObjectUrl"
-import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard"
-import { drawToCanvas } from "../../../lib/canvas"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { drawToCanvas } from "@/lib/canvas"
 
 export function ColorPalette() {
   const [file, setFile] = useState<File | null>(null)

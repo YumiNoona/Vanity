@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, ShieldAlert, Square, Circle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { usePremium } from "../../../hooks/usePremium"
+import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { useObjectUrl } from "../../../hooks/useObjectUrl"
-import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 
 export function SmartCensor() {
   const { validateFiles } = usePremium()

@@ -5,6 +5,8 @@ import { PillToggle } from "@/components/shared/PillToggle"
 import { marked } from "marked"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { useDownload } from "@/hooks/useDownload"
 
 // --- Badge Data ---
 const BADGE_CATEGORIES: Record<string, { label: string; badges: { name: string; url: string }[] }> = {
@@ -122,7 +124,9 @@ npm run dev
 ## 🛠️ Usage
 
 \`\`\`javascript
-import { MyProject } from 'my-project';
+import { MyProject } from 'my-project'
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { useDownload } from "@/hooks/useDownload";
 
 const app = new MyProject({
   theme: 'dark',
@@ -298,7 +302,8 @@ This project is licensed under the MIT License.
 export function ReadmeViewer() {
   const [input, setInput] = useState(TEMPLATES[0].content)
   const [html, setHtml] = useState("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
+  const { download } = useDownload()
   const [activeTab, setActiveTab] = useState<"edit" | "badges">("edit")
   const [badgeSearch, setBadgeSearch] = useState("")
   const [activeBadgeCat, setActiveBadgeCat] = useState("frontend")
@@ -312,20 +317,11 @@ export function ReadmeViewer() {
   }, [input])
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(input)
-    setCopied(true)
-    toast.success("Markdown copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(input, "Markdown copied to clipboard")
+    }
 
   const handleDownload = () => {
-    const blob = new Blob([input], { type: "text/markdown" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "README.md"
-    a.click()
-    URL.revokeObjectURL(url)
+    download(input, "README.md")
   }
 
   const insertBadge = (badge: { name: string; url: string }) => {

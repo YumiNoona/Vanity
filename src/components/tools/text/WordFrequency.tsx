@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { BarChart3, Trash2 } from "lucide-react"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 
 export function WordFrequency() {
   const [text, setText] = useState("")

@@ -3,6 +3,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { FileSearch, Search, Hash, Copy, CheckCircle, Info, FileCode, FileJson, FileText, FileImage, FileAudio, FileVideo } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 const MIME_DB: Record<string, { mime: string; desc: string; icon: any }> = {
   "jpg": { mime: "image/jpeg", desc: "JPEG Image", icon: FileImage },
@@ -29,7 +30,7 @@ const MIME_DB: Record<string, { mime: string; desc: string; icon: any }> = {
 
 export function MimeLookup() {
   const [query, setQuery] = useState("")
-  const [copied, setCopied] = useState<string | null>(null)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const results = Object.entries(MIME_DB).filter(([ext, data]) => 
     ext.includes(query.toLowerCase()) || 
@@ -38,9 +39,7 @@ export function MimeLookup() {
   )
 
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(text)
-    setTimeout(() => setCopied(null), 2000)
+    copy(text)
     toast.success("MIME type copied")
   }
 

@@ -2,18 +2,13 @@ import React, { useState, useCallback, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { FileCheck, Download, RefreshCw, FileText, CheckCircle, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { PDFDocument } from "pdf-lib"
+// pdf-lib is loaded dynamically
+import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { toBlob } from "@/lib/utils/blob"
 
-// Static worker import for pdfjs
-import * as pdfjsLib from "pdfjs-dist"
-import pdfWorker from "pdfjs-dist/build/pdf.worker?url"
-
-if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-}
+// pdfjs-dist is loaded dynamically in renderPreview
 
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -24,10 +19,18 @@ export function PdfFlatten() {
   const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
 
+  useEffect(() => {
+    prewarmPdf()
+  }, [])
+
 
   const renderPreview = async (file: File) => {
     setIsRendering(true)
     try {
+      const pdfjsLib = await import("pdfjs-dist")
+      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
       const page = await pdf.getPage(1)
@@ -66,6 +69,7 @@ export function PdfFlatten() {
     setIsProcessing(true)
 
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await PDFDocument.load(arrayBuffer)
       

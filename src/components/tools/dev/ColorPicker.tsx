@@ -1,28 +1,34 @@
-import React, { useState, useEffect } from "react"
-import { Copy, CheckCircle, Palette, RefreshCw } from "lucide-react"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import React, { useState, useEffect, useCallback } from "react"
+import { Copy, CheckCircle, Palette, RefreshCw, Plus, Trash2, Download, ShieldCheck, AlertTriangle, X } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function ColorPicker() {
   const [hex, setHex] = useState("#f59e0b")
-  const [rgb, setRgb] = useState({ r: 245, g: 158, b: 11 })
-  const [hsl, setHsl] = useState({ h: 38, s: 91, l: 50 })
-  const [copiedFormat, setCopiedFormat] = useState<string | null>(null)
+  const [palette, setPalette] = useState<string[]>(() => {
+    const saved = localStorage.getItem("colorPalette")
+    return saved ? JSON.parse(saved) : []
+  })
+  const { copiedId, copy } = useCopyToClipboard()
+
+  useEffect(() => {
+    localStorage.setItem("colorPalette", JSON.stringify(palette))
+  }, [palette])
 
   // Conversions
-  const hexToRgb = (h: string) => {
-    const r = parseInt(h.slice(1, 3), 16)
-    const g = parseInt(h.slice(3, 5), 16)
-    const b = parseInt(h.slice(5, 7), 16)
-    return { r: isNaN(r) ? 0 : r, g: isNaN(g) ? 0 : g, b: isNaN(b) ? 0 : b }
-  }
+  const hexToRgb = useCallback((h: string) => {
+    const r = parseInt(h.slice(1, 3), 16) || 0
+    const g = parseInt(h.slice(3, 5), 16) || 0
+    const b = parseInt(h.slice(5, 7), 16) || 0
+    return { r, g, b }
+  }, [])
 
-  const rgbToHsl = (r: number, g: number, b: number) => {
+  const rgbToHsl = useCallback((r: number, g: number, b: number) => {
     r /= 255; g /= 255; b /= 255
     const max = Math.max(r, g, b), min = Math.min(r, g, b)
     let h = 0, s = 0, l = (max + min) / 2
-
     if (max !== min) {
       const d = max - min
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
@@ -34,21 +40,79 @@ export function ColorPicker() {
       h /= 6
     }
     return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
+  }, [])
+
+  const rgbToCmyk = useCallback((r: number, g: number, b: number) => {
+    let k = 1 - Math.max(r/255, g/255, b/255)
+    let c = (1 - r/255 - k) / (1 - k) || 0
+    let m = (1 - g/255 - k) / (1 - k) || 0
+    let y = (1 - b/255 - k) / (1 - k) || 0
+    return {
+      c: Math.round(c * 100),
+      m: Math.round(m * 100),
+      y: Math.round(y * 100),
+      k: Math.round(k * 100)
+    }
+  }, [])
+
+  const rgb = hexToRgb(hex)
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b)
+
+  // Contrast Calculation
+  const getLuminance = (r: number, g: number, b: number) => {
+    const a = [r, g, b].map(v => {
+      v /= 255
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+    })
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722
   }
 
-  const updateFromHex = (newHex: string) => {
-    if (!/^#[0-9A-F]{6}$/i.test(newHex)) return
-    setHex(newHex)
-    const newRgb = hexToRgb(newHex)
-    setRgb(newRgb)
-    setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+  const contrastAgainstBlack = (getLuminance(rgb.r, rgb.g, rgb.b) + 0.05) / (0 + 0.05)
+  const contrastAgainstWhite = (1 + 0.05) / (getLuminance(rgb.r, rgb.g, rgb.b) + 0.05)
+  
+  const bestContrast = contrastAgainstBlack > contrastAgainstWhite ? "black" : "white"
+  const ratio = Math.max(contrastAgainstBlack, contrastAgainstWhite).toFixed(2)
+
+  const addToPalette = () => {
+    if (palette.length >= 8) {
+      toast.error("Palette full (max 8 colors)")
+      return
+    }
+    if (palette.includes(hex)) {
+      toast.info("Color already in palette")
+      return
+    }
+    setPalette([...palette, hex])
+    toast.success("Added to palette")
   }
 
-  const handleCopy = (text: string, format: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedFormat(format)
-    toast.success(`Copied ${format} value`)
-    setTimeout(() => setCopiedFormat(null), 2000)
+  const removeFromPalette = (index: number) => {
+    setPalette(palette.filter((_, i) => i !== index))
+  }
+
+  const clearPalette = () => {
+    if (palette.length === 0) return
+    if (confirm("Clear all colors from palette?")) {
+      setPalette([])
+    }
+  }
+
+  const exportPalette = (format: "css" | "tailwind" | "json") => {
+    if (palette.length === 0) {
+      toast.error("Add some colors to your palette first!")
+      return
+    }
+    
+    let content = ""
+    if (format === "css") {
+      content = ":root {\n" + palette.map((c, i) => `  --color-${i + 1}: ${c};`).join("\n") + "\n}"
+    } else if (format === "tailwind") {
+      content = "colors: {\n" + palette.map((c, i) => `  'custom-${i + 1}': '${c}',`).join("\n") + "\n}"
+    } else {
+      content = JSON.stringify(palette, null, 2)
+    }
+    copy(content, `${format.toUpperCase()} copied to clipboard`)
   }
 
   const randomColor = () => {
@@ -56,111 +120,200 @@ export function ColorPicker() {
     const g = Math.floor(Math.random() * 256)
     const b = Math.floor(Math.random() * 256)
     const newHex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
-    updateFromHex(newHex)
+    setHex(newHex)
   }
 
   return (
     <ToolLayout 
-      title="Color Converter" 
-      description="Convert between HEX, RGB, and HSL." 
+      title="Color Studio" 
+      description="Professional color picker, palette builder, and contrast inspector." 
       icon={Palette} 
+      maxWidth="max-w-6xl"
       centered={true}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
-        {/* Visual Picker */}
-        <div className="space-y-6">
-          <div className="aspect-video rounded-3xl shadow-2xl border border-white/10 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01]" style={{ backgroundColor: hex }}>
-             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-             <div className="absolute bottom-6 left-6 text-white font-mono font-bold text-2xl drop-shadow-md">
-                {hex.toUpperCase()}
-             </div>
-             <button 
-               onClick={randomColor}
-               className="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full text-white/70 hover:text-white transition-colors border border-white/10"
-               title="Random Color"
-             >
-               <RefreshCw className="w-4 h-4" />
-             </button>
-          </div>
-          
-          <div className="glass-panel p-8 rounded-2xl space-y-6">
-             <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Select Color</label>
-                <input 
-                  type="color" 
-                  value={hex}
-                  onChange={(e) => updateFromHex(e.target.value)}
-                  className="w-full h-16 bg-transparent border-none cursor-pointer rounded-xl overflow-hidden"
-                />
-             </div>
-             <p className="text-xs text-muted-foreground leading-relaxed italic">
-               Use the native picker above to find your perfect shade. Values update in real-time.
-             </p>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 px-4 sm:px-0">
+        {/* Left Column: Picker & Accessibility */}
+        <div className="lg:col-span-5 space-y-6">
+           <div 
+             className="aspect-[4/3] rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01]" 
+             style={{ backgroundColor: hex }}
+           >
+              <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                  <p className={cn("text-3xl sm:text-4xl md:text-5xl font-black font-syne drop-shadow-2xl transition-colors duration-300 tracking-tighter text-center px-4 max-w-full break-all", bestContrast === "white" ? "text-white" : "text-black")}>
+                    {hex.toUpperCase()}
+                  </p>
+                 <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-300", bestContrast === "white" ? "bg-white/10 border-white/20 text-white" : "bg-black/10 border-black/20 text-black")}>
+                   Contrast: {ratio}:1
+                 </div>
+              </div>
+              <button 
+                onClick={randomColor} 
+                className="absolute top-6 right-6 p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10 group-hover:rotate-180 duration-700"
+                title="Random Color"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+           </div>
+
+           <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-black/20 space-y-8">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Selection Engine</label>
+                  <span className="text-[10px] font-bold text-primary/60">HEX / RGB / HSL</span>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="relative group shrink-0 w-24 h-24">
+                    <input 
+                      type="color" 
+                      value={hex} 
+                      onChange={(e) => setHex(e.target.value)} 
+                      className="w-full h-full block bg-transparent border-none cursor-pointer rounded-3xl overflow-hidden appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:border-none shadow-2xl" 
+                    />
+                    <div className="absolute inset-0 pointer-events-none rounded-3xl border-2 border-white/10 group-hover:border-primary/50 transition-colors" />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-3">
+                    <input 
+                      type="text" 
+                      value={hex.toUpperCase()} 
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val.startsWith('#') && val.length <= 7) setHex(val)
+                        else if (val.length <= 6) setHex(`#${val}`)
+                      }} 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 font-mono text-2xl text-white outline-none focus:border-primary/50 transition-all shadow-inner" 
+                    />
+                    <button 
+                      onClick={addToPalette} 
+                      className="w-full py-4 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-xl flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] active:scale-95 transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Add to Palette
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-white/5">
+                 <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Accessibility Audit</span>
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className={cn("p-4 rounded-2xl border transition-all", parseFloat(ratio) >= 4.5 ? "bg-emerald-500/5 border-emerald-500/20" : "bg-orange-500/5 border-orange-500/20")}>
+                       <span className="text-[9px] font-black uppercase text-muted-foreground block mb-2">WCAG AA</span>
+                       <div className="flex items-center gap-3">
+                          {parseFloat(ratio) >= 4.5 ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <AlertTriangle className="w-5 h-5 text-orange-400" />}
+                          <span className="text-sm font-black text-white">{parseFloat(ratio) >= 4.5 ? "Pass" : "Fail"}</span>
+                       </div>
+                    </div>
+                    <div className={cn("p-4 rounded-2xl border transition-all", parseFloat(ratio) >= 7 ? "bg-emerald-500/5 border-emerald-500/20" : "bg-orange-500/5 border-orange-500/20")}>
+                       <span className="text-[9px] font-black uppercase text-muted-foreground block mb-2">WCAG AAA</span>
+                       <div className="flex items-center gap-3">
+                          {parseFloat(ratio) >= 7 ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <AlertTriangle className="w-5 h-5 text-orange-400" />}
+                          <span className="text-sm font-black text-white">{parseFloat(ratio) >= 7 ? "Pass" : "Fail"}</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
         </div>
 
-        {/* Formats */}
-        <div className="space-y-4">
-           {/* HEX */}
-           <div className="glass-panel p-6 rounded-2xl space-y-3 border-white/5 transition-all hover:border-white/10">
-              <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">HEX</span>
-                 <button onClick={() => handleCopy(hex, "HEX")} className="text-muted-foreground hover:text-primary transition-colors">
-                    {copiedFormat === "HEX" ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                 </button>
+        {/* Right Column: Palette & Formats */}
+        <div className="lg:col-span-7 space-y-6">
+           <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-black/20 space-y-8">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Palette ({palette.length}/8)</label>
+                {palette.length > 0 && (
+                  <button onClick={clearPalette} className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5">
+                    <X className="w-3 h-3" /> Clear All
+                  </button>
+                )}
               </div>
-              <input 
-                type="text" 
-                value={hex.toUpperCase()} 
-                onChange={(e) => updateFromHex(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-sm outline-none focus:border-primary/40 text-white/90"
-              />
+              
+              <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
+                 {palette.map((c, i) => (
+                   <div 
+                     key={i} 
+                     className="group relative aspect-square rounded-2xl border border-white/10 shadow-xl cursor-pointer transition-all hover:scale-110 active:scale-90" 
+                     style={{ backgroundColor: c }} 
+                     onClick={() => setHex(c)}
+                   >
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); removeFromPalette(i); }} 
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600"
+                        title="Remove Color"
+                      >
+                         <Trash2 className="w-3 h-3" />
+                      </button>
+                   </div>
+                 ))}
+                 {Array.from({ length: 8 - palette.length }).map((_, i) => (
+                   <div key={i} className="aspect-square rounded-2xl border-2 border-dashed border-white/5 bg-white/[0.01]" />
+                 ))}
+              </div>
+
+              <div className="space-y-4 pt-8 border-t border-white/5">
+                 {[
+                   { label: "RGB", value: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, id: "rgb" },
+                   { label: "HSL", value: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`, id: "hsl" },
+                   { label: "CMYK", value: `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`, id: "cmyk" },
+                 ].map(item => (
+                   <div key={item.id} className="flex items-center justify-between group">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground w-12">{item.label}</span>
+                      <div className="flex-1 mx-4 h-12 bg-black/40 border border-white/5 rounded-xl px-4 flex items-center font-mono text-sm text-white/80 group-hover:border-primary/30 transition-all overflow-x-auto whitespace-nowrap scrollbar-hide">
+                         {item.value}
+                      </div>
+                      <button 
+                        onClick={() => copy(item.value, item.id)} 
+                        className="p-3 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all border border-white/5"
+                        title={`Copy ${item.label}`}
+                      >
+                         {copiedId === item.id ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5" />}
+                      </button>
+                   </div>
+                 ))}
+              </div>
            </div>
 
-           {/* RGB */}
-           <div className="glass-panel p-6 rounded-2xl space-y-3 border-white/5 transition-all hover:border-white/10">
-              <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">RGB</span>
-                 <button onClick={() => handleCopy(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, "RGB")} className="text-muted-foreground hover:text-primary transition-colors">
-                    {copiedFormat === "RGB" ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                 </button>
+           {/* Dynamic Export Panel */}
+           <div className="glass-panel p-8 rounded-[2rem] bg-primary/5 border border-primary/10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity pointer-events-none">
+                <Download className="w-32 h-32 text-primary" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">R</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.r}</div>
+              
+              <div className="flex items-start gap-6 relative">
+                 <div className="p-4 bg-primary/10 rounded-2xl">
+                    <Download className="w-8 h-8 text-primary" />
                  </div>
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">G</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.g}</div>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">B</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{rgb.b}</div>
-                 </div>
-              </div>
-           </div>
+                 <div className="flex-1 space-y-6">
+                    <div className="space-y-1">
+                       <h4 className="text-xl font-black font-syne text-white uppercase tracking-tighter">Export Intelligence</h4>
+                       <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
+                         Convert your curated palette into production-ready code snippets for your design system.
+                       </p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                       {[
+                         { id: "css", label: "CSS Variables" },
+                         { id: "tailwind", label: "Tailwind Config" },
+                         { id: "json", label: "JSON Data" },
+                       ].map((fmt) => (
+                         <button 
+                           key={fmt.id}
+                           disabled={palette.length === 0}
+                           onClick={() => exportPalette(fmt.id as any)}
+                           className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
+                         >
+                           {fmt.label}
+                         </button>
+                       ))}
+                    </div>
 
-           {/* HSL */}
-           <div className="glass-panel p-6 rounded-2xl space-y-3 border-white/5 transition-all hover:border-white/10">
-              <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">HSL</span>
-                 <button onClick={() => handleCopy(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`, "HSL")} className="text-muted-foreground hover:text-primary transition-colors">
-                    {copiedFormat === "HSL" ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                 </button>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">H</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.h}°</div>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">S</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.s}%</div>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground font-mono">L</span>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-2 text-center font-mono text-sm text-white/90">{hsl.l}%</div>
+                    {palette.length === 0 && (
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-primary/40 uppercase tracking-widest animate-pulse">
+                         <AlertTriangle className="w-3 h-3" /> Add colors to enable export
+                      </div>
+                    )}
                  </div>
               </div>
            </div>

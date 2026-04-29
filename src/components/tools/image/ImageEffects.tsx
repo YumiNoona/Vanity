@@ -4,10 +4,10 @@ import { Download, SlidersHorizontal, RefreshCw, Loader2, Layers } from "lucide-
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import { useImageProcessor } from "../../../hooks/useImageProcessor"
-import { useObjectUrl } from "../../../hooks/useObjectUrl"
-import { drawToCanvas, exportCanvas, downloadBlob } from "../../../lib/canvas"
-import { guardDimensions } from "../../../lib/utils"
+import { useImageProcessor } from "@/hooks/useImageProcessor"
+import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
+import { guardDimensions } from "@/lib/utils"
 
 export function ImageEffects() {
   const { validateFiles } = usePremium()

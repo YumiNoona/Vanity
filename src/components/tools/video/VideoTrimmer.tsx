@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Video, Download, RefreshCw, Scissors, Clock, Zap } from "lucide-react"
+import { Video, Download, Scissors, Clock, Zap } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { useProcessingState } from "@/hooks/useProcessingState"

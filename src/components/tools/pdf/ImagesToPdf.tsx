@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, FileText, Trash2, ArrowUp, ArrowDown } from "lucide-react"
-import { PDFDocument } from "pdf-lib"
+// pdf-lib is loaded dynamically in handleConvert
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
@@ -55,6 +55,7 @@ export function ImagesToPdf() {
     setIsProcessing(true)
 
     try {
+      const { PDFDocument } = await import("pdf-lib")
       const pdfDoc = await PDFDocument.create()
 
       for (const img of images) {
@@ -175,11 +176,14 @@ export function ImagesToPdf() {
               className="px-8 py-3 font-bold bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded-lg shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all flex items-center gap-2"
             >
               {isProcessing ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Loading Engine...</span>
+                </div>
               ) : (
                 <FileText className="w-5 h-5" />
               )}
-              {isProcessing ? "Converting..." : "Create PDF"}
+              {isProcessing ? null : "Create PDF"}
             </button>
           ) : (
            <div className="flex gap-4">

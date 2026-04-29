@@ -57,9 +57,9 @@ export function VideoThumbnails() {
   }
 
   useEffect(() => {
+    const video = videoRef.current
     return () => {
       isUnmountedRef.current = true
-      const video = videoRef.current
       if (video) {
         video.onloadedmetadata = null
       }
@@ -90,7 +90,7 @@ export function VideoThumbnails() {
       const ctx = canvas.getContext("2d")
       if (!ctx) throw new Error("Failed to get 2d context")
 
-      const generated: string[] = []
+
       const step = duration / (frameCount + 1)
 
       // Sequentially seek and extract
@@ -116,10 +116,11 @@ export function VideoThumbnails() {
          }
       }
 
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e)
       if (!isUnmountedRef.current) {
-        toast.error(e?.message || "Failed to extract frames.")
+        const message = e instanceof Error ? e.message : "Failed to extract frames."
+        toast.error(message)
         setProgress(0)
       }
     } finally {

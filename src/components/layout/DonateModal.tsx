@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Heart, Copy, CheckCircle, ExternalLink, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 interface DonateModalProps {
   isOpen: boolean
@@ -10,15 +11,12 @@ interface DonateModalProps {
 }
 
 export function DonateModal({ isOpen, onClose }: DonateModalProps) {
-  const [copied, setCopied] = useState(false)
   const [isImageLoading, setIsImageLoading] = useState(true)
   const upiId = "rushikeshingale2001@okicici"
+  const { isCopied, copy } = useCopyToClipboard()
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(upiId)
-    setCopied(true)
-    toast.success("UPI ID copied to clipboard!")
-    setTimeout(() => setCopied(false), 2000)
+    copy(upiId, "UPI ID copied to clipboard!")
   }
 
   return (
@@ -95,7 +93,7 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
                       onClick={handleCopy}
                       className="p-2 hover:bg-white/10 rounded-xl transition-colors text-muted-foreground hover:text-white"
                     >
-                      {copied ? <CheckCircle className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
+                      {isCopied ? <CheckCircle className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>

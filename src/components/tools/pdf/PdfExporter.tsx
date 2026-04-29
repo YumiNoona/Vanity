@@ -8,6 +8,7 @@ import { extractPdfText } from "@/lib/pdf-text"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 type ExportMode = "images" | "text" | "word"
 
@@ -21,7 +22,7 @@ export function PdfExporter() {
   
   const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
   const [extractedText, setExtractedText] = useState<string>("")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const resetState = () => {
     setIsProcessing(false)
@@ -29,7 +30,7 @@ export function PdfExporter() {
     setPageCount(0)
     setExtractedText("")
     clearResultUrl()
-    setCopied(false)
+
   }
 
   const handleDrop = async (files: File[]) => {
@@ -215,11 +216,8 @@ export function PdfExporter() {
   }
 
   const handleCopyText = () => {
-    navigator.clipboard.writeText(extractedText)
-    setCopied(true)
-    toast.success("Text copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(extractedText, "Text copied to clipboard")
+    }
 
   if (!file) {
     return (

@@ -80,8 +80,7 @@ const ScientificCalc = lazy(() => import("./components/tools/math/ScientificCalc
 const PercentageCalc = lazy(() => import("./components/tools/math/PercentageCalc").then(m => ({ default: m.PercentageCalc })))
 
 // Finance Tools
-const LoanEmi = lazy(() => import("./components/tools/finance/LoanEmi").then(m => ({ default: m.LoanEmi })))
-const SipCalc = lazy(() => import("./components/tools/finance/SipCalc").then(m => ({ default: m.SipCalc })))
+const FinanceStudio = lazy(() => import("./components/tools/finance/FinanceStudio").then(m => ({ default: m.FinanceStudio })))
 const CurrencyFormatter = lazy(() => import("./components/tools/finance/CurrencyFormatter").then(m => ({ default: m.CurrencyFormatter })))
 const GstCalc = lazy(() => import("./components/tools/finance/GstCalc").then(m => ({ default: m.GstCalc })))
 
@@ -105,34 +104,30 @@ const RemoveBlankPages = lazy(() => import("./components/tools/pdf/RemoveBlankPa
 const PdfFontExtractor = lazy(() => import("./components/tools/pdf/PdfFontExtractor").then(m => ({ default: m.PdfFontExtractor })))
 
 // Developer Tools
-const JsonFormatter = lazy(() => import("./components/tools/dev/JsonFormatter").then(m => ({ default: m.JsonFormatter })))
+const CodeFormatterStudio = lazy(() => import("./components/tools/dev/CodeFormatterStudio").then(m => ({ default: m.CodeFormatterStudio })))
+const HttpRequestBuilder = lazy(() => import("./components/tools/dev/HttpRequestBuilder").then(m => ({ default: m.HttpRequestBuilder })))
 const ColorPicker = lazy(() => import("./components/tools/dev/ColorPicker").then(m => ({ default: m.ColorPicker })))
 const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then(m => ({ default: m.CssGradient })))
-const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
+const Base64Tool = lazy(() => import("./components/tools/dev/Base64Tool").then(m => ({ default: m.Base64Tool })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
 const RegexTester = lazy(() => import("./components/tools/dev/RegexTester").then(m => ({ default: m.RegexTester })))
 const TimestampConverter = lazy(() => import("./components/tools/dev/TimestampConverter").then(m => ({ default: m.TimestampConverter })))
 const JwtDecoder = lazy(() => import("./components/tools/dev/JwtDecoder").then(m => ({ default: m.JwtDecoder })))
 const UrlEncoder = lazy(() => import("./components/tools/dev/UrlEncoder").then(m => ({ default: m.UrlEncoder })))
 const CronBuilder = lazy(() => import("./components/tools/dev/CronBuilder").then(m => ({ default: m.CronBuilder })))
-const HtmlFormatter = lazy(() => import("./components/tools/dev/HtmlFormatter").then(m => ({ default: m.HtmlFormatter })))
 const CssUnitConverter = lazy(() => import("./components/tools/dev/CssUnitConverter").then(m => ({ default: m.CssUnitConverter })))
 const EnvEditor = lazy(() => import("./components/tools/dev/EnvEditor").then(m => ({ default: m.EnvEditor })))
 const JsonToCsv = lazy(() => import("./components/tools/dev/JsonToCsv").then(m => ({ default: m.JsonToCsv })))
-const XmlFormatter = lazy(() => import("./components/tools/dev/XmlFormatter").then(m => ({ default: m.XmlFormatter })))
-const SqlFormatter = lazy(() => import("./components/tools/dev/SqlFormatter").then(m => ({ default: m.SqlFormatter })))
 
 
 // Video Tools
 const VideoCompressor = lazy(() => import("./components/tools/video/VideoCompressor").then(m => ({ default: m.VideoCompressor })))
-const AudioConverter = lazy(() => import("./components/tools/video/AudioConverter").then(m => ({ default: m.AudioConverter })))
-const VideoToMp3 = lazy(() => import("./components/tools/video/VideoToMp3").then(m => ({ default: m.VideoToMp3 })))
+const AudioStudio = lazy(() => import("./components/tools/video/AudioStudio").then(m => ({ default: m.AudioStudio })))
 const VideoToGif = lazy(() => import("./components/tools/video/VideoToGif").then(m => ({ default: m.VideoToGif })))
 const AudioWaveform = lazy(() => import("./components/tools/video/AudioWaveform").then(m => ({ default: m.AudioWaveform })))
 const VideoThumbnails = lazy(() => import("./components/tools/video/VideoThumbnails").then(m => ({ default: m.VideoThumbnails })))
 const VideoTrimmer = lazy(() => import("./components/tools/video/VideoTrimmer").then(m => ({ default: m.VideoTrimmer })))
 const VideoSpeed = lazy(() => import("./components/tools/video/VideoSpeed").then(m => ({ default: m.VideoSpeed })))
-const AudioNormalizer = lazy(() => import("./components/tools/video/AudioNormalizer").then(m => ({ default: m.AudioNormalizer })))
 
 
 // Text Tools
@@ -242,34 +237,30 @@ function App() {
             <Route path="/tools/pdf/fonts" element={<PdfFontExtractor />} />
 
             {/* Developer Tools */}
-            <Route path="/tools/dev/json" element={<JsonFormatter />} />
+            <Route path="/tools/dev/formatter" element={<CodeFormatterStudio />} />
+            <Route path="/tools/dev/http-builder" element={<HttpRequestBuilder />} />
             <Route path="/tools/dev/color" element={<ColorPicker />} />
             <Route path="/tools/dev/gradient" element={<CssGradient />} />
-            <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
+            <Route path="/tools/dev/base64-studio" element={<Base64Tool />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
             <Route path="/tools/dev/regex" element={<RegexTester />} />
             <Route path="/tools/dev/timestamp" element={<TimestampConverter />} />
             <Route path="/tools/dev/jwt" element={<JwtDecoder />} />
             <Route path="/tools/dev/url" element={<UrlEncoder />} />
             <Route path="/tools/dev/cron" element={<CronBuilder />} />
-            <Route path="/tools/dev/html" element={<HtmlFormatter />} />
             <Route path="/tools/dev/css-units" element={<CssUnitConverter />} />
             <Route path="/tools/dev/env" element={<EnvEditor />} />
             <Route path="/tools/dev/json-to-csv" element={<JsonToCsv />} />
-            <Route path="/tools/dev/xml" element={<XmlFormatter />} />
-            <Route path="/tools/dev/sql" element={<SqlFormatter />} />
 
 
             {/* Video Tools */}
             <Route path="/tools/video/compress" element={<VideoCompressor />} />
-            <Route path="/tools/video/audio-convert" element={<AudioConverter />} />
-            <Route path="/tools/video/video-to-mp3" element={<VideoToMp3 />} />
+            <Route path="/tools/video/audio-studio" element={<AudioStudio />} />
             <Route path="/tools/video/to-gif" element={<VideoToGif />} />
             <Route path="/tools/video/waveform" element={<AudioWaveform />} />
             <Route path="/tools/video/thumbnails" element={<VideoThumbnails />} />
             <Route path="/tools/video/trimmer" element={<VideoTrimmer />} />
             <Route path="/tools/video/speed" element={<VideoSpeed />} />
-            <Route path="/tools/video/normalize" element={<AudioNormalizer />} />
 
 
 
@@ -310,8 +301,7 @@ function App() {
             <Route path="/tools/math/percentage" element={<PercentageCalc />} />
 
             {/* Finance Tools */}
-            <Route path="/tools/finance/loan" element={<LoanEmi />} />
-            <Route path="/tools/finance/sip" element={<SipCalc />} />
+            <Route path="/tools/finance/studio" element={<FinanceStudio />} />
             <Route path="/tools/finance/currency" element={<CurrencyFormatter />} />
             <Route path="/tools/finance/gst" element={<GstCalc />} />
 

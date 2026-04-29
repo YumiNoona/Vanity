@@ -3,12 +3,13 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { KeyRound, ShieldCheck, Copy, CheckCircle, Clock, AlertTriangle, Info } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function TotpGen() {
   const [secret, setSecret] = useState("JBSWY3DPEHPK3PXP")
   const [token, setToken] = useState("------")
   const [timeLeft, setTimeLeft] = useState(30)
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const base32ToBytes = (base32: string) => {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -85,9 +86,7 @@ export function TotpGen() {
 
   const handleCopy = () => {
     if (token === "------" || token === "ERROR") return
-    navigator.clipboard.writeText(token)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    copy(token)
     toast.success("Token copied")
   }
 

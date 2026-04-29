@@ -3,12 +3,13 @@ import { ArrowLeft, Copy, CheckCircle, Hash, ArrowLeftRight, Trash2, FileCode, U
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"encode" | "decode">("encode")
-  const [copied, setCopied] = useState(false)
+  const { isCopied: copied, copy } = useCopyToClipboard()
 
   const processText = useCallback((val: string, currentMode: "encode" | "decode") => {
     if (!val.trim()) {
@@ -45,11 +46,8 @@ export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
 
   const handleCopy = () => {
     if (!output) return
-    navigator.clipboard.writeText(output)
-    setCopied(true)
-    toast.success("Copied to clipboard")
-    setTimeout(() => setCopied(false), 2000)
-  }
+    copy(output, "Copied to clipboard")
+    }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

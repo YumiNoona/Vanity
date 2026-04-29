@@ -4,6 +4,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Plus, Trash2, Download, RefreshCw, FileCode, Search, Save } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useDownload } from "@/hooks/useDownload"
 
 interface EnvRow {
   id: string
@@ -14,6 +15,7 @@ interface EnvRow {
 
 export function EnvEditor() {
   const [rows, setRows] = useState<EnvRow[]>([])
+  const { download } = useDownload()
   const [searchTerm, setSearchTerm] = useState("")
   const [fileName, setFileName] = useState(".env")
 
@@ -63,13 +65,7 @@ export function EnvEditor() {
       })
       .join("\n")
 
-    const blob = new Blob([content], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = fileName
-    a.click()
-    URL.revokeObjectURL(url)
+    download(content, fileName)
     toast.success("File downloaded")
   }
 
