@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, Hash, ArrowLeftRight, Trash2, FileCode, Upload } from "lucide-react"
+import { PillToggle } from "@/components/shared/PillToggle"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
