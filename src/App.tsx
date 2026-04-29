@@ -108,7 +108,7 @@ const CodeFormatterStudio = lazy(() => import("./components/tools/dev/CodeFormat
 const HttpRequestBuilder = lazy(() => import("./components/tools/dev/HttpRequestBuilder").then(m => ({ default: m.HttpRequestBuilder })))
 const ColorPicker = lazy(() => import("./components/tools/dev/ColorPicker").then(m => ({ default: m.ColorPicker })))
 const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then(m => ({ default: m.CssGradient })))
-const Base64Tool = lazy(() => import("./components/tools/dev/Base64Tool").then(m => ({ default: m.Base64Tool })))
+const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
 const RegexTester = lazy(() => import("./components/tools/dev/RegexTester").then(m => ({ default: m.RegexTester })))
 const TimestampConverter = lazy(() => import("./components/tools/dev/TimestampConverter").then(m => ({ default: m.TimestampConverter })))
@@ -241,7 +241,7 @@ function App() {
             <Route path="/tools/dev/http-builder" element={<HttpRequestBuilder />} />
             <Route path="/tools/dev/color" element={<ColorPicker />} />
             <Route path="/tools/dev/gradient" element={<CssGradient />} />
-            <Route path="/tools/dev/base64-studio" element={<Base64Tool />} />
+            <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
             <Route path="/tools/dev/regex" element={<RegexTester />} />
             <Route path="/tools/dev/timestamp" element={<TimestampConverter />} />

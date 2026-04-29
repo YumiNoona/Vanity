@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react"
+import zxcvbn from "zxcvbn"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { KeyRound, RefreshCw, Copy, CheckCircle, ShieldAlert, ShieldCheck, Shield, List, Type, Fingerprint, Download, Lock, Unlock } from "lucide-react"
@@ -49,19 +50,15 @@ export function PasswordGenerator() {
     toast.success("Batch downloaded")
   }
 
-  const strength = useMemo(() => {
-    if (!password) return 0
-    let s = 0
-    if (password.length > 8) s += 1
-    if (password.length > 12) s += 1
-    if (/[A-Z]/.test(password)) s += 1
-    if (/[0-9]/.test(password)) s += 1
-    if (/[^A-Za-z0-9]/.test(password)) s += 1
-    return Math.min(s, 5)
+  const zxcvbnResult = useMemo(() => {
+    if (!password) return null
+    return zxcvbn(password)
   }, [password])
 
-  const strengthLabel = ["Weak", "Fair", "Good", "Strong", "Very Strong", "Unbreakable"][strength]
-  const strengthColor = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-400", "bg-emerald-500", "bg-blue-500"][strength]
+  const strength = zxcvbnResult?.score ?? 0
+  const strengthLabel = ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"][strength]
+  const strengthColor = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-400", "bg-blue-500"][strength]
+  const timeToCrack = zxcvbnResult?.crack_times_display.offline_fast_hashing_1e10_per_second ?? ""
 
   const generateSingle = useCallback(() => {
     let result = ""
@@ -238,12 +235,17 @@ export function PasswordGenerator() {
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Security Strength</span>
                     <span className={cn("text-[10px] font-black uppercase px-2 py-0.5 rounded", strengthColor.replace('bg-', 'text-'))}>{strengthLabel}</span>
                  </div>
-                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
-                    {Array.from({ length: 6 }).map((_, i) => (
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
                       <div key={i} className={cn("h-full flex-1 transition-all duration-500", i <= strength ? strengthColor : "bg-white/5")} />
                     ))}
-                 </div>
-              </div>
+                  </div>
+                  {timeToCrack && (
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest text-center mt-2">
+                      Est. Crack Time: <span className="text-white font-bold">{timeToCrack}</span>
+                    </p>
+                  )}
+               </div>
 
               {isBulk && (
                 <div className="space-y-4 pt-8 border-t border-white/5 animate-in fade-in">

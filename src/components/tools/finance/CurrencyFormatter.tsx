@@ -3,6 +3,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Wallet, CheckCircle, Hash, Info, ArrowRightLeft, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 const CURRENCIES = [
   { code: "USD", name: "US Dollar", symbol: "$" },
@@ -25,6 +26,7 @@ export function CurrencyFormatter() {
   const [rates, setRates] = useState<Record<string, number> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const { copy } = useCopyToClipboard()
 
   useEffect(() => {
     fetchRates(baseCurrency)
@@ -55,10 +57,7 @@ export function CurrencyFormatter() {
     }
   }
 
-  const handleCopy = (val: string) => {
-    navigator.clipboard.writeText(val)
-    toast.success("Amount copied to clipboard")
-  }
+
 
   const numericAmount = parseFloat(amount) || 0
 
@@ -120,7 +119,7 @@ export function CurrencyFormatter() {
              return (
                <button
                  key={c.code}
-                 onClick={() => handleCopy(converted.toFixed(2))}
+                 onClick={() => copy(converted.toFixed(2), "Amount copied to clipboard")}
                  className="group glass-panel p-6 rounded-2xl border border-white/5 bg-black/20 text-left hover:border-primary/30 transition-all space-y-2 relative"
                >
                   <div className="flex items-center justify-between">

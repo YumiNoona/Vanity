@@ -5,7 +5,8 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
-export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
+export function Base64Studio({ embedded = false }: { embedded?: boolean }) {
+  const [activeTab, setActiveTab] = useState<"text" | "file">("text")
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"encode" | "decode">("encode")
@@ -73,40 +74,86 @@ export function Base64Tool({ embedded = false }: { embedded?: boolean }) {
       maxWidth="max-w-6xl"
       hideHeader={embedded}
     >
+      <div className="flex justify-center mb-8">
+        <PillToggle
+          activeId={activeTab}
+          onChange={(id) => {
+            setActiveTab(id as "text" | "file")
+            setInput("")
+            setOutput("")
+          }}
+          options={[
+            { id: "text", label: "Text Mode", icon: Hash },
+            { id: "file", label: "File Mode", icon: FileCode },
+          ]}
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              {mode === "encode" ? "Text to Encode" : "Base64 to Decode"}
+              {activeTab === "text" ? (mode === "encode" ? "Text to Encode" : "Base64 to Decode") : "Select File"}
             </label>
-            <div className="flex gap-2">
-                <label className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md text-muted-foreground hover:text-primary transition-colors cursor-pointer" title="Upload File">
-                    <Upload className="w-3 h-3" />
-                    <input type="file" className="hidden" onChange={handleFileUpload} />
-                </label>
-                <button 
-                  onClick={() => { setInput(""); setOutput(""); }}
-                  className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md text-muted-foreground hover:text-red-400 transition-colors"
-                  title="Clear"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-            </div>
+            {activeTab === "text" && (
+              <button 
+                onClick={() => { setInput(""); setOutput(""); }}
+                className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md text-muted-foreground hover:text-red-400 transition-colors"
+                title="Clear"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
-          <textarea 
-            value={input}
-            onChange={handleInputChange}
-            placeholder={mode === "encode" ? "Enter text here..." : "Enter Base64 here..."}
-            className="w-full h-80 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-blue-500/30 transition-all text-white/90"
-          />
-          <button 
-            onClick={toggleMode}
-            className="w-full py-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-3 font-bold hover:bg-white/10 transition-all"
-          >
-            <ArrowLeftRight className="w-4 h-4" />
-            Switch to {mode === "encode" ? "Decode" : "Encode"}
-          </button>
+          
+          {activeTab === "text" ? (
+            <>
+              <textarea 
+                value={input}
+                onChange={handleInputChange}
+                placeholder={mode === "encode" ? "Enter text here..." : "Enter Base64 here..."}
+                className="w-full h-80 bg-black/40 border border-white/10 rounded-xl p-6 font-mono text-sm resize-none outline-none focus:border-blue-500/30 transition-all text-white/90"
+              />
+              <button 
+                onClick={toggleMode}
+                className="w-full py-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-3 font-bold hover:bg-white/10 transition-all"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                Switch to {mode === "encode" ? "Decode" : "Encode"}
+              </button>
+            </>
+          ) : (
+            <div className="h-96">
+              <ToolUploadLayout 
+                title="" 
+                description="" 
+                icon={Upload} 
+                hideHeader={true}
+              >
+                <div className="max-w-md mx-auto">
+                  <div className="relative group cursor-pointer">
+                    <div className="absolute inset-0 bg-primary/10 blur-3xl group-hover:bg-primary/20 transition-all rounded-full" />
+                    <label className="relative flex flex-col items-center justify-center p-12 bg-black/40 border-2 border-dashed border-white/10 rounded-[2rem] group-hover:border-primary/50 transition-all cursor-pointer">
+                      <Upload className="w-12 h-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                      <p className="text-sm font-bold text-white mb-1">Click to upload file</p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black">or drag and drop</p>
+                      <input type="file" className="hidden" onChange={handleFileUpload} />
+                    </label>
+                  </div>
+                  {input && (
+                    <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileCode className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-mono text-white truncate max-w-[200px]">{input.split('\n')[0].replace('File: ', '')}</span>
+                      </div>
+                      <button onClick={() => { setInput(""); setOutput(""); }} className="text-[10px] font-black uppercase text-red-400 hover:text-red-300">Remove</button>
+                    </div>
+                  )}
+                </div>
+              </ToolUploadLayout>
+            </div>
+          )}
         </div>
 
         {/* Output Area */}

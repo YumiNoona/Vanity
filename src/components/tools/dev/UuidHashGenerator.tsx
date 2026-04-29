@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react"
-import { Key, Copy, CheckCircle, RefreshCw, ShieldCheck, Hash, List, Trash2, Layers, Binary } from "lucide-react"
+import { Key, Copy, CheckCircle, RefreshCw, ShieldCheck, Hash, List, Trash2, Layers, Binary, ShieldAlert, KeyRound } from "lucide-react"
+import SparkMD5 from "spark-md5"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { toast } from "sonner"
@@ -16,7 +17,9 @@ export function UuidHashGenerator() {
   const [history, setHistory] = useState<string[]>([])
 
   const [inputText, setInputText] = useState("")
-  const [hashResult, setHashResult] = useState({ sha1: "", sha256: "", sha384: "", sha512: "" })
+  const [hmacKey, setHmacKey] = useState("")
+  const [isHmac, setIsHmac] = useState(false)
+  const [hashResult, setHashResult] = useState({ md5: "", sha1: "", sha256: "", sha512: "", hmac: "" })
   const { copiedId, copy } = useCopyToClipboard()
 
   // Load history from localStorage
@@ -48,32 +51,52 @@ export function UuidHashGenerator() {
     copy(text, "Copied to clipboard")
   }
 
-  const calculateHash = useCallback(async (text: string) => {
+  const calculateHash = useCallback(async (text: string, key: string, useHmac: boolean) => {
     if (!text) {
-      setHashResult({ sha1: "", sha256: "", sha384: "", sha512: "" })
+      setHashResult({ md5: "", sha1: "", sha256: "", sha512: "", hmac: "" })
       return
     }
 
     const encoder = new TextEncoder()
     const data = encoder.encode(text)
 
-    const compute = async (algo: string) => {
+    const computeSubtle = async (algo: string) => {
       const buffer = await crypto.subtle.digest(algo, data)
       return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join("")
     }
 
+    const computeHmac = async (algo: string, secret: string) => {
+      if (!secret) return ""
+      const keyData = encoder.encode(secret)
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyData,
+        { name: "HMAC", hash: algo },
+        false,
+        ["sign"]
+      )
+      const signature = await crypto.subtle.sign("HMAC", cryptoKey, data)
+      return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, "0")).join("")
+    }
+
     try {
-      const results = await Promise.all([
-        compute("SHA-1"),
-        compute("SHA-256"),
-        compute("SHA-384"),
-        compute("SHA-512")
-      ])
-      setHashResult({ sha1: results[0], sha256: results[1], sha384: results[2], sha512: results[3] })
+      const md5 = SparkMD5.hash(text)
+      const sha1 = await computeSubtle("SHA-1")
+      const sha256 = await computeSubtle("SHA-256")
+      const sha512 = await computeSubtle("SHA-512")
+      const hmac = useHmac ? await computeHmac("SHA-256", key) : ""
+
+      setHashResult({ md5, sha1, sha256, sha512, hmac })
     } catch (e) {
       console.error(e)
     }
   }, [])
+
+  useEffect(() => {
+    if (mode === "hash") {
+      calculateHash(inputText, hmacKey, isHmac)
+    }
+  }, [inputText, hmacKey, isHmac, mode, calculateHash])
 
   const clearHistory = () => {
     setHistory([])
@@ -168,18 +191,50 @@ export function UuidHashGenerator() {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Input String</label>
                   <textarea 
                     value={inputText}
-                    onChange={(e) => { setInputText(e.target.value); calculateHash(e.target.value); }}
+                    onChange={(e) => setInputText(e.target.value)}
                     placeholder="Enter text to hash..."
                     className="w-full h-32 bg-black/40 border border-white/5 rounded-2xl p-4 font-mono text-sm outline-none focus:border-primary/30 transition-all text-white/90"
                   />
                 </div>
 
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <KeyRound className="w-3.5 h-3.5 text-primary" />
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">HMAC Configuration</label>
+                    </div>
+                    <button 
+                      onClick={() => setIsHmac(!isHmac)}
+                      className={cn(
+                        "text-[10px] font-bold uppercase px-3 py-1 rounded-full border transition-all",
+                        isHmac ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/10 text-muted-foreground"
+                      )}
+                    >
+                      HMAC: {isHmac ? "ENABLED" : "DISABLED"}
+                    </button>
+                  </div>
+                  
+                  {isHmac && (
+                    <div className="relative group animate-in slide-in-from-top-2">
+                       <input 
+                         type="password"
+                         value={hmacKey}
+                         onChange={(e) => setHmacKey(e.target.value)}
+                         placeholder="Enter HMAC Secret Key..."
+                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono outline-none focus:border-primary/50 transition-all"
+                       />
+                       <ShieldAlert className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30" />
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[
+                    { label: "MD5", value: hashResult.md5, id: "md5" },
                     { label: "SHA-1", value: hashResult.sha1, id: "sha1" },
                     { label: "SHA-256", value: hashResult.sha256, id: "sha256" },
-                    { label: "SHA-384", value: hashResult.sha384, id: "sha384" },
                     { label: "SHA-512", value: hashResult.sha512, id: "sha512" },
+                    ...(isHmac ? [{ label: "HMAC-SHA256", value: hashResult.hmac, id: "hmac" }] : [])
                   ].map(h => (
                     <div key={h.label} className="space-y-2">
                        <div className="flex items-center justify-between">

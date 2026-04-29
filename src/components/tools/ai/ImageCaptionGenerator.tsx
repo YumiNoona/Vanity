@@ -21,7 +21,7 @@ export function ImageCaptionGenerator() {
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [captions, setCaptions] = useState<string[]>([])
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const { copiedId: copiedIndex, copy } = useCopyToClipboard()
   const { isRunning, run } = useAIVisionTask()
 
   const handleDrop = (files: File[]) => {
@@ -74,12 +74,7 @@ JSON Structure requirement:
     }
   }
 
-  const handleCopy = (text: string, index: number) => {
-     window.navigator.clipboard.writeText(text)
-     setCopiedIndex(index)
-     toast.success("Caption copied!")
-     setTimeout(() => setCopiedIndex(null), 2000)
-  }
+
 
   if (!file || !imgUrl) {
     return (
@@ -162,10 +157,10 @@ JSON Structure requirement:
                         <div key={i} className="glass-panel p-6 rounded-2xl border-white/5 hover:border-fuchsia-500/30 transition-colors flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                            <p className="text-white/90 text-sm leading-relaxed flex-1 whitespace-pre-wrap">{caption}</p>
                            <button 
-                             onClick={() => handleCopy(caption, i)}
+                             onClick={() => copy(caption, i.toString())}
                              className="px-6 py-4 bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex-shrink-0 flex items-center gap-2"
                            >
-                              {copiedIndex === i ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                              {copiedIndex === i.toString() ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                               Copy
                            </button>
                         </div>

@@ -4,12 +4,14 @@ import { DropZone } from "@/components/shared/DropZone"
 import { ShieldCheck, FileCheck, Search, Loader2, Copy, CheckCircle, AlertCircle, FileText, Fingerprint } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 export function ChecksumVerify() {
   const [file, setFile] = useState<File | null>(null)
   const [hashes, setHashes] = useState<Record<string, string>>({})
   const [expectedHash, setExpectedHash] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const { copy } = useCopyToClipboard()
 
   const calculateHashes = async (f: File) => {
     setIsProcessing(true)
@@ -113,7 +115,7 @@ export function ChecksumVerify() {
                                  {isMatch === false && <AlertCircle className="w-3.5 h-3.5 text-red-500" />}
                               </div>
                               <button 
-                                onClick={() => { navigator.clipboard.writeText(hash); toast.success(`${algo} copied`); }}
+                                onClick={() => copy(hash, `${algo} copied`)}
                                 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1"
                               >
                                 <Copy className="w-3 h-3" /> Copy

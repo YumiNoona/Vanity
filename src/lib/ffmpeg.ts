@@ -87,6 +87,5 @@ export function disposeFFmpeg() {
     }
     ffmpegInstance = null
     initPromise = null
-    console.log("[FFmpeg] Instance disposed.")
   }
 }

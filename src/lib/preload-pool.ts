@@ -38,21 +38,21 @@ export const PreloadPool = {
   ffmpeg: (loader: () => Promise<any>) => {
     if (state.ffmpeg || !shouldPreload()) return
     state.ffmpeg = true
-    console.log("[PreloadPool] Warming FFmpeg engine...")
+
     loader()
   },
   
   pdf: (loader: () => Promise<any>) => {
     if (state.pdf || !shouldPreload()) return
     state.pdf = true
-    console.log("[PreloadPool] Warming PDF engine...")
+
     loader()
   },
 
   ai: (loader: () => Promise<any>) => {
     if (state.ai || !shouldPreload()) return
     state.ai = true
-    console.log("[PreloadPool] Warming AI engine...")
+
     loader()
   }
 }

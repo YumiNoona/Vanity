@@ -3,6 +3,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { Info, Copy, Languages, Binary, Code, Hash } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 interface CharInfo {
   char: string
@@ -16,6 +17,7 @@ interface CharInfo {
 export function UnicodeExplorer() {
   const [input, setInput] = useState("Vanity ✨")
   const [selectedChar, setSelectedChar] = useState<CharInfo | null>(null)
+  const { copy } = useCopyToClipboard()
 
   const analyze = (text: string) => {
     const chars = Array.from(text)
@@ -45,10 +47,7 @@ export function UnicodeExplorer() {
 
   const results = analyze(input)
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success(`Copied: ${text}`)
-  }
+
 
   return (
     <ToolLayout
@@ -115,7 +114,7 @@ export function UnicodeExplorer() {
                               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</span>
                            </div>
                            <button 
-                             onClick={() => copyToClipboard(item.value)}
+                             onClick={() => copy(item.value)}
                              className="text-xs font-mono text-white/90 hover:text-primary transition-colors flex items-center gap-2"
                            >
                              {item.value}

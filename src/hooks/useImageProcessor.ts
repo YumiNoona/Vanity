@@ -48,7 +48,6 @@ export const useImageProcessor = () => {
     updateProgress(0);
 
     try {
-      console.log(`[useImageProcessor] Starting job ${jobId} for file ${file.name}`);
       const loaded = await loadImage(file);
       await maybeYield();
       
@@ -59,13 +58,11 @@ export const useImageProcessor = () => {
 
       // Ignore stale result or if component unmounted
       if (jobId !== jobIdRef.current || unmountedRef.current) {
-        console.warn(`[useImageProcessor] Job ${jobId} became stale (Current: ${jobIdRef.current}, Unmounted: ${unmountedRef.current})`);
         loaded.cleanup();
         setIsProcessing(false);
         return null;
       }
 
-      console.log(`[useImageProcessor] Job ${jobId} loaded successfully (${loaded.width}x${loaded.height})`);
       const dimensions = guardDimensions(loaded.width, loaded.height);
 
       const cleanup = () => {
