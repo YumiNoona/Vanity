@@ -6,14 +6,24 @@ const STORAGE_KEY = "vanity_anthropic_key"
 export function useAnthropicKey() {
   const [key, setKey] = useState<string | null>(localStorage.getItem(STORAGE_KEY))
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setKey(localStorage.getItem(STORAGE_KEY))
+    }
+    window.addEventListener("vanity-ai-provider-changed", handleStorageChange)
+    return () => window.removeEventListener("vanity-ai-provider-changed", handleStorageChange)
+  }, [])
+
   const saveKey = (newKey: string) => {
     localStorage.setItem(STORAGE_KEY, newKey)
     setKey(newKey)
+    window.dispatchEvent(new Event("vanity-ai-provider-changed"))
   }
 
   const removeKey = () => {
     localStorage.removeItem(STORAGE_KEY)
     setKey(null)
+    window.dispatchEvent(new Event("vanity-ai-provider-changed"))
   }
 
   return { key, saveKey, removeKey }

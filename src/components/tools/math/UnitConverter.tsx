@@ -10,7 +10,7 @@ const CATEGORIES = [
   { id: "volume", icon: Box, label: "Volume", units: { l: 1, ml: 0.001, m3: 1000, gal: 3.78541, qt: 0.946353 } },
 ]
 
-export function UnitConverter() {
+export function UnitConverter({ embedded = false }: { embedded?: boolean } = {}) {
   const [cat, setCat] = useState(CATEGORIES[0])
   const [val1, setVal1] = useState("1")
   const [val2, setVal2] = useState("")
@@ -37,6 +37,7 @@ export function UnitConverter() {
       description="Convert between metric and imperial units for length, weight, area, and more."
       icon={ArrowLeftRight}
       centered={true}
+      hideHeader={embedded}
     >
       <div className="max-w-2xl mx-auto space-y-8">
         <div className="grid grid-cols-4 gap-2">

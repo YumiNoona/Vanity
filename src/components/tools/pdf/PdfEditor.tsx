@@ -17,6 +17,7 @@ import { useObjectUrls } from "@/hooks/useObjectUrl"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { downloadBlob } from "@/lib/canvas"
+import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
 interface TextAnnotation {
   id: string
@@ -367,21 +368,19 @@ export function PdfEditor() {
                   placeholder="Enter text..."
                   className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none"
                 />
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={penColor}
-                    onChange={(e) => setPenColor(e.target.value)}
-                    className="w-10 h-10 bg-transparent border-none cursor-pointer"
-                  />
-                  <input
-                    type="number"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(Number(e.target.value))}
-                    min={8}
-                    max={72}
-                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 text-sm outline-none"
-                  />
+                <div className="flex gap-2 items-end">
+                  <ColorPickerInput color={penColor} onChange={setPenColor} label="Color" className="flex-1" />
+                  <div className="flex-1 space-y-2">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground block">Size</label>
+                    <input
+                      type="number"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      min={8}
+                      max={72}
+                      className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm outline-none"
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={addTextAnnotation}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react"
-import zxcvbn from "zxcvbn"
+
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { KeyRound, RefreshCw, Copy, CheckCircle, ShieldAlert, ShieldCheck, Shield, List, Type, Fingerprint, Download, Lock, Unlock } from "lucide-react"
@@ -29,6 +29,9 @@ export function PasswordGenerator() {
   const [isBulk, setIsBulk] = useState(false)
   const [bulkCount, setBulkCount] = useState(10)
   
+  const [pwnedCount, setPwnedCount] = useState<number | null>(null)
+  const [checkingPwned, setCheckingPwned] = useState(false)
+  
   // Random Settings
   const [length, setLength] = useState(16)
   const [useUpper, setUseUpper] = useState(true)
@@ -50,9 +53,18 @@ export function PasswordGenerator() {
     toast.success("Batch downloaded")
   }
 
-  const zxcvbnResult = useMemo(() => {
-    if (!password) return null
-    return zxcvbn(password)
+  const [zxcvbnResult, setZxcvbnResult] = useState<any>(null)
+
+  useEffect(() => {
+    if (!password) {
+      setZxcvbnResult(null)
+      return
+    }
+    let isCurrent = true
+    import("zxcvbn").then(({ default: zxcvbn }) => {
+      if (isCurrent) setZxcvbnResult(zxcvbn(password))
+    })
+    return () => { isCurrent = false }
   }, [password])
 
   const strength = zxcvbnResult?.score ?? 0
@@ -111,6 +123,46 @@ export function PasswordGenerator() {
   useEffect(() => {
     generate()
   }, [mode, length, useUpper, useLower, useNums, useSyms, wordCount, separator, capitalize, isBulk, bulkCount])
+
+  useEffect(() => {
+    setPwnedCount(null)
+  }, [password])
+
+  const checkPwned = async () => {
+    if (!password) return
+    setCheckingPwned(true)
+    setPwnedCount(null)
+    
+    try {
+      const encoder = new TextEncoder()
+      const data = encoder.encode(password)
+      const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
+      
+      const prefix = hashHex.substring(0, 5)
+      const suffix = hashHex.substring(5)
+      
+      const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`)
+      if (!res.ok) throw new Error("Failed to fetch")
+      const text = await res.text()
+      
+      const lines = text.split('\n')
+      let foundCount = 0
+      for (const line of lines) {
+        const [hashSuffix, count] = line.split(':')
+        if (hashSuffix.trim() === suffix) {
+          foundCount = parseInt(count.trim(), 10)
+          break
+        }
+      }
+      setPwnedCount(foundCount)
+    } catch (e) {
+      toast.error("Failed to check HaveIBeenPwned API")
+    } finally {
+      setCheckingPwned(false)
+    }
+  }
 
   return (
     <ToolLayout
@@ -245,6 +297,23 @@ export function PasswordGenerator() {
                       Est. Crack Time: <span className="text-white font-bold">{timeToCrack}</span>
                     </p>
                   )}
+               </div>
+
+               {/* Pwned Check */}
+               <div className="pt-2 flex items-center justify-between border-t border-white/5">
+                 <button 
+                   onClick={checkPwned} 
+                   disabled={checkingPwned}
+                   className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-muted-foreground hover:text-white"
+                 >
+                   {checkingPwned ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                   Check HaveIBeenPwned
+                 </button>
+                 {pwnedCount !== null && (
+                   <span className={cn("text-xs font-bold px-3 py-1.5 rounded-lg", pwnedCount > 0 ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400")}>
+                     {pwnedCount > 0 ? `Pwned ${pwnedCount.toLocaleString()} times!` : "Safe! 0 matches found."}
+                   </span>
+                 )}
                </div>
 
               {isBulk && (

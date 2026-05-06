@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, ShieldAlert, Square, Circle, Info } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
@@ -8,7 +8,37 @@ import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
 
-export function SmartCensor() {
+const censorArea = (ctx: CanvasRenderingContext2D, r: {x: number, y: number, w: number, h: number}) => {
+  if (r.w === 0 || r.h === 0) return
+  
+  const pixelSize = 12
+  const x = Math.min(r.x, r.x + r.w)
+  const y = Math.min(r.y, r.y + r.h)
+  const w = Math.abs(r.w)
+  const h = Math.abs(r.h)
+
+  // Optimization: Get image data for the WHOLE rectangle at once
+  try {
+    const imageData = ctx.getImageData(x, y, w, h)
+    const data = imageData.data
+
+    for (let py = 0; py < h; py += pixelSize) {
+      for (let px = 0; px < w; px += pixelSize) {
+        const i = (py * w + px) * 4
+        const r_val = data[i]
+        const g_val = data[i + 1]
+        const b_val = data[i + 2]
+        
+        ctx.fillStyle = `rgb(${r_val}, ${g_val}, ${b_val})`
+        ctx.fillRect(x + px, y + py, pixelSize, pixelSize)
+      }
+    }
+  } catch (e) {
+    // Handle edge cases where rect is outside canvas
+  }
+}
+
+export function SmartCensor({ embedded = false }: { embedded?: boolean } = {}) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, processImage, clearCurrent } = useImageProcessor()
@@ -34,13 +64,7 @@ export function SmartCensor() {
     await drawToCanvas(result.source, canvas, { clear: true })
   }
 
-  useEffect(() => {
-    if (sourceImage) {
-      draw()
-    }
-  }, [sourceImage, rects, currentRect])
-
-  const draw = async () => {
+  const draw = useCallback(async () => {
     const canvas = canvasRef.current
     if (!canvas || !sourceImage) return
     
@@ -49,37 +73,14 @@ export function SmartCensor() {
     // Draw censored rects
     rects.forEach(r => censorArea(ctx, r))
     if (currentRect) censorArea(ctx, currentRect)
-  }
+  }, [sourceImage, rects, currentRect])
 
-  const censorArea = (ctx: CanvasRenderingContext2D, r: {x: number, y: number, w: number, h: number}) => {
-    if (r.w === 0 || r.h === 0) return
-    
-    const pixelSize = 12
-    const x = Math.min(r.x, r.x + r.w)
-    const y = Math.min(r.y, r.y + r.h)
-    const w = Math.abs(r.w)
-    const h = Math.abs(r.h)
-
-    // Optimization: Get image data for the WHOLE rectangle at once
-    try {
-      const imageData = ctx.getImageData(x, y, w, h)
-      const data = imageData.data
-
-      for (let py = 0; py < h; py += pixelSize) {
-        for (let px = 0; px < w; px += pixelSize) {
-          const i = (py * w + px) * 4
-          const r = data[i]
-          const g = data[i + 1]
-          const b = data[i + 2]
-          
-          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
-          ctx.fillRect(x + px, y + py, pixelSize, pixelSize)
-        }
-      }
-    } catch (e) {
-      // Handle edge cases where rect is outside canvas
+  useEffect(() => {
+    if (sourceImage) {
+      draw()
     }
-  }
+  }, [sourceImage, rects, currentRect, draw])
+
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const canvas = canvasRef.current
@@ -144,14 +145,14 @@ export function SmartCensor() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Smart Censor" description="Protect privacy by pixelating sensitive areas in your photos." icon={ShieldAlert}>
+      <ToolUploadLayout title="Smart Censor" description="Protect privacy by pixelating sensitive areas in your photos." icon={ShieldAlert} hideHeader={embedded}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} centered={true} maxWidth="max-w-7xl">
+    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} centered={true} maxWidth="max-w-7xl" hideHeader={embedded}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         <div className="lg:col-span-9">
           <div className="glass-panel p-2 rounded-2xl flex items-center justify-center bg-black/40 shadow-inner overflow-hidden relative group border border-white/5">

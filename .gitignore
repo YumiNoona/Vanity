@@ -42,8 +42,11 @@ server/uploads/*
 
 # --- API Functions (Vercel) ---
 api/*.js
-api/*.tsbuildinfo
-
+# --- Build Artifacts ---
+.vite/
+.output/
+.vercel/
+*.tsbuildinfo
 
 # --- AI & Assistant Artifacts ---
 .gemini/
@@ -54,8 +57,3 @@ implementation_plan*.md
 task.md
 walkthrough.md
 migration_progress.md
-
-# --- Lockfiles & Misc ---
-yarn.lock
-pnpm-lock.yaml
-package-lock.json

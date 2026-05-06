@@ -13,19 +13,31 @@ interface Column {
   type: DataType
 }
 
-const GENERATORS: Record<DataType, () => any> = {
+type Locale = "us" | "in"
+
+const GENERATORS: Record<DataType, (locale: Locale) => any> = {
   id: () => Math.floor(Math.random() * 100000),
-  name: () => {
+  name: (locale) => {
+    if (locale === "in") {
+      const first = ["Aarav", "Vihaan", "Aditya", "Sai", "Arjun", "Diya", "Isha", "Riya", "Ananya", "Aarohi"]
+      const last = ["Sharma", "Patel", "Singh", "Kumar", "Gupta", "Das", "Jain", "Mehta", "Bose", "Verma"]
+      return `${first[Math.floor(Math.random() * first.length)]} ${last[Math.floor(Math.random() * last.length)]}`
+    }
     const first = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth"]
     const last = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"]
     return `${first[Math.floor(Math.random() * first.length)]} ${last[Math.floor(Math.random() * last.length)]}`
   },
   email: () => {
-    const names = ["john", "jane", "alex", "smith", "doe", "user", "admin", "dev"]
+    const names = ["john", "jane", "alex", "smith", "doe", "user", "admin", "dev", "raj", "priya"]
     const domains = ["gmail.com", "yahoo.com", "outlook.com", "example.com", "test.io"]
     return `${names[Math.floor(Math.random() * names.length)]}.${Math.floor(Math.random() * 999)}@${domains[Math.floor(Math.random() * domains.length)]}`
   },
-  address: () => {
+  address: (locale) => {
+    if (locale === "in") {
+      const streets = ["MG Road", "Link Road", "Station Road", "Ring Road", "Main Bazar"]
+      const cities = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Pune", "Jaipur", "Surat"]
+      return `${Math.floor(Math.random() * 999)} ${streets[Math.floor(Math.random() * streets.length)]}, ${cities[Math.floor(Math.random() * cities.length)]}`
+    }
     const streets = ["Main St", "Oak Ave", "Washington Blvd", "Lakeview Dr", "Sunset Strip"]
     const cities = ["Springfield", "Riverside", "Georgetown", "Franklin", "Clinton"]
     return `${Math.floor(Math.random() * 9999)} ${streets[Math.floor(Math.random() * streets.length)]}, ${cities[Math.floor(Math.random() * cities.length)]}`
@@ -33,8 +45,18 @@ const GENERATORS: Record<DataType, () => any> = {
   ip: () => `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
   date: () => new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString().split("T")[0],
   uuid: () => crypto.randomUUID(),
-  phone: () => `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-  company: () => {
+  phone: (locale) => {
+    if (locale === "in") {
+      return `+91 ${Math.floor(Math.random() * 40000 + 60000)}${Math.floor(Math.random() * 90000 + 10000)}`
+    }
+    return `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`
+  },
+  company: (locale) => {
+    if (locale === "in") {
+      const names = ["Reliance", "Tata", "Infosys", "Wipro", "Mahindra", "Aditya Birla", "Godrej"]
+      const suffixes = ["Industries", "Consulting", "Technologies", "Group", "Enterprises"]
+      return `${names[Math.floor(Math.random() * names.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`
+    }
     const names = ["Tech", "Global", "Next", "Quantum", "Apex", "Nova", "Starlight"]
     const suffixes = ["Solutions", "Corp", "Inc", "Partners", "Systems", "Group"]
     return `${names[Math.floor(Math.random() * names.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`
@@ -44,6 +66,7 @@ const GENERATORS: Record<DataType, () => any> = {
 }
 
 export function FakeData() {
+  const [locale, setLocale] = useState<Locale>("us")
   const [tableName, setTableName] = useState("users")
   const [columns, setColumns] = useState<Column[]>([
     { id: "1", name: "id", type: "id" },
@@ -81,7 +104,7 @@ export function FakeData() {
     const data = Array.from({ length: rowCount }).map(() => {
       const row: any = {}
       columns.forEach(col => {
-        row[col.name] = GENERATORS[col.type]()
+        row[col.name] = GENERATORS[col.type](locale)
       })
       return row
     })
@@ -179,6 +202,18 @@ export function FakeData() {
                <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase text-muted-foreground">Table Name (for SQL)</label>
                   <input value={tableName} onChange={e => setTableName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-mono outline-none focus:border-primary/50" />
+               </div>
+
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground">Locale Context</label>
+                  <select 
+                    value={locale} 
+                    onChange={e => setLocale(e.target.value as Locale)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none focus:border-primary/50"
+                  >
+                    <option value="us" className="bg-zinc-900">United States (US)</option>
+                    <option value="in" className="bg-zinc-900">India (IN)</option>
+                  </select>
                </div>
 
                <button onClick={generateData} className="w-full py-4 bg-primary text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">

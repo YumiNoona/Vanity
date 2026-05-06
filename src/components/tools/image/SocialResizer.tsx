@@ -6,7 +6,7 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { guardDimensions } from "@/lib/canvas/guards"
-import * as fabric from "fabric"
+
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 const PRESETS = [
@@ -35,8 +35,8 @@ export function SocialResizer() {
   const [lockAspect, setLockAspect] = useState(true)
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fabricCanvas = useRef<fabric.Canvas | null>(null)
-  const fabricImgRef = useRef<fabric.FabricImage | null>(null)
+  const fabricCanvas = useRef<any>(null)
+  const fabricImgRef = useRef<any>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -49,35 +49,40 @@ export function SocialResizer() {
     if (!file || !imgPreviewUrl || !canvasRef.current) return
 
     let isMounted = true
-    const img = new Image()
-    img.onload = () => {
+    const initFabric = async () => {
+      const fabric = await import("fabric")
       if (!isMounted) return
-      if (fabricCanvas.current) fabricCanvas.current.dispose()
       
-      const canvas = new fabric.Canvas(canvasRef.current!, {
-        width: 600,
-        height: 600,
-        backgroundColor: "#000"
-      })
-      fabricCanvas.current = canvas
+      const img = new Image()
+      img.onload = () => {
+        if (!isMounted) return
+        if (fabricCanvas.current) fabricCanvas.current.dispose()
+        
+        const canvas = new fabric.Canvas(canvasRef.current!, {
+          width: 600,
+          height: 600,
+          backgroundColor: "#000"
+        })
+        fabricCanvas.current = canvas
 
-      if (!img.width) return
-      const { width, height } = guardDimensions(img.width, img.height)
-      const fabricImg = new fabric.FabricImage(img)
-      fabricImgRef.current = fabricImg
-      
-      // Fit image initially
-      const scale = Math.min(canvas.width / width, canvas.height / height)
-      fabricImg.scale(scale)
-      
-      canvas.add(fabricImg)
-      canvas.centerObject(fabricImg)
-      canvas.renderAll()
-      
-      // Ensure preset matches
-      handlePresetChange(activePreset)
+        if (!img.width) return
+        const { width, height } = guardDimensions(img.width, img.height)
+        const fabricImg = new fabric.Image(img)
+        fabricImgRef.current = fabricImg
+        
+        const scale = Math.min(canvas.width / width, canvas.height / height)
+        fabricImg.scale(scale)
+        
+        canvas.add(fabricImg)
+        canvas.centerObject(fabricImg)
+        canvas.renderAll()
+        
+        handlePresetChange(activePreset)
+      }
+      img.src = imgPreviewUrl
     }
-    img.src = imgPreviewUrl
+
+    initFabric()
 
     return () => {
         isMounted = false

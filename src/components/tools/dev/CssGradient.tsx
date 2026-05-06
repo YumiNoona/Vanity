@@ -4,8 +4,9 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
-export function CssGradient() {
+export function CssGradient({ embedded = false }: { embedded?: boolean } = {}) {
   const [color1, setColor1] = useState("#4f46e5")
   const [color2, setColor2] = useState("#ec4899")
   const [angle, setAngle] = useState(135)
@@ -32,6 +33,7 @@ export function CssGradient() {
       icon={Zap} 
       maxWidth="max-w-6xl"
       centered={true}
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Preview & Controls */}
@@ -56,45 +58,10 @@ export function CssGradient() {
 
           <div className="glass-panel p-8 rounded-2xl space-y-8">
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                   <div className="flex justify-between">
-                       <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Start Color</label>
-                       <span className="text-[10px] font-mono text-white/40">{color1.toUpperCase()}</span>
-                   </div>
-                   <div className="flex items-center gap-4">
-                      <input 
-                        type="color" 
-                        value={color1}
-                        onChange={(e) => setColor1(e.target.value)}
-                        className="w-16 h-16 bg-transparent cursor-pointer rounded-xl overflow-hidden"
-                      />
-                      <input 
-                        type="text" 
-                        value={color1}
-                        onChange={(e) => setColor1(e.target.value)}
-                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30 text-white/90"
-                      />
-                   </div>
+                    <ColorPickerInput color={color1} onChange={setColor1} label="Start Color" className="w-full" />
                 </div>
                 <div className="space-y-4">
-                   <div className="flex justify-between">
-                       <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End Color</label>
-                       <span className="text-[10px] font-mono text-white/40">{color2.toUpperCase()}</span>
-                   </div>
-                   <div className="flex items-center gap-4">
-                      <input 
-                        type="color" 
-                        value={color2}
-                        onChange={(e) => setColor2(e.target.value)}
-                        className="w-16 h-16 bg-transparent cursor-pointer rounded-xl overflow-hidden"
-                      />
-                      <input 
-                        type="text" 
-                        value={color2}
-                        onChange={(e) => setColor2(e.target.value)}
-                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 font-mono text-sm outline-none focus:border-pink-500/30 text-white/90"
-                      />
-                   </div>
+                    <ColorPickerInput color={color2} onChange={setColor2} label="End Color" className="w-full" />
                 </div>
              </div>
 

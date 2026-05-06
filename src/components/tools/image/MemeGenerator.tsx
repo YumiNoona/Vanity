@@ -4,7 +4,7 @@ import { Download, Loader2, Sparkles, Type, Plus, MessageSquare } from "lucide-r
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
-import * as fabric from "fabric"
+
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
 import { guardDimensions } from "@/lib/utils"
 
@@ -13,7 +13,7 @@ export function MemeGenerator() {
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fabricCanvas = useRef<fabric.Canvas | null>(null)
+  const fabricCanvas = useRef<any>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const unmountedRef = useRef(false)
   const jobIdRef = useRef(0)
@@ -87,38 +87,44 @@ export function MemeGenerator() {
 
   useEffect(() => {
     if (sourceData && canvasRef.current) {
-      const canvas = new fabric.Canvas(canvasRef.current, {
-        width: 600,
-        height: 600,
-        backgroundColor: "#000"
-      })
-      fabricCanvas.current = canvas
+      const initFabric = async () => {
+        const fabric = await import("fabric")
+        if (unmountedRef.current) return
 
-      canvas.on("selection:created", () => setHasSelection(true))
-      canvas.on("selection:updated", () => setHasSelection(true))
-      canvas.on("selection:cleared", () => setHasSelection(false))
+        const canvas = new fabric.Canvas(canvasRef.current!, {
+          width: 600,
+          height: 600,
+          backgroundColor: "#000"
+        })
+        fabricCanvas.current = canvas
 
-      const fbMedia = new fabric.FabricImage(sourceData.source)
-      const scale = Math.min(600 / sourceData.width, 600 / sourceData.height)
-      fbMedia.scale(scale)
-      fbMedia.set({ selectable: false, evented: false })
-      canvas.add(fbMedia)
-      canvas.centerObject(fbMedia)
-      canvas.requestRenderAll()
-      
-      if (sourceData.type === 'video' && videoRef.current) {
-         videoRef.current.play()
-         const renderLoop = () => {
-            if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
-               fabricCanvas.current.requestRenderAll()
-               fabric.util.requestAnimFrame(renderLoop)
-            }
-         }
-         fabric.util.requestAnimFrame(renderLoop)
+        canvas.on("selection:created", () => setHasSelection(true))
+        canvas.on("selection:updated", () => setHasSelection(true))
+        canvas.on("selection:cleared", () => setHasSelection(false))
+
+        const fbMedia = new fabric.Image(sourceData.source)
+        const scale = Math.min(600 / sourceData.width, 600 / sourceData.height)
+        fbMedia.scale(scale)
+        fbMedia.set({ selectable: false, evented: false })
+        canvas.add(fbMedia)
+        canvas.centerObject(fbMedia)
+        canvas.requestRenderAll()
+        
+        if (sourceData.type === 'video' && videoRef.current) {
+           videoRef.current.play()
+           const renderLoop = () => {
+              if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
+                 fabricCanvas.current.requestRenderAll()
+                 fabric.util.requestAnimFrame(renderLoop)
+              }
+           }
+           fabric.util.requestAnimFrame(renderLoop)
+        }
+        
+        await addMemeText("TOP TEXT", "top")
+        await addMemeText("BOTTOM TEXT", "bottom")
       }
-      
-      addMemeText("TOP TEXT", "top")
-      addMemeText("BOTTOM TEXT", "bottom")
+      initFabric()
     }
 
     return () => {
@@ -133,8 +139,9 @@ export function MemeGenerator() {
     }
   }, [sourceData])
 
-  const addMemeText = (content: string, pos: 'top' | 'bottom' | 'free' = 'free') => {
+  const addMemeText = async (content: string, pos: 'top' | 'bottom' | 'free' = 'free') => {
     if (!fabricCanvas.current) return
+    const fabric = await import("fabric")
     const text = new fabric.IText(content, {
       left: 300,
       top: pos === 'top' ? 50 : pos === 'bottom' ? 500 : 300,
@@ -168,6 +175,7 @@ export function MemeGenerator() {
   const handleDownload = async () => {
     if (!fabricCanvas.current || !sourceData) return
     setIsProcessing(true)
+    const fabric = await import("fabric")
     
     try {
       if (sourceData.type === 'video' && videoRef.current) {

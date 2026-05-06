@@ -1,12 +1,6 @@
 import { toast } from "sonner"
 
 export function usePremium() {
-  const isPremium = true
-
-  const upgrade = () => {
-    // No-op as everyone is already premium
-  }
-
   const limits = {
     maxFiles: 100,
     maxSizeMB: 500,
@@ -25,5 +19,5 @@ export function usePremium() {
     return true
   }
 
-  return { isPremium, upgrade, limits, validateFiles }
+  return { limits, validateFiles }
 }

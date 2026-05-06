@@ -17,6 +17,111 @@ const COMMON_PATTERNS = [
   { label: "HTML Tag", value: "<([a-z1-6]+)([^>]*)>(.*?)<\\/\\1>", flags: "gms", desc: "Matches balanced HTML tags" },
 ]
 
+const explainRegex = (pattern: string) => {
+  if (!pattern) return [];
+  const tokens = [];
+  let i = 0;
+  while (i < pattern.length) {
+    let char = pattern[i];
+    
+    if (char === '\\') {
+      const next = pattern[i + 1];
+      if (next === 'd') tokens.push({ token: '\\d', desc: 'Any digit (0-9)' });
+      else if (next === 'D') tokens.push({ token: '\\D', desc: 'Any non-digit' });
+      else if (next === 'w') tokens.push({ token: '\\w', desc: 'Any word character' });
+      else if (next === 'W') tokens.push({ token: '\\W', desc: 'Any non-word character' });
+      else if (next === 's') tokens.push({ token: '\\s', desc: 'Any whitespace' });
+      else if (next === 'S') tokens.push({ token: '\\S', desc: 'Any non-whitespace' });
+      else if (next === 'b') tokens.push({ token: '\\b', desc: 'Word boundary' });
+      else if (next === 'B') tokens.push({ token: '\\B', desc: 'Non-word boundary' });
+      else tokens.push({ token: `\\${next}`, desc: `Escaped character '${next}'` });
+      i += 2;
+      continue;
+    }
+    
+    if (char === '^') { tokens.push({ token: '^', desc: 'Start of line/string' }); i++; continue; }
+    if (char === '$') { tokens.push({ token: '$', desc: 'End of line/string' }); i++; continue; }
+    if (char === '.') { tokens.push({ token: '.', desc: 'Any character (except newline)' }); i++; continue; }
+    if (char === '*') { tokens.push({ token: '*', desc: '0 or more times' }); i++; continue; }
+    if (char === '+') { tokens.push({ token: '+', desc: '1 or more times' }); i++; continue; }
+    if (char === '?') { tokens.push({ token: '?', desc: '0 or 1 time (optional/lazy)' }); i++; continue; }
+    if (char === '|') { tokens.push({ token: '|', desc: 'Alternation (OR)' }); i++; continue; }
+    
+    if (char === '(') {
+      if (pattern.slice(i, i + 3) === '(?:') {
+        tokens.push({ token: '(?:', desc: 'Start of non-capturing group' });
+        i += 3;
+      } else if (pattern.slice(i, i + 4) === '(?=') {
+        tokens.push({ token: '(?=', desc: 'Positive lookahead' });
+        i += 4;
+      } else if (pattern.slice(i, i + 4) === '(?!') {
+        tokens.push({ token: '(?!', desc: 'Negative lookahead' });
+        i += 4;
+      } else {
+        tokens.push({ token: '(', desc: 'Start of capturing group' });
+        i++;
+      }
+      continue;
+    }
+    if (char === ')') { tokens.push({ token: ')', desc: 'End of group' }); i++; continue; }
+    
+    if (char === '[') {
+      let j = i + 1;
+      let inClass = '[';
+      while (j < pattern.length && pattern[j] !== ']') {
+        inClass += pattern[j];
+        if (pattern[j] === '\\') {
+          j++;
+          if (j < pattern.length) inClass += pattern[j];
+        }
+        j++;
+      }
+      if (j < pattern.length) inClass += ']';
+      
+      const isNegated = inClass.startsWith('[^');
+      tokens.push({ token: inClass, desc: `${isNegated ? 'Negated c' : 'C'}haracter class matching any ${isNegated ? 'NOT ' : ''}in list` });
+      i = j + 1;
+      continue;
+    }
+    
+    if (char === '{') {
+      let j = i + 1;
+      let inQuant = '{';
+      while (j < pattern.length && pattern[j] !== '}') {
+        inQuant += pattern[j];
+        j++;
+      }
+      if (j < pattern.length && /^\{\d+(,\d*)?\}$/.test(inQuant + '}')) {
+        inQuant += '}';
+        tokens.push({ token: inQuant, desc: `Quantifier: ${inQuant}` });
+        i = j + 1;
+        continue;
+      }
+    }
+    
+    tokens.push({ token: char, desc: `Literal '${char}'` });
+    i++;
+  }
+  
+  const merged = [];
+  let currLiteral = '';
+  for (const t of tokens) {
+    if (t.desc.startsWith("Literal '")) {
+      currLiteral += t.token;
+    } else {
+      if (currLiteral) {
+        merged.push({ token: currLiteral, desc: `Literal string "${currLiteral}"` });
+        currLiteral = '';
+      }
+      merged.push(t);
+    }
+  }
+  if (currLiteral) {
+    merged.push({ token: currLiteral, desc: `Literal string "${currLiteral}"` });
+  }
+  return merged;
+}
+
 export function RegexTester() {
   const [mode, setMode] = useState<ToolMode>("test")
   const [pattern, setPattern] = useState("([a-zA-Z0-9._-]+)@([a-zA-Z0-9._-]+)\\.([a-zA-Z0-9_-]+)")
@@ -71,6 +176,8 @@ export function RegexTester() {
       return { matches: [], error: e.message, highlightedText: [{ text: testString, isMatch: false }], replacedText: testString }
     }
   }, [pattern, flags, testString, replacement])
+
+  const explanation = useMemo(() => explainRegex(pattern), [pattern])
 
   const applyPattern = (p: typeof COMMON_PATTERNS[0]) => {
     setPattern(p.value)
@@ -210,6 +317,27 @@ export function RegexTester() {
                    </button>
                  </div>
                </div>
+            </div>
+
+            {/* Explanation Panel */}
+            <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-sky-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Explain this Regex</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {explanation.map((item, idx) => (
+                  <div key={idx} className="flex gap-3 p-3 bg-white/5 rounded-xl border border-white/5 items-center">
+                    <span className="font-mono text-primary font-bold text-sm min-w-[20px]">{item.token}</span>
+                    <span className="text-xs text-muted-foreground break-words flex-1">{item.desc}</span>
+                  </div>
+                ))}
+                {explanation.length === 0 && (
+                  <div className="col-span-1 sm:col-span-2 text-xs text-muted-foreground italic">
+                    Type a regex pattern to see its explanation.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

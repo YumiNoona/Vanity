@@ -3,23 +3,9 @@ import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { DropZone } from "@/components/shared/DropZone"
 import { Layout, Download, Grid, Layers, Trash2, Plus, Move, Image as ImageIcon, MousePointer2, Type, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown } from "lucide-react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import * as fabric from "fabric"
 import { downloadBlob, exportCanvas } from "@/lib/canvas"
+import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
-// Setup custom fabric UI for interactive mode
-fabric.Object.prototype.set({
-  transparentCorners: false,
-  cornerColor: '#f97316',
-  cornerStrokeColor: '#ffffff',
-  borderColor: '#f97316',
-  cornerSize: 10,
-  padding: 0,
-  cornerStyle: 'circle',
-  borderDashArray: [0, 0],
-  borderScaleFactor: 2.5,
-  hasRotatingPoint: true
-})
 
 interface CollageImage {
   id: string
@@ -36,44 +22,62 @@ export function CollageMaker() {
   const [bgColor, setBgColor] = useState("#000000")
   const [hasSelection, setHasSelection] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fabricCanvas = useRef<fabric.Canvas | null>(null)
+  const fabricCanvas = useRef<any>(null)
 
   // Initialize Canvas
   useEffect(() => {
-    if (canvasRef.current && !fabricCanvas.current) {
-      fabricCanvas.current = new fabric.Canvas(canvasRef.current, {
-        width: 1000,
-        height: 1000,
-        backgroundColor: bgColor,
-        preserveObjectStacking: true
+    const initFabric = async () => {
+      const fabric = await import("fabric")
+      fabric.Object.prototype.set({
+        transparentCorners: false,
+        cornerColor: '#f97316',
+        cornerStrokeColor: '#ffffff',
+        borderColor: '#f97316',
+        cornerSize: 10,
+        padding: 0,
+        cornerStyle: 'circle',
+        borderDashArray: [0, 0],
+        borderScaleFactor: 2.5,
+        hasRotatingPoint: true
       })
-      
-      const setResponsive = () => {
-        if (!fabricCanvas.current) return
-        const wrapper = fabricCanvas.current.getElement().parentElement
-        if (wrapper) {
-          wrapper.style.width = '100%'
-          wrapper.style.height = 'auto'
-          wrapper.style.aspectRatio = '1 / 1'
-        }
-        const lower = fabricCanvas.current.getElement()
-        lower.style.width = '100%'
-        lower.style.height = '100%'
-        const upper = fabricCanvas.current.upperCanvasEl
-        if (upper) {
-          upper.style.width = '100%'
-          upper.style.height = '100%'
-        }
-      }
-      setResponsive()
 
-      const onSelect = () => setHasSelection(true)
-      const onDeselect = () => setHasSelection(false)
-      
-      fabricCanvas.current.on('selection:created', onSelect)
-      fabricCanvas.current.on('selection:updated', onSelect)
-      fabricCanvas.current.on('selection:cleared', onDeselect)
+      if (canvasRef.current && !fabricCanvas.current) {
+        fabricCanvas.current = new fabric.Canvas(canvasRef.current, {
+          width: 1000,
+          height: 1000,
+          backgroundColor: bgColor,
+          preserveObjectStacking: true
+        })
+        
+        const setResponsive = () => {
+          if (!fabricCanvas.current) return
+          const wrapper = fabricCanvas.current.getElement().parentElement
+          if (wrapper) {
+            wrapper.style.width = '100%'
+            wrapper.style.height = 'auto'
+            wrapper.style.aspectRatio = '1 / 1'
+          }
+          const lower = fabricCanvas.current.getElement()
+          lower.style.width = '100%'
+          lower.style.height = '100%'
+          const upper = fabricCanvas.current.upperCanvasEl
+          if (upper) {
+            upper.style.width = '100%'
+            upper.style.height = '100%'
+          }
+        }
+        setResponsive()
+
+        const onSelect = () => setHasSelection(true)
+        const onDeselect = () => setHasSelection(false)
+        
+        fabricCanvas.current.on('selection:created', onSelect)
+        fabricCanvas.current.on('selection:updated', onSelect)
+        fabricCanvas.current.on('selection:cleared', onDeselect)
+      }
     }
+    initFabric()
+
     return () => {
       if (fabricCanvas.current) {
         fabricCanvas.current.off('selection:created')
@@ -104,6 +108,7 @@ export function CollageMaker() {
 
     setTimeout(async () => {
       if (!fabricCanvas.current) return
+      const fabric = await import("fabric")
       
       for (const img of newImages) {
         try {
@@ -114,7 +119,7 @@ export function CollageMaker() {
             htmlImg.onerror = reject
           })
 
-          const fbImg = new fabric.FabricImage(htmlImg, {
+          const fbImg = new fabric.Image(htmlImg, {
             customId: img.id
           } as any)
 
@@ -144,7 +149,7 @@ export function CollageMaker() {
     if (!fabricCanvas.current) return
     
     const allObjects = fabricCanvas.current.getObjects()
-    const imgs = allObjects.filter(obj => obj.type === 'image') as fabric.FabricImage[]
+    const imgs = allObjects.filter(obj => obj.type === 'image') as any[]
     
     // Non-image objects (text, stickers) are always free and on top
     allObjects.filter(obj => obj.type !== 'image').forEach(obj => {
@@ -164,7 +169,7 @@ export function CollageMaker() {
     const size = 1000
     const g = gap
     
-    const positionImage = (img: fabric.FabricImage, x: number, y: number, w: number, h: number) => {
+    const positionImage = (img: any, x: number, y: number, w: number, h: number) => {
       img.set({
         scaleX: 1, scaleY: 1, angle: 0, cropX: 0, cropY: 0, width: img.getOriginalSize().width, height: img.getOriginalSize().height
       })
@@ -267,8 +272,9 @@ export function CollageMaker() {
     setImages([])
   }
 
-  const addTextSticker = (textString = "Your Text Here") => {
+  const addTextSticker = async (textString = "Your Text Here") => {
     if (!fabricCanvas.current) return
+    const fabric = await import("fabric")
     const text = new fabric.IText(textString, {
       left: 500,
       top: 500,
@@ -298,7 +304,7 @@ export function CollageMaker() {
     if (!fabricCanvas.current) return
     const activeObjects = fabricCanvas.current.getActiveObjects()
     if (activeObjects.length > 0) {
-      const isTextEditing = activeObjects.some(obj => obj.type === 'i-text' && (obj as fabric.IText).isEditing)
+      const isTextEditing = activeObjects.some(obj => obj.type === 'i-text' && (obj as any).isEditing)
       if (isTextEditing) return
 
       activeObjects.forEach(obj => {
@@ -504,21 +510,7 @@ export function CollageMaker() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Background</label>
-              <div className="flex gap-2">
-                <input 
-                  type="color" value={bgColor} 
-                  onChange={e => setBgColor(e.target.value)}
-                  className="w-10 h-9 bg-transparent border-none cursor-pointer rounded"
-                />
-                <input 
-                  type="text" value={bgColor} 
-                  onChange={e => setBgColor(e.target.value)}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono uppercase focus:border-primary/50 outline-none"
-                />
-              </div>
-            </div>
+            <ColorPickerInput color={bgColor} onChange={setBgColor} label="Background Color" />
 
             <button
               onClick={handleDownload}

@@ -3,7 +3,7 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, Eye, EyeOff, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
-import { downloadBlob } from "@/lib/canvas"
+import { loadImage, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
 type Simulation = "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia" | "original"
@@ -62,26 +62,21 @@ export function ColorBlindness() {
       return
     }
 
-    if (!imgRef.current || !canvasRef.current || !imgUrl) return
+    if (!imgRef.current || !imgUrl) return
     setIsProcessing(true)
-
-    // Ensure image is fully loaded before trying to read its pixels
-    const img = imgRef.current
-    if (!img.complete || img.naturalWidth === 0) {
-      await new Promise((resolve) => {
-        img.onload = resolve
-        img.onerror = resolve
-      })
-    }
 
     if (!isMountedRef.current || runId !== runIdRef.current) return
 
-    processingTimeoutRef.current = window.setTimeout(() => {
+    processingTimeoutRef.current = window.setTimeout(async () => {
       try {
         if (!isMountedRef.current || runId !== runIdRef.current) return
         
-        const canvas = canvasRef.current!
+        const result = await loadImage(file)
+        const img = result.source
+        
+        const canvas = document.createElement("canvas")
         if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+          result.cleanup()
           throw new Error("Invalid image dimensions")
         }
 
@@ -89,7 +84,10 @@ export function ColorBlindness() {
         canvas.height = img.naturalHeight
         
         const ctx = canvas.getContext("2d", { willReadFrequently: true })
-        if (!ctx) throw new Error("Failed to get 2d context")
+        if (!ctx) {
+          result.cleanup()
+          throw new Error("Failed to get 2d context")
+        }
 
         ctx.drawImage(img, 0, 0)
         
@@ -109,12 +107,13 @@ export function ColorBlindness() {
         }
 
         ctx.putImageData(imageData, 0, 0)
-        canvas.toBlob((blob) => {
-          if (!isMountedRef.current || runId !== runIdRef.current) return
-          if (blob) setOutputUrl(blob)
-          setIsProcessing(false)
-        }, "image/png")
+        const blob = await exportCanvas(canvas, "image/png", 1.0)
         
+        if (isMountedRef.current && runId === runIdRef.current) {
+          setOutputUrl(blob)
+          setIsProcessing(false)
+        }
+        result.cleanup()
       } catch (err) {
         console.error(err)
         if (isMountedRef.current && runId === runIdRef.current) {
@@ -158,7 +157,6 @@ export function ColorBlindness() {
     >
       {/* Hidden processing resources */}
       <img ref={imgRef} src={imgUrl} className="hidden" alt="Original" />
-      <canvas ref={canvasRef} className="hidden" />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
          <div className="lg:col-span-3">

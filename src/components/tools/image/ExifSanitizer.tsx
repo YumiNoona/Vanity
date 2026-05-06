@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, ShieldCheck, Info, FileArchive, RefreshCw } from "lucide-react"
@@ -35,6 +35,16 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
   // State
   const [processMode, setProcessMode] = useState<'view' | 'remove'>('view')
   const [exifReport, setExifReport] = useState<ExifReport | null>(null)
+  
+  const workerRef = useRef<Worker | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate()
+      }
+    }
+  }, [])
 
   const runSanitize = useCallback(async (inputFile: File): Promise<Blob> => {
     const result = await processImage(inputFile)
@@ -70,6 +80,7 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
         // Offload heavy binary parsing to worker
         const groups = await new Promise<ExifReport>((resolve, reject) => {
           const worker = new Worker(new URL("@/workers/exifr.worker.ts", import.meta.url), { type: 'module' });
+          workerRef.current = worker;
           
           worker.onmessage = (e) => {
             if (e.data.type === 'done') {

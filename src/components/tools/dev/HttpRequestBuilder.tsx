@@ -24,6 +24,7 @@ export function HttpRequestBuilder() {
   const [status, setStatus] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [time, setTime] = useState<number | null>(null)
+  const [exportMode, setExportMode] = useState<"curl" | "fetch" | "axios">("curl")
   
   const { isCopied: copied, copy } = useCopyToClipboard()
 
@@ -76,6 +77,48 @@ export function HttpRequestBuilder() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const generateCode = (type: "curl" | "fetch" | "axios") => {
+    const activeHeaders = headers.filter(h => h.enabled && h.key)
+    const hasBody = method !== "GET" && body.trim() !== ""
+    
+    if (type === "curl") {
+      let curl = `curl -X ${method} '${url}'`
+      activeHeaders.forEach(h => {
+        curl += ` \\\n  -H '${h.key}: ${h.value}'`
+      })
+      if (hasBody) {
+        curl += ` \\\n  -d '${body.replace(/'/g, "'\\''")}'`
+      }
+      return curl
+    }
+    
+    if (type === "fetch") {
+      const hObj = activeHeaders.reduce((a, b) => ({ ...a, [b.key]: b.value }), {})
+      let opts = `{\n  method: '${method}',\n  headers: ${JSON.stringify(hObj, null, 2).replace(/\n/g, "\n  ")}`
+      if (hasBody) {
+        opts += `,\n  body: JSON.stringify(${body.trim()})`
+      }
+      opts += "\n}"
+      return `fetch('${url}', ${opts})\n  .then(res => res.json())\n  .then(data => console.log(data));`
+    }
+    
+    if (type === "axios") {
+      const hObj = activeHeaders.reduce((a, b) => ({ ...a, [b.key]: b.value }), {})
+      let opts = `{\n  method: '${method}',\n  url: '${url}'`
+      if (Object.keys(hObj).length > 0) {
+        opts += `,\n  headers: ${JSON.stringify(hObj, null, 2).replace(/\n/g, "\n  ")}`
+      }
+      if (hasBody) {
+        let parsedBody = body.trim()
+        try { JSON.parse(parsedBody) } catch { parsedBody = `'${parsedBody}'` }
+        opts += `,\n  data: ${parsedBody}`
+      }
+      opts += "\n}"
+      return `axios(${opts})\n  .then(res => console.log(res.data));`
+    }
+    return ""
   }
 
   return (
@@ -162,6 +205,36 @@ export function HttpRequestBuilder() {
                 />
               </div>
             )}
+
+            <div className="space-y-4 pt-6 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Export Snippet</label>
+                <div className="flex gap-2">
+                  {["curl", "fetch", "axios"].map(mode => (
+                    <button 
+                      key={mode} 
+                      onClick={() => setExportMode(mode as any)}
+                      className={cn("px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase", exportMode === mode ? "bg-primary text-primary-foreground" : "bg-white/5 text-muted-foreground hover:bg-white/10")}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="relative group">
+                <textarea 
+                  readOnly
+                  value={generateCode(exportMode)}
+                  className="w-full h-32 bg-black/40 border border-white/10 rounded-2xl p-4 text-[10px] font-mono outline-none resize-none text-muted-foreground custom-scrollbar"
+                />
+                <button 
+                  onClick={() => copy(generateCode(exportMode))}
+                  className="absolute top-2 right-2 p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                >
+                  {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="p-6 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex gap-4">

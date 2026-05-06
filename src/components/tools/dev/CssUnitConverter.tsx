@@ -4,7 +4,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 
 type CssUnit = "px" | "rem" | "em" | "vw" | "vh"
 
-export function CssUnitConverter() {
+export function CssUnitConverter({ embedded = false }: { embedded?: boolean } = {}) {
   const [value, setValue] = useState<string>("16")
   const [fromUnit, setFromUnit] = useState<CssUnit>("px")
   
@@ -45,6 +45,7 @@ export function CssUnitConverter() {
       icon={Scissors}
       maxWidth="max-w-6xl"
       centered={true}
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 glass-panel p-8 rounded-2xl space-y-8">

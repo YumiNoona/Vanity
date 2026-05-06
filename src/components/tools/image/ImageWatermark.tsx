@@ -3,37 +3,23 @@ import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, CheckCircle, Type, Image as ImageIcon, Trash2, Plus, Sparkles, Palette, ALargeSmall, Bold, Italic, ChevronDown } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
-import { toast } from "sonner"
-import * as fabric from "fabric"
 import { downloadBlob, exportCanvas, loadImage } from "@/lib/canvas"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
+import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
-// Customize generic fabric UI controls for a modern, sleek look matching our crop tool
-fabric.Object.prototype.set({
-  transparentCorners: false,
-  cornerColor: '#f97316', // High-visibility orange
-  cornerStrokeColor: '#ffffff',
-  borderColor: '#f97316',
-  cornerSize: 10,
-  padding: 0,
-  cornerStyle: 'circle',
-  borderDashArray: [0, 0],
-  borderScaleFactor: 2.5,
-  hasRotatingPoint: false // Hide rotation point by default
-});
 
 export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fabricCanvas = useRef<fabric.Canvas | null>(null)
+  const fabricCanvas = useRef<any>(null)
   const [activeTab, setActiveTab] = useState<"text" | "image">("text")
 
   const sourceCleanupRef = useRef<(() => void) | null>(null)
   const watermarkCleanupsRef = useRef<(() => void)[]>([])
-  const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null)
+  const [selectedObject, setSelectedObject] = useState<any>(null)
   
   // Text Properties State
   const [textColor, setTextColor] = useState("#ffffff")
@@ -55,6 +41,23 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
   const unmountedRef = useRef(false)
   
   useEffect(() => {
+    const setupFabric = async () => {
+      const fabric = await import("fabric")
+      fabric.Object.prototype.set({
+        transparentCorners: false,
+        cornerColor: '#f97316',
+        cornerStrokeColor: '#ffffff',
+        borderColor: '#f97316',
+        cornerSize: 10,
+        padding: 0,
+        cornerStyle: 'circle',
+        borderDashArray: [0, 0],
+        borderScaleFactor: 2.5,
+        hasRotatingPoint: false
+      });
+    }
+    setupFabric()
+
     return () => {
       unmountedRef.current = true
       if (sourceCleanupRef.current) sourceCleanupRef.current()
@@ -101,45 +104,52 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (sourceData && canvasRef.current) {
-      const canvas = new fabric.Canvas(canvasRef.current, {
-        width: 800,
-        height: 600,
-        backgroundColor: "#000"
-      })
-      fabricCanvas.current = canvas
+      const initFabric = async () => {
+        const fabric = await import("fabric")
+        if (unmountedRef.current) return
 
-      const fbImg = new fabric.FabricImage(sourceData.source as HTMLImageElement)
-      const scale = Math.min(800 / sourceData.width, 600 / sourceData.height)
-      fbImg.scale(scale)
-      fbImg.set({
-        selectable: false,
-        evented: false,
-        left: (800 - sourceData.width * scale) / 2,
-        top: (600 - sourceData.height * scale) / 2
-      })
-      canvas.add(fbImg)
-      canvas.centerObject(fbImg)
-      canvas.renderAll()
+        const canvas = new fabric.Canvas(canvasRef.current!, {
+          width: 800,
+          height: 600,
+          backgroundColor: "#000"
+        })
+        fabricCanvas.current = canvas
 
-      const handleSelection = () => {
-        const active = canvas.getActiveObject()
-        setSelectedObject(active || null)
-        if (active instanceof fabric.IText) {
-          setTextColor(active.fill as string)
-          setFontFamily(active.fontFamily || "Syne")
-          setIsBold(active.fontWeight === "bold")
-          setIsItalic(active.fontStyle === "italic")
+        const fbImg = new fabric.Image(sourceData.source as HTMLImageElement)
+        const scale = Math.min(800 / sourceData.width, 600 / sourceData.height)
+        fbImg.scale(scale)
+        fbImg.set({
+          selectable: false,
+          evented: false,
+          left: (800 - sourceData.width * scale) / 2,
+          top: (600 - sourceData.height * scale) / 2
+        })
+        canvas.add(fbImg)
+        canvas.centerObject(fbImg)
+        canvas.renderAll()
+
+        const handleSelection = () => {
+          const active = canvas.getActiveObject()
+          setSelectedObject(active || null)
+          if (active && active.type === 'i-text') {
+            setTextColor(active.fill as string)
+            setFontFamily((active as any).fontFamily || "Syne")
+            setIsBold((active as any).fontWeight === "bold")
+            setIsItalic((active as any).fontStyle === "italic")
+          }
         }
-      }
 
-      canvas.on('selection:created', handleSelection)
-      canvas.on('selection:updated', handleSelection)
-      canvas.on('selection:cleared', () => setSelectedObject(null))
+        canvas.on('selection:created', handleSelection)
+        canvas.on('selection:updated', handleSelection)
+        canvas.on('selection:cleared', () => setSelectedObject(null))
+      }
+      initFabric()
     }
   }, [sourceData])
 
-  const addTextWatermark = () => {
+  const addTextWatermark = async () => {
     if (!fabricCanvas.current) return
+    const fabric = await import("fabric")
     const text = new fabric.IText("WATERMARK", {
       left: 100,
       top: 100,
@@ -161,7 +171,7 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
 
   const updateTextProperty = (prop: string, value: any) => {
     const active = fabricCanvas.current?.getActiveObject()
-    if (active instanceof fabric.IText) {
+    if (active && active.type === 'i-text') {
       active.set(prop as any, value)
       fabricCanvas.current?.renderAll()
       if (prop === 'fill') setTextColor(value)
@@ -186,6 +196,7 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
     const file = (e.target.files as FileList)?.[0]
     if (!file || !fabricCanvas.current) return
     try {
+      const fabric = await import("fabric")
       const result = await loadImage(file)
       
       if (unmountedRef.current) {
@@ -195,7 +206,7 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
 
       watermarkCleanupsRef.current.push(result.cleanup)
       if (!fabricCanvas.current) return
-      const img = new fabric.FabricImage(result.source as HTMLImageElement)
+      const img = new fabric.Image(result.source as HTMLImageElement)
       img.scale(0.2)
       fabricCanvas.current.add(img)
       img.setControlsVisibility({
@@ -288,41 +299,25 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
               </div>
             )}
 
-            {selectedObject instanceof fabric.IText && (
+            {selectedObject && selectedObject.type === 'i-text' && (
               <div className="pt-6 border-t border-white/10 space-y-6 animate-in fade-in zoom-in-95 duration-300">
                 {/* Modern Color Picker UI */}
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Palette className="w-3 h-3" /> Text Color
-                  </label>
-                  <div className="bg-black/40 p-3 rounded-2xl border border-white/5">
-                    <div className="flex flex-wrap gap-2.5 mb-3">
+                  <div className="bg-black/40 p-4 rounded-2xl border border-white/5 space-y-4">
+                    <div className="flex flex-wrap gap-2.5">
                       {COLORS.map(c => (
                         <button 
                           key={c}
                           onClick={() => updateTextProperty('fill', c)}
                           className={cn(
-                            "w-7 h-7 rounded-full border-2 transition-all hover:scale-110 ring-offset-2 ring-offset-black",
+                            "w-7 h-7 rounded-full border-2 transition-all hover:scale-110",
                             textColor === c ? "border-white ring-2 ring-primary scale-110" : "border-transparent"
                           )}
                           style={{ backgroundColor: c }}
                         />
                       ))}
                     </div>
-                    <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-                       <div className="relative w-full">
-                          <input 
-                            type="color" 
-                            value={textColor} 
-                            onChange={(e) => updateTextProperty('fill', e.target.value)}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                          <div className="w-full h-8 rounded-lg border border-white/10 flex items-center px-3 gap-2 bg-white/5">
-                             <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: textColor }} />
-                             <span className="text-[10px] font-mono text-white/50 uppercase">{textColor}</span>
-                          </div>
-                       </div>
-                    </div>
+                    <ColorPickerInput color={textColor} onChange={(c) => updateTextProperty('fill', c)} label="Custom Color" />
                   </div>
                 </div>
 

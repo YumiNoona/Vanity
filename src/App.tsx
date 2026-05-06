@@ -3,17 +3,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AppLayout } from "./components/layout/AppLayout"
 import { Loader2 } from "lucide-react"
 
-// Prefetch concurrency guard
-let isPrefetching = false
+// Prefetch concurrency guard per loader
+const activePrefetches = new Set<() => Promise<any>>()
 export const preloadTool = async (loader: () => Promise<any>) => {
-  if (isPrefetching) return
-  isPrefetching = true
+  if (activePrefetches.has(loader)) return
+  activePrefetches.add(loader)
   try {
     await loader()
   } catch (e) {
     console.debug("Prefetch failed or cancelled", e)
   } finally {
-    isPrefetching = false
+    activePrefetches.delete(loader)
   }
 }
 
@@ -66,6 +66,7 @@ const IpLookup = lazy(() => import("./components/tools/browser/IpLookup").then(m
 const SslChecker = lazy(() => import("./components/tools/browser/SslChecker").then(m => ({ default: m.SslChecker })))
 const UaParser = lazy(() => import("./components/tools/browser/UaParser").then(m => ({ default: m.UaParser })))
 const MimeLookup = lazy(() => import("./components/tools/browser/MimeLookup").then(m => ({ default: m.MimeLookup })))
+const SubnetCalculator = lazy(() => import("./components/tools/dev/SubnetCalculator").then(m => ({ default: m.SubnetCalculator })))
 
 // Security Tools
 const TotpGen = lazy(() => import("./components/tools/security/TotpGen").then(m => ({ default: m.TotpGen })))
@@ -75,9 +76,10 @@ const ChecksumVerify = lazy(() => import("./components/tools/security/ChecksumVe
 
 // Math Tools
 const MatrixCalc = lazy(() => import("./components/tools/math/MatrixCalc").then(m => ({ default: m.MatrixCalc })))
-const UnitConverter = lazy(() => import("./components/tools/math/UnitConverter").then(m => ({ default: m.UnitConverter })))
+const UnitStudio = lazy(() => import("./components/tools/math/UnitStudio").then(m => ({ default: m.UnitStudio })))
 const ScientificCalc = lazy(() => import("./components/tools/math/ScientificCalc").then(m => ({ default: m.ScientificCalc })))
 const PercentageCalc = lazy(() => import("./components/tools/math/PercentageCalc").then(m => ({ default: m.PercentageCalc })))
+const AspectRatioCalc = lazy(() => import("./components/tools/math/AspectRatioCalc").then(m => ({ default: m.AspectRatioCalc })))
 
 // Finance Tools
 const FinanceStudio = lazy(() => import("./components/tools/finance/FinanceStudio").then(m => ({ default: m.FinanceStudio })))
@@ -106,8 +108,7 @@ const PdfFontExtractor = lazy(() => import("./components/tools/pdf/PdfFontExtrac
 // Developer Tools
 const CodeFormatterStudio = lazy(() => import("./components/tools/dev/CodeFormatterStudio").then(m => ({ default: m.CodeFormatterStudio })))
 const HttpRequestBuilder = lazy(() => import("./components/tools/dev/HttpRequestBuilder").then(m => ({ default: m.HttpRequestBuilder })))
-const ColorPicker = lazy(() => import("./components/tools/dev/ColorPicker").then(m => ({ default: m.ColorPicker })))
-const CssGradient = lazy(() => import("./components/tools/dev/CssGradient").then(m => ({ default: m.CssGradient })))
+const ColorStudio = lazy(() => import("./components/tools/dev/ColorStudio").then(m => ({ default: m.ColorStudio })))
 const Base64Studio = lazy(() => import("./components/tools/dev/Base64Studio").then(m => ({ default: m.Base64Studio })))
 const UuidHashGenerator = lazy(() => import("./components/tools/dev/UuidHashGenerator").then(m => ({ default: m.UuidHashGenerator })))
 const RegexTester = lazy(() => import("./components/tools/dev/RegexTester").then(m => ({ default: m.RegexTester })))
@@ -115,10 +116,12 @@ const TimestampConverter = lazy(() => import("./components/tools/dev/TimestampCo
 const JwtDecoder = lazy(() => import("./components/tools/dev/JwtDecoder").then(m => ({ default: m.JwtDecoder })))
 const UrlEncoder = lazy(() => import("./components/tools/dev/UrlEncoder").then(m => ({ default: m.UrlEncoder })))
 const CronBuilder = lazy(() => import("./components/tools/dev/CronBuilder").then(m => ({ default: m.CronBuilder })))
-const CssUnitConverter = lazy(() => import("./components/tools/dev/CssUnitConverter").then(m => ({ default: m.CssUnitConverter })))
 const EnvEditor = lazy(() => import("./components/tools/dev/EnvEditor").then(m => ({ default: m.EnvEditor })))
-const JsonToCsv = lazy(() => import("./components/tools/dev/JsonToCsv").then(m => ({ default: m.JsonToCsv })))
-
+const YamlJsonConverter = lazy(() => import("./components/tools/dev/YamlJsonConverter").then(m => ({ default: m.YamlJsonConverter })))
+const HtmlEntityEncoder = lazy(() => import("./components/tools/dev/HtmlEntityEncoder").then(m => ({ default: m.HtmlEntityEncoder })))
+const ColorContrastChecker = lazy(() => import("./components/tools/dev/ColorContrastChecker").then(m => ({ default: m.ColorContrastChecker })))
+const CssEffectsBuilder = lazy(() => import("./components/tools/dev/CssEffectsBuilder").then(m => ({ default: m.CssEffectsBuilder })))
+const JsonSchemaValidator = lazy(() => import("./components/tools/dev/JsonSchemaValidator").then(m => ({ default: m.JsonSchemaValidator })))
 
 // Video Tools
 const VideoCompressor = lazy(() => import("./components/tools/video/VideoCompressor").then(m => ({ default: m.VideoCompressor })))
@@ -146,7 +149,7 @@ const UnicodeExplorer = lazy(() => import("./components/tools/text/UnicodeExplor
 const NameFormatter = lazy(() => import("./components/tools/text/NameFormatter").then(m => ({ default: m.NameFormatter })))
 const TableToMd = lazy(() => import("./components/tools/text/TableToMd").then(m => ({ default: m.TableToMd })))
 const ReadmeViewer = lazy(() => import("./components/tools/text/ReadmeViewer").then(m => ({ default: m.ReadmeViewer })))
-
+const Pastebin = lazy(() => import("./components/tools/text/Pastebin").then(m => ({ default: m.Pastebin })))
 
 // Export loaders for prefetching popular tools
 export const loaders = {
@@ -239,8 +242,8 @@ function App() {
             {/* Developer Tools */}
             <Route path="/tools/dev/formatter" element={<CodeFormatterStudio />} />
             <Route path="/tools/dev/http-builder" element={<HttpRequestBuilder />} />
-            <Route path="/tools/dev/color" element={<ColorPicker />} />
-            <Route path="/tools/dev/gradient" element={<CssGradient />} />
+            <Route path="/tools/dev/color" element={<ColorStudio />} />
+            <Route path="/tools/dev/gradient" element={<ColorStudio />} />
             <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
             <Route path="/tools/dev/regex" element={<RegexTester />} />
@@ -248,10 +251,14 @@ function App() {
             <Route path="/tools/dev/jwt" element={<JwtDecoder />} />
             <Route path="/tools/dev/url" element={<UrlEncoder />} />
             <Route path="/tools/dev/cron" element={<CronBuilder />} />
-            <Route path="/tools/dev/css-units" element={<CssUnitConverter />} />
+            <Route path="/tools/dev/css-units" element={<UnitStudio />} />
             <Route path="/tools/dev/env" element={<EnvEditor />} />
-            <Route path="/tools/dev/json-to-csv" element={<JsonToCsv />} />
-
+            <Route path="/tools/dev/json-to-csv" element={<CsvJsonConverter />} />
+            <Route path="/tools/dev/yaml-json" element={<YamlJsonConverter />} />
+            <Route path="/tools/dev/html-entity" element={<HtmlEntityEncoder />} />
+            <Route path="/tools/dev/color-contrast" element={<ColorContrastChecker />} />
+            <Route path="/tools/dev/css-effects" element={<CssEffectsBuilder />} />
+            <Route path="/tools/dev/json-schema" element={<JsonSchemaValidator />} />
 
             {/* Video Tools */}
             <Route path="/tools/video/compress" element={<VideoCompressor />} />
@@ -280,6 +287,7 @@ function App() {
             <Route path="/tools/text/name-case" element={<NameFormatter />} />
             <Route path="/tools/text/table-to-md" element={<TableToMd />} />
             <Route path="/tools/text/readme" element={<ReadmeViewer />} />
+            <Route path="/tools/text/pastebin" element={<Pastebin />} />
             
             {/* Browser Tools */}
             <Route path="/tools/browser/dns" element={<DnsLookup />} />
@@ -287,6 +295,7 @@ function App() {
             <Route path="/tools/browser/ssl" element={<SslChecker />} />
             <Route path="/tools/browser/ua" element={<UaParser />} />
             <Route path="/tools/browser/mime" element={<MimeLookup />} />
+            <Route path="/tools/browser/subnet" element={<SubnetCalculator />} />
 
             {/* Security Tools */}
             <Route path="/tools/security/totp" element={<TotpGen />} />
@@ -296,9 +305,10 @@ function App() {
 
             {/* Math Tools */}
             <Route path="/tools/math/matrix" element={<MatrixCalc />} />
-            <Route path="/tools/math/units" element={<UnitConverter />} />
+            <Route path="/tools/math/units" element={<UnitStudio />} />
             <Route path="/tools/math/scientific" element={<ScientificCalc />} />
             <Route path="/tools/math/percentage" element={<PercentageCalc />} />
+            <Route path="/tools/math/aspect-ratio" element={<AspectRatioCalc />} />
 
             {/* Finance Tools */}
             <Route path="/tools/finance/studio" element={<FinanceStudio />} />

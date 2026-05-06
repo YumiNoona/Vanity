@@ -13,7 +13,7 @@ import {
   EyeOff, ImagePlay, FastForward, Award, Database, FileSearch,
   Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
   Percent, Wallet, Receipt, Repeat, Table,
-  BookOpen
+  BookOpen, Share2, Maximize, Network
 } from "lucide-react"
 
 // Types to allow easier custom icons
@@ -106,13 +106,16 @@ export const DEV_TOOLS: Tool[] = [
   { id: "url-encoder", title: "URL Encoder / Decoder", description: "Encode or decode query strings and full URLs safely.", icon: Link2, path: "/tools/dev/url", isPopular: true },
   { id: "regex-tester", title: "Regex Tester", description: "Live regex matching with highlighting, group capture, and flags.", icon: Terminal, path: "/tools/dev/regex", keywords: ["test", "match", "regular"] },
   { id: "uuid-hash", title: "UUID & Hash Generator", description: "Generate UUIDs, MD5, and SHA-256 hashes.", icon: Key, path: "/tools/dev/uuid-hash" },
-  { id: "css-gradient", title: "CSS Gradient Builder", description: "Build linear or radial gradients visually.", icon: Zap, path: "/tools/dev/gradient" },
   { id: "timestamp-converter", title: "Timestamp Converter", description: "Unix epoch to human-readable date and back with timezones.", icon: Clock, path: "/tools/dev/timestamp", keywords: ["time", "unix", "date"] },
   { id: "jwt-decoder", title: "JWT Decoder", description: "Decode JSON Web Tokens visually locally without validation.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["token", "auth", "base64"] },
   { id: "cron-builder", title: "CRON Expression Tester", description: "Validate CRON strings and preview immediate run times.", icon: Calendar, path: "/tools/dev/cron", keywords: ["schedule", "time", "job"] },
-  { id: "css-unit-converter", title: "CSS Unit Converter", description: "Convert px to rem, em, vw, vh instantly based on rules.", icon: Scissors, path: "/tools/dev/css-units", keywords: ["size", "font", "rem"] },
   { id: "env-editor", title: "ENV File Editor", description: "Upload and edit .env files in a clean table UI locally.", icon: FileCode, path: "/tools/dev/env", keywords: ["config", "environment", "dotenv"] },
   { id: "json-to-csv", title: "JSON to CSV / Excel", description: "Convert JSON arrays or objects into CSV or spreadsheet formats.", icon: FileSpreadsheet, path: "/tools/dev/json-to-csv", keywords: ["export", "excel", "table"] },
+  { id: "yaml-json", title: "YAML ↔ JSON", description: "Convert between YAML and JSON formats seamlessly.", icon: ArrowLeftRight, path: "/tools/dev/yaml-json", isPopular: true, keywords: ["yaml", "json", "parse"] },
+  { id: "html-entity", title: "HTML Entity Encoder", description: "Encode or decode HTML entities safely.", icon: Code, path: "/tools/dev/html-entity", keywords: ["escape", "decode", "entities"] },
+  { id: "color-contrast", title: "Color Contrast Checker", description: "Calculate contrast ratio and check WCAG accessibility.", icon: Eye, path: "/tools/dev/color-contrast", keywords: ["wcag", "a11y", "accessibility"] },
+  { id: "css-effects", title: "CSS Effects Builder", description: "Visual editor for box-shadows and CSS filters.", icon: Layers, path: "/tools/dev/css-effects", keywords: ["box-shadow", "filter", "blur"] },
+  { id: "json-schema", title: "JSON Schema Validator", description: "Validate JSON data against draft-7 JSON Schema instantly.", icon: FileCheck, path: "/tools/dev/json-schema", keywords: ["ajv", "validate", "schema"] },
 ]
 
 export const VIDEO_TOOLS: Tool[] = [
@@ -141,6 +144,7 @@ export const TEXT_TOOLS: Tool[] = [
   { id: "name-formatter", title: "Name Case Formatter", description: "Bulk-fix name casing (JOHN DOE → John Doe) with prefix support.", icon: Type, path: "/tools/text/name-case", keywords: ["cleanup", "list", "format"] },
   { id: "table-to-md", title: "Table to Markdown / HTML", description: "Convert spreadsheet selections or CSV into Markdown or HTML tables.", icon: Table, path: "/tools/text/table-to-md", keywords: ["convert", "excel", "spreadsheet"] },
   { id: "readme-viewer", title: "README Previewer", description: "Preview GitHub READMEs with templates, badges, and live rendering.", icon: BookOpen, path: "/tools/text/readme", isPopular: true, keywords: ["github", "markdown", "badge", "shield", "template"] },
+  { id: "pastebin", title: "Serverless Pastebin", description: "Share text snippets securely via URL. Zero server storage.", icon: Share2, path: "/tools/text/pastebin", keywords: ["share", "snippet", "link"] },
 ]
 
 export const BROWSER_TOOLS: Tool[] = [
@@ -149,6 +153,7 @@ export const BROWSER_TOOLS: Tool[] = [
   { id: "ssl-checker", title: "SSL Checker", description: "Verify SSL certificates, expiry dates, and issuers.", icon: Shield, path: "/tools/browser/ssl", keywords: ["cert", "https", "security"] },
   { id: "ua-parser", title: "User Agent Parser", description: "Break down any UA string into browser, OS, and device.", icon: MonitorSmartphone, path: "/tools/browser/ua", keywords: ["header", "detect", "client"] },
   { id: "mime-types", title: "MIME Type Lookup", description: "Find mappings between file extensions and MIME types.", icon: FileSearch, path: "/tools/browser/mime", keywords: ["content-type", "extension", "mapping"] },
+  { id: "subnet-calc", title: "Subnet Calculator", description: "CIDR network calculations, host ranges, and subnet masks.", icon: Network, path: "/tools/browser/subnet", keywords: ["cidr", "ip", "network", "mask"] },
 ]
 
 export const SECURITY_TOOLS: Tool[] = [
@@ -163,6 +168,7 @@ export const MATH_TOOLS: Tool[] = [
   { id: "unit-converter", title: "Unit Converter", description: "Convert length, weight, temperature, and more.", icon: ArrowLeftRight, path: "/tools/math/units", keywords: ["measure", "imperial", "metric"] },
   { id: "scientific-calc", title: "Scientific Calculator", description: "Advanced math functions including trig and logs.", icon: Calculator, path: "/tools/math/scientific", keywords: ["trig", "log", "math"] },
   { id: "percentage-calc", title: "Percentage Calculator", description: "Calculate % change, % of, and common ratios.", icon: Percent, path: "/tools/math/percentage" },
+  { id: "aspect-ratio", title: "Aspect Ratio Calculator", description: "Compute dimensions, simplify ratios, and generate CSS.", icon: Maximize, path: "/tools/math/aspect-ratio", keywords: ["resolution", "size", "video"] },
 ]
 
 export const FINANCE_TOOLS: Tool[] = [

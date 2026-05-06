@@ -6,6 +6,7 @@ import { prewarmPdf } from "@/lib/pdf-text"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
 export function PdfWatermark() {
   const { validateFiles } = usePremium()
@@ -147,23 +148,7 @@ export function PdfWatermark() {
                  />
               </div>
 
-              <div className="space-y-2">
-                 <label className="text-[10px] font-bold uppercase text-muted-foreground">Color</label>
-                 <div className="flex gap-2">
-                    <input 
-                      type="color"
-                      value={color}
-                      onChange={e => setColor(e.target.value)}
-                      className="w-10 h-10 bg-transparent border-none cursor-pointer"
-                    />
-                    <input 
-                      type="text"
-                      value={color.toUpperCase()}
-                      readOnly
-                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 text-xs font-mono flex items-center"
-                    />
-                 </div>
-              </div>
+              <ColorPickerInput color={color} onChange={setColor} label="Stamp Color" className="w-full" />
            </div>
 
            <div className="pt-6 border-t border-white/5">

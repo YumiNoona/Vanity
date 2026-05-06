@@ -1,17 +1,33 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Copy, CheckCircle, Palette, RefreshCw, Plus, Trash2, Download, ShieldCheck, AlertTriangle, X } from "lucide-react"
+import { Copy, CheckCircle, Palette, RefreshCw, Plus, Trash2, Download, ShieldCheck, AlertTriangle, X, Pipette } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { HexColorPicker, RgbColorPicker } from "react-colorful"
+import { PillToggle } from "@/components/shared/PillToggle"
 
-export function ColorPicker() {
+export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
   const [hex, setHex] = useState("#f59e0b")
   const [palette, setPalette] = useState<string[]>(() => {
     const saved = localStorage.getItem("colorPalette")
     return saved ? JSON.parse(saved) : []
   })
   const { copiedId, copy } = useCopyToClipboard()
+
+  const [showPicker, setShowPicker] = useState(false)
+  const [pickerMode, setPickerMode] = useState<"hex" | "rgb">("hex")
+  const pickerRef = React.useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem("colorPalette", JSON.stringify(palette))
@@ -75,10 +91,6 @@ export function ColorPicker() {
   const ratio = Math.max(contrastAgainstBlack, contrastAgainstWhite).toFixed(2)
 
   const addToPalette = () => {
-    if (palette.length >= 8) {
-      toast.error("Palette full (max 8 colors)")
-      return
-    }
     if (palette.includes(hex)) {
       toast.info("Color already in palette")
       return
@@ -123,19 +135,36 @@ export function ColorPicker() {
     setHex(newHex)
   }
 
+  const pickColor = async () => {
+    if (!('EyeDropper' in window)) {
+      toast.error("EyeDropper is not supported in your browser.")
+      return
+    }
+    try {
+      // @ts-ignore
+      const eyeDropper = new window.EyeDropper()
+      const result = await eyeDropper.open()
+      setHex(result.sRGBHex)
+      toast.success(`Color picked: ${result.sRGBHex}`)
+    } catch (e) {
+      // User canceled
+    }
+  }
+
   return (
     <ToolLayout 
       title="Color Studio" 
       description="Professional color picker, palette builder, and contrast inspector." 
       icon={Palette} 
-      maxWidth="max-w-6xl"
+      maxWidth="max-w-7xl"
       centered={true}
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20 px-4 sm:px-0">
         {/* Left Column: Picker & Accessibility */}
         <div className="lg:col-span-5 space-y-6">
            <div 
-             className="aspect-[4/3] rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01]" 
+             className="aspect-[16/9] rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden group transition-all duration-500 hover:scale-[1.01]" 
              style={{ backgroundColor: hex }}
            >
               <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
@@ -146,13 +175,22 @@ export function ColorPicker() {
                    Contrast: {ratio}:1
                  </div>
               </div>
-              <button 
-                onClick={randomColor} 
-                className="absolute top-6 right-6 p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10 group-hover:rotate-180 duration-700"
-                title="Random Color"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
+              <div className="absolute top-6 right-6 flex flex-col gap-2">
+                <button 
+                  onClick={randomColor} 
+                  className="p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10 hover:rotate-180 duration-700"
+                  title="Random Color"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={pickColor} 
+                  className="p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10"
+                  title="Pick Color"
+                >
+                  <Pipette className="w-5 h-5" />
+                </button>
+              </div>
            </div>
 
            <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-black/20 space-y-8">
@@ -161,16 +199,82 @@ export function ColorPicker() {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Selection Engine</label>
                   <span className="text-[10px] font-bold text-primary/60">HEX / RGB / HSL</span>
                 </div>
-                <div className="flex gap-4 items-start">
-                  <div className="relative group shrink-0 w-24 h-24">
-                    <input 
-                      type="color" 
-                      value={hex} 
-                      onChange={(e) => setHex(e.target.value)} 
-                      className="w-full h-full block bg-transparent border-none cursor-pointer rounded-3xl overflow-hidden appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:border-none shadow-2xl" 
+                <div className="flex gap-4 items-start relative">
+                  <div className="relative group shrink-0 w-24 h-24" onClick={() => setShowPicker(!showPicker)}>
+                    <div 
+                      className="w-full h-full block cursor-pointer rounded-3xl overflow-hidden shadow-2xl" 
+                      style={{ backgroundColor: hex }}
                     />
                     <div className="absolute inset-0 pointer-events-none rounded-3xl border-2 border-white/10 group-hover:border-primary/50 transition-colors" />
                   </div>
+                  
+                  {showPicker && (
+                    <div ref={pickerRef} className="absolute top-[110%] left-0 z-50 glass-panel p-4 rounded-2xl border border-white/10 bg-black/80 backdrop-blur-2xl shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="flex justify-center mb-2">
+                        <PillToggle
+                          activeId={pickerMode}
+                          onChange={(id) => setPickerMode(id as "hex" | "rgb")}
+                          options={[
+                            { id: "hex", label: "HEX" },
+                            { id: "rgb", label: "RGB" }
+                          ]}
+                        />
+                      </div>
+                      
+                      <div className="custom-colorful">
+                        <style>{`
+                          .custom-colorful .react-colorful { width: 100%; height: 200px; }
+                          .custom-colorful .react-colorful__pointer { width: 24px; height: 24px; border-width: 3px; }
+                          .custom-colorful .react-colorful__hue { height: 16px; border-radius: 8px; margin-top: 12px; }
+                        `}</style>
+                        {pickerMode === "hex" ? (
+                          <HexColorPicker color={hex} onChange={setHex} />
+                        ) : (
+                          <RgbColorPicker color={rgb} onChange={(newRgb) => {
+                            const newHex = `#${newRgb.r.toString(16).padStart(2, '0')}${newRgb.g.toString(16).padStart(2, '0')}${newRgb.b.toString(16).padStart(2, '0')}`
+                            setHex(newHex)
+                          }} />
+                        )}
+                      </div>
+
+                      <div className="pt-2">
+                        {pickerMode === "hex" ? (
+                          <input 
+                            type="text" 
+                            value={hex.toUpperCase()} 
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val.startsWith('#') && val.length <= 7) setHex(val)
+                              else if (val.length <= 6) setHex(`#${val}`)
+                            }} 
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-mono text-center text-sm text-white outline-none focus:border-primary/50 transition-all shadow-inner" 
+                          />
+                        ) : (
+                          <div className="space-y-3">
+                            {['r', 'g', 'b'].map((channel) => (
+                              <div key={channel} className="flex items-center gap-3">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground w-4">{channel}</span>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="255" 
+                                  value={rgb[channel as keyof typeof rgb]} 
+                                  onChange={(e) => {
+                                    const newRgb = { ...rgb, [channel]: parseInt(e.target.value) }
+                                    const newHex = `#${newRgb.r.toString(16).padStart(2, '0')}${newRgb.g.toString(16).padStart(2, '0')}${newRgb.b.toString(16).padStart(2, '0')}`
+                                    setHex(newHex)
+                                  }}
+                                  className="w-full accent-primary h-1 bg-white/10 rounded-full appearance-none" 
+                                />
+                                <span className="text-xs font-mono text-white w-8 text-right">{rgb[channel as keyof typeof rgb]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex-1 flex flex-col gap-3">
                     <input 
                       type="text" 
@@ -221,7 +325,7 @@ export function ColorPicker() {
         <div className="lg:col-span-7 space-y-6">
            <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-black/20 space-y-8">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Palette ({palette.length}/8)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Palette ({palette.length})</label>
                 {palette.length > 0 && (
                   <button onClick={clearPalette} className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5">
                     <X className="w-3 h-3" /> Clear All
@@ -229,26 +333,28 @@ export function ColorPicker() {
                 )}
               </div>
               
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
+              <div className="flex flex-wrap gap-4">
                  {palette.map((c, i) => (
                    <div 
                      key={i} 
-                     className="group relative aspect-square rounded-2xl border border-white/10 shadow-xl cursor-pointer transition-all hover:scale-110 active:scale-90" 
+                     className="group relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl border border-white/10 shadow-xl cursor-pointer transition-all hover:scale-110 active:scale-90 shrink-0" 
                      style={{ backgroundColor: c }} 
                      onClick={() => setHex(c)}
                    >
                       <button 
                         onClick={(e) => { e.stopPropagation(); removeFromPalette(i); }} 
-                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600"
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 z-10"
                         title="Remove Color"
                       >
                          <Trash2 className="w-3 h-3" />
                       </button>
                    </div>
                  ))}
-                 {Array.from({ length: 8 - palette.length }).map((_, i) => (
-                   <div key={i} className="aspect-square rounded-2xl border-2 border-dashed border-white/5 bg-white/[0.01]" />
-                 ))}
+                 {palette.length === 0 && (
+                   <div className="w-full py-8 text-center border-2 border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
+                     <span className="text-xs text-muted-foreground uppercase tracking-widest">Palette is empty</span>
+                   </div>
+                 )}
               </div>
 
               <div className="space-y-4 pt-8 border-t border-white/5">

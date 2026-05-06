@@ -17,6 +17,7 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 1000,
+    cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -26,7 +27,8 @@ export default defineConfig({
             if (id.includes("pdfjs-dist")) return "vendor-pdfjs"
             if (id.includes("pdf-lib") || id.includes("jspdf")) return "vendor-pdf-lib"
             if (id.includes("@tensorflow") || id.includes("upscaler")) return "vendor-ai-engine"
-            if (id.includes("framer-motion") || id.includes("lucide-react")) return "vendor-ui-core"
+            if (id.includes("framer-motion")) return "vendor-framer"
+            if (id.includes("lucide-react")) return "vendor-ui-core"
             return "vendor"
           }
           // Group tool components by domain to reduce fragmentation
