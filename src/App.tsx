@@ -67,6 +67,7 @@ const SslChecker = lazy(() => import("./components/tools/browser/SslChecker").th
 const UaParser = lazy(() => import("./components/tools/browser/UaParser").then(m => ({ default: m.UaParser })))
 const MimeLookup = lazy(() => import("./components/tools/browser/MimeLookup").then(m => ({ default: m.MimeLookup })))
 const SubnetCalculator = lazy(() => import("./components/tools/dev/SubnetCalculator").then(m => ({ default: m.SubnetCalculator })))
+const LinkShortener = lazy(() => import("./components/tools/browser/LinkShortener").then(m => ({ default: m.LinkShortener })))
 
 // Security Tools
 const TotpGen = lazy(() => import("./components/tools/security/TotpGen").then(m => ({ default: m.TotpGen })))
@@ -296,6 +297,7 @@ function App() {
             <Route path="/tools/browser/ua" element={<UaParser />} />
             <Route path="/tools/browser/mime" element={<MimeLookup />} />
             <Route path="/tools/browser/subnet" element={<SubnetCalculator />} />
+            <Route path="/tools/browser/link-shortener" element={<LinkShortener />} />
 
             {/* Security Tools */}
             <Route path="/tools/security/totp" element={<TotpGen />} />

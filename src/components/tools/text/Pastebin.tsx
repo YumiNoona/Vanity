@@ -12,6 +12,7 @@ import { ToolLayout } from "@/components/layout/ToolLayout"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { getProxyUrl, proxyFetch } from "@/lib/proxy"
 import QRCode from "qrcode"
 
 const LANGUAGES = [
@@ -109,7 +110,7 @@ export function Pastebin() {
       // If URL is too long (causing dense dots), try to shorten it for the QR only
       if (shareUrl.length > 120) {
         try {
-          const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(shareUrl)}`)}`)
+          const response = await proxyFetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(shareUrl)}`)
           if (response.ok) {
             const short = await response.text()
             if (short && short.startsWith('https://')) {
@@ -124,10 +125,10 @@ export function Pastebin() {
       QRCode.toDataURL(urlToQr, {
         margin: 1,
         width: 600,
-        errorCorrectionLevel: 'L',
+        errorCorrectionLevel: 'M', // Medium is better for scannability with dots
         color: {
           dark: "#FFFFFF",
-          light: "#00000000"
+          light: "#0a0a0a" // Deep black for perfect contrast
         }
       }).then(setQrUrl).catch(console.error)
     }
@@ -139,9 +140,10 @@ export function Pastebin() {
     try {
       const { default: LZString } = await import("lz-string")
       let raw = hash
+      const result = { content: "", title: "", language: "plain", isEncrypted: false, permission: "view" as "view" | "edit" }
       
       if (hash.startsWith("enc:")) {
-        if (!pass) return
+        if (!pass) return null
         const CryptoJS = (await import("crypto-js")).default
         const encrypted = hash.substring(4)
         try {
@@ -149,10 +151,11 @@ export function Pastebin() {
           raw = bytes.toString(CryptoJS.enc.Utf8)
           if (!raw) throw new Error("Invalid password")
           
-          // Bug 2 Fix: Use decompress for encrypted strings if we compressed them without URI encoding
-          // For backward compatibility, we check if it fails and try the URI version
           const decompressed = LZString.decompress(raw) || LZString.decompressFromEncodedURIComponent(raw)
           if (decompressed) {
+            result.content = decompressed
+            result.isEncrypted = true
+            
             setContent(decompressed)
             setIsLocked(false)
             setIsEncrypted(true)
@@ -163,37 +166,61 @@ export function Pastebin() {
           }
         } catch (e) {
           toast.error("Decryption failed. Check your password.")
-          return
+          return null
         }
       } else if (hash.startsWith("ext:")) {
-        // Remote file sharing (Public integrated)
         const params = new URLSearchParams(hash.substring(4))
         const remoteUrl = params.get("remote")
         if (remoteUrl) {
           try {
-            const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(remoteUrl)}`)
+            const response = await proxyFetch(remoteUrl)
             if (response.ok) {
               const text = await response.text()
+              result.content = text
+              result.title = params.get("title") || ""
+              result.language = params.get("lang") || "plain"
+              result.permission = (params.get("perm") as "view" | "edit") || "view"
+              
               setContent(text)
-              if (params.get("title")) setTitle(params.get("title") || "")
-              if (params.get("lang")) setLanguage(params.get("lang") || "plain")
+              setTitle(result.title)
+              setLanguage(result.language)
+              setSharePermission(result.permission)
               setIsLocked(false)
               setIsEncrypted(false)
             }
           } catch (e) {
             toast.error("Failed to fetch remote content")
+            return null
           }
         }
       } else {
         const decompressed = LZString.decompressFromEncodedURIComponent(raw)
         if (decompressed) {
-          setContent(decompressed)
-          setIsLocked(false)
-          setIsEncrypted(false)
+          try {
+            const parsed = JSON.parse(decompressed)
+            result.content = parsed.c || ""
+            result.title = parsed.t || ""
+            result.language = parsed.l || "plain"
+            result.permission = parsed.p || "view"
+            
+            setContent(result.content)
+            setTitle(result.title)
+            setLanguage(result.language)
+            setSharePermission(result.permission)
+            setIsLocked(false)
+            setIsEncrypted(false)
+          } catch {
+            result.content = decompressed
+            setContent(decompressed)
+            setIsLocked(false)
+            setIsEncrypted(false)
+          }
         }
       }
+      return result
     } catch (e) {
       toast.error("Failed to decode content")
+      return null
     }
   }
 
@@ -219,7 +246,7 @@ export function Pastebin() {
 
       xhr.addEventListener("error", () => reject(new Error("Network error during upload")))
       
-      xhr.open("POST", `https://corsproxy.io/?${encodeURIComponent("https://0x0.st")}`)
+      xhr.open("POST", getProxyUrl("https://0x0.st"))
       xhr.send(formData)
     })
   }
@@ -295,7 +322,7 @@ export function Pastebin() {
           formData.append("format", "url")
           formData.append("expires", expirySeconds.toString())
           
-          const response = await fetch(`https://corsproxy.io/?${encodeURIComponent("https://dpaste.org/api/")}`, {
+          const response = await proxyFetch("https://dpaste.org/api/", {
             method: "POST",
             body: formData,
           })
@@ -312,7 +339,7 @@ export function Pastebin() {
           try {
              const formData = new FormData()
              formData.append("f:1", content)
-             const response = await fetch(`https://corsproxy.io/?${encodeURIComponent("http://ix.io")}`, { 
+             const response = await proxyFetch("http://ix.io", { 
                method: "POST", 
                body: formData 
              })
@@ -436,16 +463,18 @@ export function Pastebin() {
       if (receiveUrl.includes("#")) {
         const hash = receiveUrl.split("#")[1]
         if (hash) {
-          await decodeContent(hash)
-          setReceivedContent(content)
-          setReceivedTitle(title || "Shared Paste")
+          const decoded = await decodeContent(hash)
+          if (decoded) {
+            setReceivedContent(decoded.content)
+            setReceivedTitle(decoded.title || "Shared Paste")
+          }
           setIsFetching(false)
           return
         }
       }
       // Otherwise fetch raw URL content via proxy
       const url = receiveUrl.startsWith("http") ? receiveUrl : `https://${receiveUrl}`
-      const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`)
+      const response = await proxyFetch(url)
       if (!response.ok) throw new Error("Failed to fetch")
       const text = await response.text()
       setReceivedContent(text)
@@ -622,7 +651,7 @@ export function Pastebin() {
                        />
                      ) : (
                        <div className="p-8 font-mono text-sm leading-relaxed overflow-auto custom-scrollbar">
-                          <pre className="text-white/90 whitespace-pre" dangerouslySetInnerHTML={{ __html: highlight(receivedContent) }} />
+                          <pre className="text-white/90 whitespace-pre-wrap break-all" dangerouslySetInnerHTML={{ __html: highlight(receivedContent) }} />
                        </div>
                      )}
                   </div>
@@ -709,7 +738,7 @@ export function Pastebin() {
              <div className="glass-panel rounded-[2.5rem] border border-white/5 bg-black/40 overflow-hidden min-h-[500px]">
                 <div className="p-8 font-mono text-sm leading-relaxed overflow-auto custom-scrollbar">
                    <pre 
-                     className="text-white/90 whitespace-pre"
+                     className="text-white/90 whitespace-pre-wrap break-all"
                      dangerouslySetInnerHTML={{ __html: highlight(content) }}
                    />
                 </div>

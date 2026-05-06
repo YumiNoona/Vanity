@@ -10,13 +10,19 @@ import { PillToggle } from "@/components/shared/PillToggle"
 export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
   const [hex, setHex] = useState("#f59e0b")
   const [palette, setPalette] = useState<string[]>(() => {
-    const saved = localStorage.getItem("colorPalette")
-    return saved ? JSON.parse(saved) : []
+    try {
+      const saved = localStorage.getItem("colorPalette")
+      return saved ? JSON.parse(saved) : []
+    } catch (e) {
+      console.warn("localStorage access failed", e)
+      return []
+    }
   })
   const { copiedId, copy } = useCopyToClipboard()
 
   const [showPicker, setShowPicker] = useState(false)
   const [pickerMode, setPickerMode] = useState<"hex" | "rgb">("hex")
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false)
   const pickerRef = React.useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -30,7 +36,11 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem("colorPalette", JSON.stringify(palette))
+    try {
+      localStorage.setItem("colorPalette", JSON.stringify(palette))
+    } catch (e) {
+      console.warn("localStorage save failed", e)
+    }
   }, [palette])
 
   // Conversions
@@ -105,9 +115,9 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
 
   const clearPalette = () => {
     if (palette.length === 0) return
-    if (confirm("Clear all colors from palette?")) {
-      setPalette([])
-    }
+    setPalette([])
+    setIsConfirmingClear(false)
+    toast.success("Palette cleared")
   }
 
   const exportPalette = (format: "css" | "tailwind" | "json") => {
@@ -327,9 +337,32 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Current Palette ({palette.length})</label>
                 {palette.length > 0 && (
-                  <button onClick={clearPalette} className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5">
-                    <X className="w-3 h-3" /> Clear All
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {isConfirmingClear ? (
+                      <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+                        <span className="text-[8px] font-black uppercase text-red-400">Are you sure?</span>
+                        <button 
+                          onClick={clearPalette}
+                          className="px-2 py-1 bg-red-500 text-white rounded-md text-[8px] font-black uppercase"
+                        >
+                          Yes
+                        </button>
+                        <button 
+                          onClick={() => setIsConfirmingClear(false)}
+                          className="px-2 py-1 bg-white/10 text-white rounded-md text-[8px] font-black uppercase"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => setIsConfirmingClear(true)} 
+                        className="text-[9px] font-black uppercase tracking-[0.2em] text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3 h-3" /> Clear All
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               

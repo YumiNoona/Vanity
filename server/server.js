@@ -156,6 +156,60 @@ app.post("/unlock", upload.single("file"), (req, res) => {
   });
 });
 
+// 🌐 Generic Proxy (Handles CORS-restricted APIs)
+app.get("/proxy", async (req, res) => {
+  const target = req.query.url;
+  if (!target) return res.status(400).json({ error: "No URL provided" });
+
+  try {
+    const response = await fetch(target);
+    const contentType = response.headers.get("content-type");
+    const data = await response.text();
+    
+    if (contentType) res.setHeader("Content-Type", contentType);
+    res.send(data);
+  } catch (e) {
+    console.error("Proxy error:", e.message);
+    res.status(500).json({ error: "Failed to proxy request" });
+  }
+});
+
+app.post("/proxy", upload.any(), async (req, res) => {
+  const target = req.query.url;
+  if (!target) return res.status(400).json({ error: "No URL provided" });
+
+  try {
+    // If it's a file upload, we need to reconstruct the form data
+    const formData = new FormData();
+    
+    // Add fields
+    for (const key in req.body) {
+      formData.append(key, req.body[key]);
+    }
+    
+    // Add files
+    if (req.files) {
+      for (const file of req.files) {
+        const buffer = fs.readFileSync(file.path);
+        const blob = new Blob([buffer], { type: file.mimetype });
+        formData.append(file.fieldname, blob, file.originalname);
+        cleanup(file.path); // Cleanup temp file
+      }
+    }
+
+    const response = await fetch(target, {
+      method: "POST",
+      body: formData
+    });
+    
+    const data = await response.text();
+    res.send(data);
+  } catch (e) {
+    console.error("Proxy POST error:", e.message);
+    res.status(500).json({ error: "Failed to proxy POST request" });
+  }
+});
+
 // Health check
 app.get("/health", (req, res) => {
   execFile(QPDF_PATH, ["--version"], (err, stdout) => {
