@@ -1,8 +1,6 @@
 import React, { useState } from "react"
-import { Copy, CheckCircle, Zap, RefreshCw, MoveRight } from "lucide-react"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { Copy, CheckCircle, Zap, RefreshCw } from "lucide-react"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { ColorPickerInput } from "@/components/shared/ColorPickerInput"
 
@@ -17,7 +15,7 @@ export function CssGradient({ embedded = false }: { embedded?: boolean } = {}) {
   const handleCopy = () => {
     const css = `background: ${color1};\nbackground: ${gradientSize};`
     copy(css, "Gradient CSS copied!")
-    }
+  }
 
   const randomGradient = () => {
     const r1 = () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
@@ -58,11 +56,8 @@ export function CssGradient({ embedded = false }: { embedded?: boolean } = {}) {
 
           <div className="glass-panel p-8 rounded-2xl space-y-8">
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <ColorPickerInput color={color1} onChange={setColor1} label="Start Color" className="w-full" />
-                </div>
-                <div className="space-y-4">
-                    <ColorPickerInput color={color2} onChange={setColor2} label="End Color" className="w-full" />
-                </div>
+                <ColorPickerInput color={color1} onChange={setColor1} label="Start Color" className="w-full" />
+                <ColorPickerInput color={color2} onChange={setColor2} label="End Color" className="w-full" />
              </div>
 
              <div className="space-y-4">

@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from "react"
 import { Eye, CheckCircle2, XCircle } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { ColorPickerInput } from "@/components/shared/ColorPickerInput"

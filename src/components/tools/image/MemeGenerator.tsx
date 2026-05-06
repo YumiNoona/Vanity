@@ -164,7 +164,7 @@ export function MemeGenerator() {
     if (!canvas) return
     const activeObjects = canvas.getActiveObjects()
     if (activeObjects.length) {
-      activeObjects.forEach(obj => canvas.remove(obj))
+      activeObjects.forEach((obj: any) => canvas.remove(obj))
       canvas.discardActiveObject()
       canvas.requestRenderAll()
       setHasSelection(false)
@@ -202,7 +202,7 @@ export function MemeGenerator() {
             setIsProcessing(false)
             
             // Clean up stream tracks to prevent leaks/active camera indicator
-            stream.getTracks().forEach(track => track.stop())
+            stream.getTracks().forEach((track: MediaStreamTrack) => track.stop())
             
             // Resume preview render loop
             const renderLoop = () => {

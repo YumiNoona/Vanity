@@ -69,19 +69,21 @@ export function ColorBlindness() {
 
     processingTimeoutRef.current = window.setTimeout(async () => {
       try {
-        if (!isMountedRef.current || runId !== runIdRef.current) return
-        
+        if (!file) return
         const result = await loadImage(file)
         const img = result.source
         
+        const w = (img as HTMLImageElement).naturalWidth || (img as ImageBitmap).width
+        const h = (img as HTMLImageElement).naturalHeight || (img as ImageBitmap).height
+        
         const canvas = document.createElement("canvas")
-        if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+        if (w === 0 || h === 0) {
           result.cleanup()
           throw new Error("Invalid image dimensions")
         }
 
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
+        canvas.width = w
+        canvas.height = h
         
         const ctx = canvas.getContext("2d", { willReadFrequently: true })
         if (!ctx) {
