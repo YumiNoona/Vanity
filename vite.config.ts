@@ -29,6 +29,7 @@ export default defineConfig({
             if (id.includes("@tensorflow") || id.includes("upscaler")) return "vendor-ai-engine"
             if (id.includes("framer-motion")) return "vendor-framer"
             if (id.includes("lucide-react")) return "vendor-ui-core"
+            if (id.includes("react-colorful") || id.includes("qrcode") || id.includes("jsbarcode") || id.includes("canvas-confetti")) return "vendor-ui-utils"
             return "vendor"
           }
           // Group tool components by domain to reduce fragmentation

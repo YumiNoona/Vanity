@@ -40,7 +40,7 @@ const RemoveBg = lazy(() => import("./components/tools/image/RemoveBg").then(m =
 const ImageCompressor = lazy(() => import("./components/tools/image/ImageCompressor").then(m => ({ default: m.ImageCompressor })))
 const FormatConverter = lazy(() => import("./components/tools/image/FormatConverter").then(m => ({ default: m.FormatConverter })))
 const ImageCrop = lazy(() => import("./components/tools/image/ImageCrop").then(m => ({ default: m.ImageCrop })))
-const WatermarkStudio = lazy(() => import("./components/tools/image/WatermarkStudio").then(m => ({ default: m.WatermarkStudio })))
+const ObjectEraser = lazy(() => import("./components/tools/image/WatermarkRemover").then(m => ({ default: m.ObjectEraser })))
 const ColorPalette = lazy(() => import("./components/tools/image/ColorPalette").then(m => ({ default: m.ColorPalette })))
 const SmartCensor = lazy(() => import("./components/tools/image/SmartCensor").then(m => ({ default: m.SmartCensor })))
 const ImagePrivacy = lazy(() => import("./components/tools/image/ImagePrivacy").then(m => ({ default: m.ImagePrivacy })))
@@ -203,7 +203,7 @@ function App() {
             <Route path="/tools/image/compress" element={<ImageCompressor />} />
             <Route path="/tools/image/convert" element={<FormatConverter />} />
             <Route path="/tools/image/crop" element={<ImageCrop />} />
-            <Route path="/tools/image/watermark-studio" element={<WatermarkStudio />} />
+            <Route path="/tools/image/object-eraser" element={<ObjectEraser />} />
             <Route path="/tools/image/palette" element={<ColorPalette />} />
             <Route path="/tools/image/censor" element={<SmartCensor />} />
             <Route path="/tools/image/privacy" element={<ImagePrivacy />} />

@@ -6,11 +6,10 @@ import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { drawToCanvas, exportCanvas, downloadBlob } from "@/lib/canvas"
-import { runYieldedTask, releaseCanvas } from "@/lib/canvas/guards"
-
+import { runYieldedTask } from "@/lib/canvas/guards"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
-export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
+export function ObjectEraser({ embedded = false }: { embedded?: boolean }) {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const { isProcessing, progress, processImage, updateProgress, getJobId, clearCurrent } = useImageProcessor()
@@ -53,13 +52,11 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
     
     await drawToCanvas(result.source, canvas, { clear: true })
     
-    // Sync mask size
     mask.width = canvas.width
     mask.height = canvas.height
     const mCtx = mask.getContext("2d")!
     mCtx.clearRect(0, 0, mask.width, mask.height)
   }
-
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true)
@@ -69,7 +66,7 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
   const stopDrawing = () => {
     setIsDrawing(false)
     const ctx = maskCanvasRef.current?.getContext("2d")
-    ctx?.beginPath() // Reset path
+    ctx?.beginPath()
   }
 
   const draw = (e: any) => {
@@ -77,8 +74,6 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
     const canvas = maskCanvasRef.current
     const ctx = canvas.getContext("2d")!
     const rect = canvas.getBoundingClientRect()
-    
-    // Scale coordinates if canvas is resized by CSS
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
     
@@ -112,21 +107,42 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
     
     const total = maskPixels.length
     let processed = 0
+    const width = canvas.width
+    const height = canvas.height
     
     updateProgress(0)
     
     const step = () => {
-      // Process a chunk of pixels
-      const chunkSize = 40000 // Substantial chunk
+      const chunkSize = 20000 
       const end = Math.min(processed + chunkSize, total)
-      
+      const searchRadius = 12
+
       for (let i = processed; i < end; i += 4) {
-        if (maskPixels[i + 3] > 0) {
-          // Simple local reconstruction
-          const idx = i
-          data[idx] = data[idx - 40] || data[idx]
-          data[idx + 1] = data[idx + 1 - 40] || data[idx + 1]
-          data[idx + 2] = data[idx + 2 - 40] || data[idx + 2]
+        if (maskPixels[i + 3] > 128) {
+          const pxIdx = i / 4
+          const x = pxIdx % width
+          const y = Math.floor(pxIdx / width)
+
+          let found = false
+          // Search spirals out to find nearest non-masked pixel
+          for (let r = 1; r < searchRadius && !found; r++) {
+            for (let dx = -r; dx <= r && !found; dx++) {
+              for (let dy = -r; dy <= r && !found; dy++) {
+                if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue
+                const nx = x + dx
+                const ny = y + dy
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                  const nIdx = (ny * width + nx) * 4
+                  if (maskPixels[nIdx + 3] < 20) {
+                    data[i] = data[nIdx]
+                    data[i + 1] = data[nIdx + 1]
+                    data[i + 2] = data[nIdx + 2]
+                    found = true
+                  }
+                }
+              }
+            }
+          }
         }
       }
       
@@ -135,30 +151,23 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
     }
     
     try {
-      // Use time-budgeted yielding
       await runYieldedTask(step, () => processed < total && jobId === getJobId())
-      
-      // Abort if job ID changed
       if (jobId !== getJobId()) return
-
       ctx.putImageData(imgData, 0, 0)
-      
       const blob = await exportCanvas(canvas, "image/png", 1.0)
       setResultBlob(blob)
       setResultUrl(blob)
-      toast.success("AI Removal Complete!")
+      toast.success("Object removal complete!")
     } catch (e) {
-      toast.error("Process interrupted or failed")
+      toast.error("Processing failed")
     } finally {
-      if (jobId === getJobId()) {
-        updateProgress(100)
-      }
+      if (jobId === getJobId()) updateProgress(100)
     }
   }
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Watermark Remover" description="Upload an image and brush over the watermark to remove it using local AI." icon={Eraser} hideHeader={embedded}>
+      <ToolUploadLayout title="Object Eraser" description="Precision removal of watermarks, people, or objects." icon={Eraser} hideHeader={embedded}>
         <div className="max-w-2xl mx-auto">
           <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
         </div>
@@ -167,105 +176,61 @@ export function WatermarkRemover({ embedded = false }: { embedded?: boolean }) {
   }
 
   return (
-    <ToolLayout title="Smart Remover" description="Brush over unwanted watermarks or objects." centered={true} maxWidth="max-w-6xl" hideHeader={embedded}>
+    <ToolLayout title="Object Eraser" description="Brush over unwanted elements." centered maxWidth="max-w-6xl" hideHeader={embedded}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-6 rounded-xl space-y-6">
              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold uppercase tracking-widest">Brush Size</span>
-                  <span className="text-xs text-primary">{brushSize}px</span>
+                   <span className="text-xs font-bold uppercase tracking-widest text-white/50">Brush Size</span>
+                   <span className="text-xs text-primary font-mono">{brushSize}px</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="5" 
-                  max="100" 
-                  value={brushSize} 
-                  onChange={e => setBrushSize(Number(e.target.value))}
-                  className="w-full accent-primary"
-                />
+                <input type="range" min="5" max="100" value={brushSize} onChange={e => setBrushSize(Number(e.target.value))} className="w-full accent-primary" />
              </div>
-
-             <div className="pt-6 border-t border-white/10 space-y-4">
-                <button 
-                  onClick={() => {
+             <div className="pt-6 border-t border-white/5 space-y-4">
+                <button onClick={() => {
                     const mCtx = maskCanvasRef.current?.getContext("2d")
                     mCtx?.clearRect(0, 0, maskCanvasRef.current!.width, maskCanvasRef.current!.height)
-                  }}
-                  className="w-full py-3 text-xs font-bold bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center gap-2 transition-all"
-                >
+                  }} className="w-full py-3 text-xs font-bold bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center gap-2 transition-all">
                   <RefreshCw className="w-4 h-4" /> Clear Mask
                 </button>
-                
-                <button 
-                  onClick={handleProcess}
-                  disabled={isProcessing || (progress > 0 && progress < 100)}
-                  className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {(isProcessing || (progress > 0 && progress < 100)) ? <Loader2 className="animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                  Clean Selected Area
+                <button onClick={handleProcess} disabled={isProcessing} className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
+                  {isProcessing ? <Loader2 className="animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                  Erase Selection
                 </button>
              </div>
           </div>
-
-          <div className="glass-panel p-4 rounded-xl flex items-start gap-4">
-             <div className="p-2 bg-primary/20 rounded text-primary">
-                <Layers className="w-4 h-4" />
-             </div>
-             <p className="text-[10px] leading-relaxed text-muted-foreground">
-               Brushing over the watermark tells our AI where to focus. For best results, brush slightly outside the edges of the text or logo.
+          <div className="glass-panel p-4 rounded-xl flex items-start gap-4 border-white/5">
+             <div className="p-2 bg-primary/10 rounded text-primary"><Layers className="w-4 h-4" /></div>
+             <p className="text-[10px] leading-relaxed text-muted-foreground uppercase font-bold tracking-tight">
+               Our synthesis algorithm uses surrounding pixels to reconstruct the background. Brush slightly wider than the object for the best blend.
              </p>
           </div>
         </div>
 
-        <div className="lg:col-span-3 glass-panel p-4 rounded-2xl flex items-center justify-center bg-[#050505] min-h-[500px] relative overflow-hidden group">
+        <div className="lg:col-span-3 glass-panel p-4 rounded-3xl flex items-center justify-center bg-black/40 min-h-[500px] relative overflow-hidden">
           <canvas ref={canvasRef} className="max-w-full max-h-[70vh] rounded shadow-2xl" />
-          <canvas 
-            ref={maskCanvasRef} 
-            className="absolute max-w-full max-h-[70vh] rounded cursor-crosshair touch-none"
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-            onTouchEnd={stopDrawing}
-          />
+          <canvas ref={maskCanvasRef} className="absolute max-w-full max-h-[70vh] rounded cursor-crosshair touch-none" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing} />
           
-          {(isProcessing || (progress > 0 && progress < 100)) && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-opacity">
+          {isProcessing && (
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
               <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-              <h3 className="text-xl font-bold font-syne animate-pulse text-white">
-                {progress > 0 ? `Processing: ${progress}%` : "AI In-painting..."}
-              </h3>
-              <div className="w-48 h-1 bg-white/10 rounded-full mt-4 overflow-hidden">
-                 <div 
-                   className="h-full bg-primary transition-all duration-300" 
-                   style={{ width: `${progress}%` }}
-                 />
+              <h3 className="text-xl font-black font-syne text-white uppercase tracking-tighter">Synthesizing...</h3>
+              <div className="w-48 h-1.5 bg-white/5 rounded-full mt-6 overflow-hidden">
+                 <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
               </div>
-              <p className="text-sm text-muted-foreground mt-4">Reconstructing pixels locally</p>
             </div>
           )}
 
           {resultUrl && (
-            <div className="absolute inset-0 z-40 flex items-center justify-center bg-background pointer-events-auto">
-               <img src={resultUrl} alt="Result" className="max-w-full max-h-[70vh] rounded shadow-2xl" />
-               <div className="absolute top-4 right-4 flex gap-2">
-                  <button 
-                    onClick={() => {
-                      if (!resultBlob) return;
-                      downloadBlob(resultBlob, "vanity-cleaned.png");
-                    }}
-                    className="px-6 py-2 bg-primary text-primary-foreground font-bold rounded-full shadow-lg flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4" /> Export
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black pointer-events-auto">
+               <img src={resultUrl} className="max-w-full max-h-[70vh] rounded shadow-2xl" />
+               <div className="absolute top-6 right-6 flex gap-3">
+                  <button onClick={() => resultBlob && downloadBlob(resultBlob, "erased.png")} className="px-8 py-3 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-full shadow-xl shadow-primary/20">
+                    <Download className="w-4 h-4 mr-2 inline" /> Export
                   </button>
-                  <button 
-                     onClick={() => clearResultUrl()}
-                     className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full font-bold"
-                  >
-                    Back to Editor
+                  <button onClick={() => clearResultUrl()} className="px-8 py-3 bg-white/5 text-white border border-white/10 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white/10">
+                    Back
                   </button>
                </div>
             </div>

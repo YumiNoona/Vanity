@@ -92,6 +92,7 @@ export function PixelMosaic() {
 
   const handleSourceDrop = (files: File[]) => {
     if (files[0]) {
+      if (sourcePreview) URL.revokeObjectURL(sourcePreview)
       setSourceFile(files[0])
       setSourcePreview(URL.createObjectURL(files[0]))
       setStatus('idle')
@@ -107,6 +108,10 @@ export function PixelMosaic() {
         canvas.width = sidelen
         canvas.height = sidelen
         const ctx = canvas.getContext('2d')!
+
+        // Fill background with grey to handle transparency issues
+        ctx.fillStyle = '#808080'
+        ctx.fillRect(0, 0, sidelen, sidelen)
 
         // Center crop
         const side = Math.min(img.naturalWidth, img.naturalHeight)

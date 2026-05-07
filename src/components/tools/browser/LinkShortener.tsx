@@ -46,8 +46,8 @@ export function LinkShortener() {
         margin: 2,
         width: 400,
         color: {
-          dark: "#FFFFFF",
-          light: "#0a0a0a"
+          dark: "#000000",
+          light: "#FFFFFF"
         }
       }).then(setQrUrl).catch(console.error)
     }

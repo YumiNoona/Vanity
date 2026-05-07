@@ -154,6 +154,7 @@ export function GifMaker() {
 
         if (!obj.error) {
            if (performance.now() - startTime > ENCODE_TIMEOUT) {
+              cleanupFrames()
               toast.error("Processing timeout—try fewer frames")
               setIsProcessing(false)
               return
@@ -163,12 +164,15 @@ export function GifMaker() {
              .then(res => res.blob())
              .then(blob => {
                if (generationIdRef.current !== generationId || isCancelledRef.current) {
+                 cleanupFrames()
                  return
                }
                setResultGif(blob)
+               cleanupFrames()
              })
            toast.success("GIF generated!")
         } else {
+           cleanupFrames()
            toast.error(obj.errorMsg || "GIF encoding failed")
         }
         setIsProcessing(false)
