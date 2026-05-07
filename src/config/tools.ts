@@ -13,7 +13,7 @@ import {
   EyeOff, ImagePlay, FastForward, Award, Database, FileSearch,
   Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
   Percent, Wallet, Receipt, Repeat, Table,
-  BookOpen, Share2, Maximize, Network
+  BookOpen, Share2, Maximize, Network, Eraser
 } from "lucide-react"
 
 // Types to allow easier custom icons
