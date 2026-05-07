@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { useDownload } from "@/hooks/useDownload"
 
-export function TomlJson() {
+export function TomlJson({ embedded = false }: { embedded?: boolean } = {}) {
   const [input, setInput] = useState(`[package]\nname = "vanity"\nversion = "0.1.0"\nedition = "2021"\n\n[dependencies]\nreact = "18.2.0"`)
   const [direction, setDirection] = useState<"toml-to-json" | "json-to-toml">("toml-to-json")
   const { isCopied: copied, copy } = useCopyToClipboard()
@@ -51,6 +51,7 @@ export function TomlJson() {
       icon={Repeat}
       centered={true}
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <div className="space-y-4 flex flex-col">

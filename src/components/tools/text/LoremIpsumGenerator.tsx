@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react"
-import { AlignLeft, Copy, CheckCircle, RefreshCcw } from "lucide-react"
+import { AlignLeft, Copy, CheckCircle, RefreshCcw, Type, Quote, Terminal, Coffee } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { PillToggle } from "@/components/shared/PillToggle"
+import { cn } from "@/lib/utils"
 
 const DICTIONARIES = {
   classic: ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat"],
@@ -20,16 +22,15 @@ export function LoremIpsumGenerator() {
     let result = ""
     const dict = DICTIONARIES[type]
     
-    // Quick random helpers
     const rWord = () => dict[Math.floor(Math.random() * dict.length)]
     const rSentence = () => {
-      const len = Math.floor(Math.random() * 8) + 5 // 5 to 12 words
+      const len = Math.floor(Math.random() * 8) + 5
       const words = Array.from({length: len}, rWord)
       words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1)
       return words.join(" ") + "."
     }
     const rParagraph = () => {
-      const len = Math.floor(Math.random() * 4) + 3 // 3 to 6 sentences
+      const len = Math.floor(Math.random() * 4) + 3
       return Array.from({length: len}, rSentence).join(" ")
     }
 
@@ -43,7 +44,6 @@ export function LoremIpsumGenerator() {
       result = w.join(" ") + (w.length > 0 ? "." : "")
     }
 
-    // Force "Lorem ipsum" start if classic paragraphs/sentences are chosen and someone wants it
     if (type === "classic" && (unit === "paragraphs" || unit === "sentences")) {
       if (!result.toLowerCase().startsWith("lorem")) {
         result = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " + result
@@ -53,81 +53,88 @@ export function LoremIpsumGenerator() {
     setOutput(result)
   }
 
-  // Pre-gen on load or context shift
   useEffect(() => {
     generate()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, unit, count])
-
-  const handleCopy = () => {
-    copy(output)
-    }
 
   return (
     <ToolLayout 
-      title="Lorem Ipsum Generator" 
-      description="Generate customizable placeholder text instantly for your mockups." 
+      title="Lorem Ipsum Studio" 
+      description="Generate high-fidelity placeholder text for architectural mockups." 
       icon={AlignLeft}
       centered={true}
-      maxWidth="max-w-2xl"
+      maxWidth="max-w-4xl"
     >
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl mx-4 sm:mx-0 space-y-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6">
-           <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 overflow-hidden w-full sm:w-auto">
-             {(["classic", "tech", "hipster"] as const).map(t => (
-               <button
-                 key={t}
-                 onClick={() => setType(t)}
-                 className={`flex-1 sm:flex-none px-4 py-2 text-sm font-bold capitalize rounded-lg transition-colors ${type === t ? 'bg-stone-500/20 text-stone-400' : 'text-muted-foreground hover:text-white'}`}
-               >
-                 {t}
-               </button>
-             ))}
-           </div>
-           
-           <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 overflow-hidden w-full sm:w-auto">
-              <input 
-                type="number"
-                min="1"
-                max="100"
-                value={count}
-                onChange={(e) => setCount(parseInt(e.target.value) || 1)}
-                className="w-16 bg-transparent border-none outline-none font-mono text-center text-white"
-              />
-              <select
-                 value={unit}
-                 onChange={(e) => setUnit(e.target.value as any)}
-                 className="bg-transparent border-none outline-none font-bold text-sm text-stone-400 pl-2 pr-4 appear"
-              >
-                <option className="bg-background" value="paragraphs">Paragraphs</option>
-                <option className="bg-background" value="sentences">Sentences</option>
-                <option className="bg-background" value="words">Words</option>
-              </select>
-           </div>
-
-           <button 
-             onClick={generate}
-             className="w-full sm:w-auto px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex items-center justify-center"
-             title="Regenerate"
-           >
-             <RefreshCcw className="w-5 h-5" />
-           </button>
+      <div className="space-y-8 px-4 sm:px-0 pb-12">
+        <div className="flex justify-center">
+           <PillToggle 
+             activeId={type}
+             onChange={(id) => setType(id as any)}
+             options={[
+               { id: "classic", label: "Classic", icon: Type },
+               { id: "tech", label: "Tech", icon: Terminal },
+               { id: "hipster", label: "Hipster", icon: Coffee },
+             ]}
+           />
         </div>
 
-        <div className="relative group">
-           <button 
-              onClick={handleCopy}
-              className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-white/10 backdrop-blur rounded-lg flex items-center gap-2 hover:bg-white/20 text-white font-bold text-xs"
-           >
-              {copied ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copied!" : "Copy Text"}
-           </button>
-           <textarea
-             readOnly
-             value={output}
-             className="w-full h-[400px] bg-black/30 border border-white/5 rounded-xl p-6 text-sm text-stone-100/90 leading-relaxed resize-none outline-none custom-scrollbar"
-             spellCheck={false}
-           />
+        <div className="glass-panel p-8 rounded-[2.5rem] bg-black/20 border border-white/5 space-y-8 shadow-2xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
+             <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="flex-1 md:flex-none flex items-center bg-white/5 border border-white/10 rounded-2xl p-1.5 shadow-inner">
+                   <input 
+                     type="number"
+                     min="1"
+                     max="100"
+                     value={count}
+                     onChange={(e) => setCount(parseInt(e.target.value) || 1)}
+                     className="w-16 bg-transparent border-none outline-none font-mono text-center text-primary font-black text-xl"
+                   />
+                   <div className="w-px h-6 bg-white/10 mx-2" />
+                   <select
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value as any)}
+                      className="bg-transparent border-none outline-none font-black text-[10px] uppercase tracking-widest text-muted-foreground pl-2 pr-6 appearance-none cursor-pointer hover:text-white transition-colors"
+                   >
+                     <option className="bg-[#0A0A0A]" value="paragraphs">Paragraphs</option>
+                     <option className="bg-[#0A0A0A]" value="sentences">Sentences</option>
+                     <option className="bg-[#0A0A0A]" value="words">Words</option>
+                   </select>
+                </div>
+                
+                <button 
+                  onClick={generate}
+                  className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all hover:scale-110 active:scale-95 group"
+                  title="Regenerate"
+                >
+                  <RefreshCcw className="w-5 h-5 text-primary group-hover:rotate-180 transition-transform duration-500" />
+                </button>
+             </div>
+
+             <button 
+                onClick={() => copy(output)}
+                className="w-full md:w-auto px-8 py-4 bg-primary text-primary-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all"
+             >
+                {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Copied" : "Copy Payload"}
+             </button>
+          </div>
+
+          <div className="relative group">
+             <div className="absolute top-6 left-6 flex items-center gap-2 pointer-events-none z-10 opacity-30">
+                <Quote className="w-10 h-10 text-primary" />
+             </div>
+             <textarea
+               readOnly
+               value={output}
+               className="w-full h-[500px] bg-[#050505] border border-white/5 rounded-[2rem] p-12 pt-16 font-serif text-lg text-stone-300/80 leading-relaxed resize-none outline-none custom-scrollbar shadow-inner"
+               spellCheck={false}
+             />
+             <div className="absolute bottom-6 right-8 flex items-center gap-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{output.split(' ').length} Words</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{output.length} Chars</span>
+             </div>
+          </div>
         </div>
       </div>
     </ToolLayout>

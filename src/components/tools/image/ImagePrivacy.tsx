@@ -18,7 +18,7 @@ export function ImagePrivacy() {
       centered={true}
     >
       <div className="relative animate-in fade-in duration-500">
-        <div className="flex justify-center relative z-10 mb-8 mt-4">
+        <div className="flex justify-center relative z-10 mb-4 mt-4">
           <PillToggle
             activeId={activeTab}
             onChange={(id) => setActiveTab(id as any)}

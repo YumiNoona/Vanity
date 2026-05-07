@@ -193,13 +193,15 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
                 >
                   <RefreshCw className="w-5 h-5" />
                 </button>
-                <button 
-                  onClick={pickColor} 
-                  className="p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10"
-                  title="Pick Color"
-                >
-                  <Pipette className="w-5 h-5" />
-                </button>
+                {'EyeDropper' in window && (
+                  <button 
+                    onClick={pickColor} 
+                    className="p-3 bg-black/20 backdrop-blur-xl rounded-2xl text-white hover:bg-black/40 transition-all border border-white/10"
+                    title="Pick Color"
+                  >
+                    <Pipette className="w-5 h-5" />
+                  </button>
+                )}
               </div>
            </div>
 

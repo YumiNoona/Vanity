@@ -56,13 +56,22 @@ export function SocialResizer() {
       const img = new Image()
       img.onload = () => {
         if (!isMounted) return
-        if (fabricCanvas.current) fabricCanvas.current.dispose()
+        if (fabricCanvas.current) {
+           fabricCanvas.current.dispose()
+           fabricCanvas.current = null
+        }
         
         const canvas = new fabric.Canvas(canvasRef.current!, {
           width: 600,
           height: 600,
           backgroundColor: "#000"
         })
+
+        if (!isMounted) {
+           canvas.dispose()
+           return
+        }
+
         fabricCanvas.current = canvas
 
         if (!img.width) return
@@ -241,7 +250,7 @@ export function SocialResizer() {
               <h3 className="text-xs font-black uppercase tracking-widest text-white border-b border-white/5 pb-4">Export Settings</h3>
               
               <div className="space-y-4">
-                 <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase">Aspect Lock</span>
                     <button 
                       onClick={() => {
@@ -249,20 +258,32 @@ export function SocialResizer() {
                         setLockAspect(next)
                         handlePresetChange(activePreset)
                       }}
-                      className={cn("w-8 h-4 rounded-full relative transition-colors", lockAspect ? "bg-primary" : "bg-white/10")}
+                      className={cn(
+                        "w-10 h-5 rounded-full relative transition-all duration-300",
+                        lockAspect ? "bg-primary" : "bg-white/10"
+                      )}
                     >
-                       <div className={cn("absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all", lockAspect ? "left-4.5" : "left-0.5")} />
+                       <div className={cn(
+                         "absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-all duration-300 shadow-sm",
+                         lockAspect ? "translate-x-5" : "translate-x-0"
+                       )} />
                     </button>
-                 </div>
-                 <div className="flex items-center justify-between">
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase">Safe Areas</span>
                     <button 
                       onClick={() => setShowSafeAreas(!showSafeAreas)}
-                      className={cn("w-8 h-4 rounded-full relative transition-colors", showSafeAreas ? "bg-primary" : "bg-white/10")}
+                      className={cn(
+                        "w-10 h-5 rounded-full relative transition-all duration-300",
+                        showSafeAreas ? "bg-primary" : "bg-white/10"
+                      )}
                     >
-                       <div className={cn("absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all", showSafeAreas ? "left-4.5" : "left-0.5")} />
+                       <div className={cn(
+                         "absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-all duration-300 shadow-sm",
+                         showSafeAreas ? "translate-x-5" : "translate-x-0"
+                       )} />
                     </button>
-                 </div>
+                  </div>
               </div>
 
               <button 

@@ -160,7 +160,7 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
   if (!file) {
     return (
       <ToolUploadLayout title="Image Privacy" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck} hideHeader={embedded}>
-        <div className={cn("flex justify-center", embedded ? "mt-2 mb-4" : "mb-10")}>
+        <div className={cn("flex justify-center", embedded ? "mt-0 mb-4" : "mb-10")}>
            <PillToggle 
              activeId={processMode}
              onChange={(mode) => { setProcessMode(mode); handleBack(); }}

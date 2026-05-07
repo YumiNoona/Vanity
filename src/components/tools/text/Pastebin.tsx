@@ -1059,14 +1059,7 @@ export function Pastebin() {
                     </button>
                   )}
 
-                  {activeTab !== "text" && (
-                    <div className="p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10 flex gap-3 animate-in fade-in slide-in-from-bottom-4">
-                       <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                       <p className="text-[10px] text-amber-500/60 leading-relaxed font-bold uppercase tracking-tight">
-                         Files are publicly accessible to anyone with the link via 0x0.st. Avoid sensitive data.
-                       </p>
-                    </div>
-                  )}
+
                </div>
 
                {shareUrl && (

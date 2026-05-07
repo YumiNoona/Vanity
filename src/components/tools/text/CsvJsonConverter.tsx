@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from "react"
 import { ArrowLeft, Copy, CheckCircle, ArrowLeftRight, Trash2, FileSpreadsheet, Download, RefreshCw } from "lucide-react"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { ToolLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
-export function CsvJsonConverter() {
+export function CsvJsonConverter({ embedded = false }: { embedded?: boolean } = {}) {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"csv-to-json" | "json-to-csv">("csv-to-json")
@@ -97,6 +97,7 @@ export function CsvJsonConverter() {
       icon={FileSpreadsheet} 
       centered={true}
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 sm:px-0 pb-12">
         {/* Input Area */}

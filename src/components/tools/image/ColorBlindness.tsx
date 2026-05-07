@@ -1,238 +1,220 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Download, Eye, EyeOff, Loader2, RefreshCw, AlertCircle } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { loadImage, exportCanvas, downloadBlob } from "@/lib/canvas"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { cn } from "@/lib/utils"
 
 type Simulation = "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia" | "original"
 
 const MATRICES: Record<string, number[]> = {
-  protanopia: [0.567, 0.433, 0.0, 0.558, 0.442, 0.0, 0.0, 0.242, 0.758], // Red blind
-  deuteranopia: [0.625, 0.375, 0.0, 0.700, 0.300, 0.0, 0.0, 0.300, 0.700], // Green blind
-  tritanopia: [0.950, 0.050, 0.0, 0.0, 0.433, 0.567, 0.0, 0.475, 0.525], // Blue blind
-  achromatopsia: [0.299, 0.587, 0.114, 0.299, 0.587, 0.114, 0.299, 0.587, 0.114] // Monochromacy
+  protanopia: [0.567, 0.433, 0.0, 0.558, 0.442, 0.0, 0.0, 0.242, 0.758],
+  deuteranopia: [0.625, 0.375, 0.0, 0.700, 0.300, 0.0, 0.0, 0.300, 0.700],
+  tritanopia: [0.950, 0.050, 0.0, 0.0, 0.433, 0.567, 0.0, 0.475, 0.525],
+  achromatopsia: [0.299, 0.587, 0.114, 0.299, 0.587, 0.114, 0.299, 0.587, 0.114]
 }
 
 export function ColorBlindness() {
   const [file, setFile] = useState<File | null>(null)
-  const { url: imgUrl, setUrl: setImgUrl, clear: clearImgUrl } = useObjectUrl()
+  const { url: previewUrl, setUrl: setPreviewUrl, clear: clearPreviewUrl } = useObjectUrl()
   const [mode, setMode] = useState<Simulation>("original")
-  const { url: outputUrl, setUrl: setOutputUrl, clear: clearOutputUrl } = useObjectUrl()
   const [isProcessing, setIsProcessing] = useState(false)
   
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const processingTimeoutRef = useRef<number | null>(null)
+  const originalDataRef = useRef<ImageData | null>(null)
   const runIdRef = useRef(0)
-  const isMountedRef = useRef(true)
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-      if (processingTimeoutRef.current !== null) {
-        window.clearTimeout(processingTimeoutRef.current)
-      }
-    }
-  }, [])
 
   const handleDrop = (files: File[]) => {
-    if (files[0]) {
-      setFile(files[0])
-      setImgUrl(files[0])
+    const f = files[0]
+    if (f) {
+      setFile(f)
+      setPreviewUrl(f)
       setMode("original")
-      clearOutputUrl()
+      originalDataRef.current = null // Reset cache
     }
   }
 
-  const applyMatrix = async (simMode: Simulation) => {
-    runIdRef.current += 1
-    const runId = runIdRef.current
-    
-    if (processingTimeoutRef.current !== null) {
-      window.clearTimeout(processingTimeoutRef.current)
-      processingTimeoutRef.current = null
-    }
-    
-    setMode(simMode)
-    if (simMode === "original") {
-      clearOutputUrl()
-      setIsProcessing(false)
-      return
-    }
-
-    if (!imgRef.current || !imgUrl) return
+  const applyEffect = useCallback((simMode: Simulation) => {
+    if (!originalDataRef.current || !canvasRef.current) return
+    const runId = ++runIdRef.current
     setIsProcessing(true)
+    setMode(simMode)
 
-    if (!isMountedRef.current || runId !== runIdRef.current) return
-
-    processingTimeoutRef.current = window.setTimeout(async () => {
-      try {
-        if (!file) return
-        const result = await loadImage(file)
-        const img = result.source
-        
-        const w = (img as HTMLImageElement).naturalWidth || (img as ImageBitmap).width
-        const h = (img as HTMLImageElement).naturalHeight || (img as ImageBitmap).height
-        
-        const canvas = document.createElement("canvas")
-        if (w === 0 || h === 0) {
-          result.cleanup()
-          throw new Error("Invalid image dimensions")
-        }
-
-        canvas.width = w
-        canvas.height = h
-        
-        const ctx = canvas.getContext("2d", { willReadFrequently: true })
-        if (!ctx) {
-          result.cleanup()
-          throw new Error("Failed to get 2d context")
-        }
-
-        ctx.drawImage(img, 0, 0)
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        const data = imageData.data
-        const matrix = MATRICES[simMode]
-
-        // Strict matrix multiplication over flat Uint8ClampedArray
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i]
-          const g = data[i + 1]
-          const b = data[i + 2]
-
-          data[i]     = r * matrix[0] + g * matrix[1] + b * matrix[2]
-          data[i + 1] = r * matrix[3] + g * matrix[4] + b * matrix[5]
-          data[i + 2] = r * matrix[6] + g * matrix[7] + b * matrix[8]
-        }
-
-        ctx.putImageData(imageData, 0, 0)
-        const blob = await exportCanvas(canvas, "image/png", 1.0)
-        
-        if (isMountedRef.current && runId === runIdRef.current) {
-          setOutputUrl(blob)
-          setIsProcessing(false)
-        }
-        result.cleanup()
-      } catch (err) {
-        console.error(err)
-        if (isMountedRef.current && runId === runIdRef.current) {
-          toast.error("Failed to process image matrix")
-          setIsProcessing(false)
-        }
+    // Yield to UI to show spinner
+    setTimeout(() => {
+      if (runId !== runIdRef.current) return
+      
+      const canvas = canvasRef.current!
+      const ctx = canvas.getContext("2d", { willReadFrequently: true })!
+      const source = originalDataRef.current!
+      
+      if (simMode === "original") {
+        ctx.putImageData(source, 0, 0)
+        setIsProcessing(false)
+        return
       }
+
+      const imageData = new ImageData(
+        new Uint8ClampedArray(source.data),
+        source.width,
+        source.height
+      )
+      const data = imageData.data
+      const matrix = MATRICES[simMode]
+
+      // Optimized matrix transformation
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+
+        data[i]     = r * matrix[0] + g * matrix[1] + b * matrix[2]
+        data[i + 1] = r * matrix[3] + g * matrix[4] + b * matrix[5]
+        data[i + 2] = r * matrix[6] + g * matrix[7] + b * matrix[8]
+      }
+
+      ctx.putImageData(imageData, 0, 0)
+      setIsProcessing(false)
     }, 50)
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!file || !previewUrl || !canvasRef.current) return
+
+    const img = new Image()
+    img.onload = () => {
+      const canvas = canvasRef.current!
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      const ctx = canvas.getContext("2d", { willReadFrequently: true })!
+      ctx.drawImage(img, 0, 0)
+      originalDataRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      setMode("original")
+      setIsProcessing(false)
+    }
+    img.onerror = () => toast.error("Failed to load image")
+    img.src = previewUrl
+  }, [file, previewUrl])
 
   const handleDownload = () => {
-    const finalUrl = outputUrl || imgUrl
-    if (!finalUrl || !file) return
-    const a = document.createElement("a")
-    a.href = finalUrl
-    a.download = `vanity-${mode}-${file.name}`
-    a.click()
+    if (!canvasRef.current) return
+    canvasRef.current.toBlob((blob) => {
+      if (blob) {
+        downloadBlob(blob, `vanity-${mode}-${file?.name || 'image.png'}`)
+        toast.success("Simulation exported!")
+      }
+    }, "image/png")
   }
 
   const handleBack = () => {
     setFile(null)
-    clearImgUrl()
-    clearOutputUrl()
+    clearPreviewUrl()
+    originalDataRef.current = null
   }
 
-  if (!file || !imgUrl) {
+  if (!file) {
     return (
-      <ToolUploadLayout title="Color Blindness Simulator" description="Apply mathematically precise pixel matrices to rigorously test UI/UX color accessibility." icon={EyeOff}>
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
+      <ToolUploadLayout title="Color Blindness Simulator" description="Mathematically simulate visual perception to test UI accessibility." icon={EyeOff}>
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to start simulation" />
       </ToolUploadLayout>
     )
   }
 
   return (
     <ToolLayout 
-      title="Color Blindness Simulator" 
-      description={`Visualizing ${mode.toUpperCase()} matrices directly against RGB pipelines locally.`} 
+      title="Blindness Simulator" 
+      description={`Simulating ${mode.toUpperCase()} vision against 1:1 pixel matrices.`} 
       icon={Eye} 
       centered={true}
       maxWidth="max-w-6xl"
     >
-      {/* Hidden processing resources */}
-      <img ref={imgRef} src={imgUrl} className="hidden" alt="Original" />
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-         <div className="lg:col-span-3">
-             <div className="relative aspect-video rounded-3xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center shadow-2xl">
-                {isProcessing ? (
-                   <div className="flex flex-col items-center">
-                      <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
-                      <p className="font-mono text-sm text-muted-foreground">Applying matrix transformation...</p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div className="lg:col-span-8">
+             <div className="glass-panel p-4 rounded-3xl min-h-[600px] bg-[#050505] border border-white/5 flex items-center justify-center relative shadow-2xl overflow-hidden group">
+                <canvas 
+                   ref={canvasRef} 
+                   className={cn(
+                     "max-w-full max-h-[75vh] rounded-xl shadow-2xl transition-all duration-500",
+                     isProcessing ? "opacity-30 blur-sm scale-[0.99]" : "opacity-100 scale-100"
+                   )} 
+                />
+                
+                {isProcessing && (
+                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+                      <RefreshCw className="w-12 h-12 text-primary animate-spin" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Simulating Vision...</span>
                    </div>
-                ) : (
-                   (outputUrl || imgUrl) && <img src={outputUrl || imgUrl || ""} className="max-w-full max-h-full object-contain pointer-events-none" alt="Simulated" />
                 )}
-                <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 backdrop-blur rounded text-xs font-bold text-white uppercase tracking-widest border border-white/5">
-                   {mode}
+                
+                <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/10">
+                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-white/50">{mode}</span>
                 </div>
              </div>
          </div>
 
-         <div className="space-y-4">
-            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 block">Simulation Modes</label>
-            
-            <button 
-              onClick={() => applyMatrix("original")}
-              className={`w-full p-4 rounded-xl text-left transition-all border ${mode === "original" ? "bg-white/10 border-purple-500/50" : "bg-black/30 border-white/5 hover:bg-white/5"}`}
-            >
-               <h4 className="font-bold text-white mb-1">Standard / Original</h4>
-               <p className="text-xs text-muted-foreground">Normal trichromatic vision</p>
-            </button>
+         <div className="lg:col-span-4 space-y-6">
+            <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-black/20 space-y-6">
+               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <EyeOff className="w-4 h-4 text-primary" /> Visual Deficiencies
+               </h3>
+               
+               <div className="space-y-3">
+                  {[
+                    { id: "original", label: "Normal Vision", desc: "Standard trichromatic" },
+                    { id: "protanopia", label: "Protanopia", desc: "Red-blindness (Protan)", color: "text-red-400" },
+                    { id: "deuteranopia", label: "Deuteranopia", desc: "Green-blindness (Deutan)", color: "text-green-400" },
+                    { id: "tritanopia", label: "Tritanopia", desc: "Blue-blindness (Tritan)", color: "text-blue-400" },
+                    { id: "achromatopsia", label: "Achromatopsia", desc: "Monochromacy (Grey)", color: "text-stone-400" }
+                  ].map((m) => (
+                    <button 
+                      key={m.id}
+                      onClick={() => applyEffect(m.id as any)}
+                      disabled={isProcessing}
+                      className={cn(
+                        "w-full p-5 rounded-2xl text-left transition-all border flex flex-col gap-1 group",
+                        mode === m.id 
+                          ? "bg-primary/10 border-primary/40 shadow-inner" 
+                          : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                      )}
+                    >
+                       <h4 className={cn("text-[11px] font-black uppercase tracking-wider group-hover:translate-x-1 transition-transform", m.color || "text-white")}>
+                         {m.label}
+                       </h4>
+                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">
+                         {m.desc}
+                       </p>
+                    </button>
+                  ))}
+               </div>
 
-            <button 
-              onClick={() => applyMatrix("protanopia")}
-              className={`w-full p-4 rounded-xl text-left transition-all border ${mode === "protanopia" ? "bg-white/10 border-purple-500/50" : "bg-black/30 border-white/5 hover:bg-white/5"}`}
-            >
-               <h4 className="font-bold text-white mb-1 text-red-300">Protanopia</h4>
-               <p className="text-xs text-muted-foreground">Red-blindness / Red anomaly</p>
-            </button>
+               <div className="h-px bg-white/5" />
 
-            <button 
-              onClick={() => applyMatrix("deuteranopia")}
-              className={`w-full p-4 rounded-xl text-left transition-all border ${mode === "deuteranopia" ? "bg-white/10 border-purple-500/50" : "bg-black/30 border-white/5 hover:bg-white/5"}`}
-            >
-               <h4 className="font-bold text-white mb-1 text-green-300">Deuteranopia</h4>
-               <p className="text-xs text-muted-foreground">Green-blindness / Most common</p>
-            </button>
+               <div className="space-y-3 pt-2">
+                  <button 
+                    onClick={handleDownload}
+                    disabled={isProcessing}
+                    className="w-full py-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <Download className="w-5 h-5" /> Export Frame
+                  </button>
+                  <button 
+                    onClick={handleBack}
+                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] rounded-xl border border-white/10 transition-all"
+                  >
+                    New Analysis
+                  </button>
+               </div>
+            </div>
 
-            <button 
-              onClick={() => applyMatrix("tritanopia")}
-              className={`w-full p-4 rounded-xl text-left transition-all border ${mode === "tritanopia" ? "bg-white/10 border-purple-500/50" : "bg-black/30 border-white/5 hover:bg-white/5"}`}
-            >
-               <h4 className="font-bold text-white mb-1 text-blue-300">Tritanopia</h4>
-               <p className="text-xs text-muted-foreground">Blue-blindness / Very rare</p>
-            </button>
-            
-            <button 
-              onClick={() => applyMatrix("achromatopsia")}
-              className={`w-full p-4 rounded-xl text-left transition-all border ${mode === "achromatopsia" ? "bg-white/10 border-purple-500/50" : "bg-black/30 border-white/5 hover:bg-white/5"}`}
-            >
-               <h4 className="font-bold text-white mb-1 text-stone-300">Achromatopsia</h4>
-               <p className="text-xs text-muted-foreground">Complete color blindness</p>
-            </button>
-
-            <button 
-              onClick={handleDownload}
-              disabled={isProcessing || (!outputUrl && mode !== "original")}
-              className="w-full py-4 mt-8 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-            >
-               <Download className="w-5 h-5" /> Export
-            </button>
-            <button 
-              onClick={handleBack}
-              className="w-full py-4 mt-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all"
-            >
-               Start New
-            </button>
+            <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10 flex gap-4">
+               <AlertCircle className="w-5 h-5 text-primary shrink-0" />
+               <p className="text-[10px] text-muted-foreground leading-relaxed uppercase">
+                 These simulations use standard LMS matrix transformations. Use this tool to ensure high-contrast accessibility across all vision types.
+               </p>
+            </div>
          </div>
       </div>
     </ToolLayout>

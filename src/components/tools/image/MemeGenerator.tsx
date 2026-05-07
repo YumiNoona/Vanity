@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Download, Loader2, Sparkles, Type, Plus, MessageSquare } from "lucide-react"
+import { Download, Loader2, Plus, MessageSquare, RefreshCw, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 
 import { loadImage, downloadBlob, exportCanvas } from "@/lib/canvas"
 import { guardDimensions } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 export function MemeGenerator() {
   const { validateFiles } = usePremium()
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fabricCanvas = useRef<any>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
@@ -35,6 +37,7 @@ export function MemeGenerator() {
     if (!uploadedFile) return
     
     const jobId = ++jobIdRef.current
+    setIsLoadingMedia(true)
     setFile(uploadedFile)
     
     try {
@@ -44,7 +47,7 @@ export function MemeGenerator() {
          video.src = url
          video.crossOrigin = "anonymous"
          video.loop = true
-         video.muted = true // Required for autoplay without interaction
+         video.muted = true
          video.playsInline = true
          
          await new Promise((resolve, reject) => {
@@ -75,54 +78,110 @@ export function MemeGenerator() {
          const { width, height } = guardDimensions(result.width, result.height)
          setSourceData({ source: result.source, width, height, type: 'image' })
       }
-      
-      if (fabricCanvas.current) {
-        fabricCanvas.current.dispose()
-        fabricCanvas.current = null
-      }
     } catch (e) {
       if (jobId === jobIdRef.current) toast.error("Failed to load media")
+    } finally {
+      if (jobId === jobIdRef.current) setIsLoadingMedia(false)
     }
   }
 
   useEffect(() => {
     if (sourceData && canvasRef.current) {
       const initFabric = async () => {
-        const fabric = await import("fabric")
+        const fabricModule = await import("fabric")
+        const fabric: any = fabricModule.default || fabricModule;
+        
         if (unmountedRef.current) return
 
-        const canvas = new fabric.Canvas(canvasRef.current!, {
+        // 1. Dispose previous canvas if it exists
+        if (fabricCanvas.current) {
+           fabricCanvas.current.dispose()
+           fabricCanvas.current = null
+        }
+
+        const el = canvasRef.current!
+        const canvas = new (fabric.Canvas || fabricModule.Canvas)(el, {
           width: 600,
           height: 600,
-          backgroundColor: "#000"
+          backgroundColor: "#000",
+          preserveObjectStacking: true
         })
+
+        // DOUBLE CHECK: If we unmounted during the async import/creation, kill it now
+        if (unmountedRef.current) {
+           canvas.dispose()
+           return
+        }
+
         fabricCanvas.current = canvas
 
         canvas.on("selection:created", () => setHasSelection(true))
         canvas.on("selection:updated", () => setHasSelection(true))
         canvas.on("selection:cleared", () => setHasSelection(false))
 
-        const fbMedia = new fabric.Image(sourceData.source)
+        // 2. Specialized Media Initialization
+        let fbMedia: any;
+        
+        if (sourceData.type === "image") {
+           const isImgEl = sourceData.source instanceof HTMLImageElement;
+           if ((fabric.Image?.fromURL || fabricModule.Image?.fromURL) && isImgEl) {
+              fbMedia = await (fabric.Image?.fromURL || fabricModule.Image?.fromURL)(sourceData.source.src, {
+                 crossOrigin: "anonymous"
+              });
+           } else {
+              const ImageClass = fabric.FabricImage || fabricModule.FabricImage || fabric.Image || fabricModule.Image;
+              fbMedia = new ImageClass(sourceData.source, {
+                 crossOrigin: "anonymous"
+              });
+           }
+        } else {
+           const ImageClass = fabric.FabricImage || fabricModule.FabricImage || fabric.Image || fabricModule.Image;
+           fbMedia = new ImageClass(videoRef.current, {
+              crossOrigin: "anonymous",
+              objectCaching: false 
+           });
+        }
+
+        if (unmountedRef.current || !fabricCanvas.current) {
+           canvas.dispose()
+           return
+        }
+
         const scale = Math.min(600 / sourceData.width, 600 / sourceData.height)
         fbMedia.scale(scale)
-        fbMedia.set({ selectable: false, evented: false })
+        fbMedia.set({ 
+          selectable: false, 
+          evented: false,
+          originX: 'center',
+          originY: 'center',
+          left: 300,
+          top: 300
+        })
+        
         canvas.add(fbMedia)
-        canvas.centerObject(fbMedia)
+        canvas.sendObjectToBack(fbMedia)
         canvas.requestRenderAll()
         
         if (sourceData.type === 'video' && videoRef.current) {
-           videoRef.current.play()
-           const renderLoop = () => {
+            videoRef.current.play()
+            const renderLoop = () => {
               if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
                  fabricCanvas.current.requestRenderAll()
-                 fabric.util.requestAnimFrame(renderLoop)
+                 if (fabric.util?.requestAnimFrame) {
+                    fabric.util.requestAnimFrame(renderLoop)
+                 } else {
+                    requestAnimationFrame(renderLoop)
+                 }
               }
-           }
-           fabric.util.requestAnimFrame(renderLoop)
+            }
+            requestAnimationFrame(renderLoop)
         }
         
-        await addMemeText("TOP TEXT", "top")
-        await addMemeText("BOTTOM TEXT", "bottom")
+        setTimeout(async () => {
+           if (unmountedRef.current || !fabricCanvas.current) return;
+           await addMemeText("TOP TEXT", "top")
+           await addMemeText("BOTTOM TEXT", "bottom")
+        }, 100);
       }
       initFabric()
     }
@@ -131,29 +190,34 @@ export function MemeGenerator() {
        if (fabricCanvas.current) {
           fabricCanvas.current.dispose()
           fabricCanvas.current = null
-          if (canvasRef.current) {
-            canvasRef.current.width = 0
-            canvasRef.current.height = 0
-          }
        }
     }
   }, [sourceData])
 
   const addMemeText = async (content: string, pos: 'top' | 'bottom' | 'free' = 'free') => {
     if (!fabricCanvas.current) return
-    const fabric = await import("fabric")
-    const text = new fabric.IText(content, {
+    const fabricModule = await import("fabric")
+    const fabric: any = fabricModule.default || fabricModule;
+    
+    const TextClass = fabric.IText || fabricModule.IText;
+    const text = new TextClass(content, {
       left: 300,
-      top: pos === 'top' ? 50 : pos === 'bottom' ? 500 : 300,
+      top: pos === 'top' ? 80 : pos === 'bottom' ? 520 : 300,
       fontFamily: "Impact, Syne, sans-serif",
-      fontSize: 50,
+      fontSize: 54,
       fill: "white",
       stroke: "black",
       strokeWidth: 2,
       fontWeight: "bold",
       textAlign: "center",
       originX: "center",
+      originY: "center",
+      cornerColor: "#F59E0B",
+      cornerStyle: "circle",
+      transparentCorners: false,
+      padding: 10
     })
+    
     fabricCanvas.current.add(text)
     fabricCanvas.current.setActiveObject(text)
     fabricCanvas.current.requestRenderAll()
@@ -175,18 +239,16 @@ export function MemeGenerator() {
   const handleDownload = async () => {
     if (!fabricCanvas.current || !sourceData) return
     setIsProcessing(true)
-    const fabric = await import("fabric")
     
     try {
       if (sourceData.type === 'video' && videoRef.current) {
-         // Video Export using MediaRecorder
          setIsRecording(true)
          const video = videoRef.current
          video.currentTime = 0
          await video.play()
 
          const canvasEl = fabricCanvas.current.getElement()
-         const stream = canvasEl.captureStream(30) // 30 FPS
+         const stream = canvasEl.captureStream(30)
          const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
          const chunks: Blob[] = []
 
@@ -200,29 +262,11 @@ export function MemeGenerator() {
             toast.success("Video Meme exported!")
             setIsRecording(false)
             setIsProcessing(false)
-            
-            // Clean up stream tracks to prevent leaks/active camera indicator
-            stream.getTracks().forEach((track: MediaStreamTrack) => track.stop())
-            
-            // Resume preview render loop
-            const renderLoop = () => {
-               if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
-                  fabricCanvas.current.requestRenderAll()
-                  fabric.util.requestAnimFrame(renderLoop)
-               }
-            }
-            fabric.util.requestAnimFrame(renderLoop)
+            stream.getTracks().forEach((track: any) => track.stop())
          }
 
          recorder.start()
          
-         const renderFrame = () => {
-             if (!unmountedRef.current && fabricCanvas.current && isRecording) {
-                 fabricCanvas.current.renderAll()
-             }
-         }
-
-         // Stop recording when video ends
          const onEnded = () => {
             recorder.stop()
             video.removeEventListener('ended', onEnded)
@@ -230,20 +274,19 @@ export function MemeGenerator() {
             video.play()
          }
          
-         video.loop = false // Play once for recording
+         video.loop = false
          video.addEventListener('ended', onEnded)
          
          const animLoop = () => {
             if (isRecording) {
-               renderFrame()
-               fabric.util.requestAnimFrame(animLoop)
+               fabricCanvas.current.renderAll()
+               requestAnimationFrame(animLoop)
             }
          }
-         fabric.util.requestAnimFrame(animLoop)
+         requestAnimationFrame(animLoop)
          
       } else {
-         // Image Export
-         const fabricElement = fabricCanvas.current.toCanvasElement(1)
+         const fabricElement = fabricCanvas.current.toCanvasElement(2) 
          const blob = await exportCanvas(fabricElement, "image/png", 1.0)
          downloadBlob(blob, `vanity-meme-${Date.now()}.png`)
          toast.success("Meme exported!")
@@ -258,12 +301,14 @@ export function MemeGenerator() {
 
   const handleBack = () => {
     setFile(null)
+    setSourceData(null)
+    if (cleanupRef.current) cleanupRef.current()
   }
 
   if (!file) {
     return (
       <ToolUploadLayout title="Meme Generator" description="Upload an image or video template and create viral memes instantly in your browser." icon={MessageSquare}>
-        <DropZone onDrop={handleDrop} accept={{ "image/*": [], "video/*": [] }} />
+        <DropZone onDrop={handleDrop} accept={{ "image/*": [], "video/*": [] }} label="Drop image or video here" />
       </ToolUploadLayout>
     )
   }
@@ -278,45 +323,83 @@ export function MemeGenerator() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1 space-y-6">
-           <div className="glass-panel p-6 rounded-xl space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Controls</h3>
-              <button 
-                onClick={() => addMemeText("NEW TEXT")}
-                className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-xl flex flex-col items-center hover:bg-white/10 transition-all group"
-              >
-                <Plus className="w-6 h-6 mb-2 text-primary group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-bold">Add Text Layer</span>
-              </button>
+           <div className="glass-panel p-6 rounded-2xl border border-white/5 space-y-6 bg-black/20">
+              <div className="space-y-4">
+                 <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <RefreshCw className="w-3 h-3" /> Creative Controls
+                 </h3>
+                 
+                 <button 
+                   onClick={() => addMemeText("NEW TEXT")}
+                   className="w-full py-5 bg-white/5 border border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center hover:bg-white/10 hover:border-primary/50 transition-all group"
+                 >
+                   <Plus className="w-6 h-6 mb-2 text-primary group-hover:scale-110 transition-transform" />
+                   <span className="text-xs font-black uppercase tracking-widest">Add Text Layer</span>
+                 </button>
+  
+                 {hasSelection && (
+                   <button 
+                     onClick={deleteSelected}
+                     className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-red-500/20 flex items-center justify-center gap-2"
+                   >
+                     <Trash2 className="w-3.5 h-3.5" /> Remove Layer
+                   </button>
+                 )}
+              </div>
 
-              {hasSelection && (
-                <button 
-                  onClick={deleteSelected}
-                  className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-bold transition-all border border-red-500/20"
-                >
-                  Delete Selected Layer
-                </button>
-              )}
+              <div className="h-px bg-white/5" />
               
-              <button 
-                onClick={handleDownload}
-                disabled={isProcessing || isRecording}
-                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
-              >
-                {isProcessing || isRecording ? <Loader2 className="animate-spin" /> : <Download className="w-5 h-5" />}
-                {isRecording ? "Recording Meme..." : "Download Meme"}
-              </button>
+              <div className="space-y-3">
+                 <button 
+                   onClick={handleDownload}
+                   disabled={isProcessing || isRecording || isLoadingMedia}
+                   className="w-full py-5 bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                 >
+                   {isProcessing || isRecording ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                   {isRecording ? "Recording..." : "Export Meme"}
+                 </button>
+  
+                 <button 
+                   onClick={handleBack}
+                   className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] rounded-xl border border-white/10 transition-all"
+                 >
+                   Change Template
+                 </button>
+              </div>
+           </div>
 
-              <button 
-                onClick={handleBack}
-                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg text-xs transition-all border border-white/5"
-              >
-                Change Template
-              </button>
+           <div className="p-5 bg-primary/5 rounded-2xl border border-primary/10 flex gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg h-fit">
+                <Plus className="w-3 h-3 text-primary" />
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed uppercase font-medium">
+                Double click any text layer to change content. Use the export button for a high-quality production render.
+              </p>
            </div>
         </div>
 
-        <div className="lg:col-span-3 glass-panel p-4 rounded-2xl flex items-center justify-center bg-black min-h-[600px] shadow-2xl relative overflow-auto">
-           <canvas ref={canvasRef} />
+        <div className="lg:col-span-3 glass-panel p-4 rounded-3xl flex items-center justify-center bg-[#050505] min-h-[600px] shadow-2xl relative overflow-hidden group/canvas border border-white/5">
+           {isLoadingMedia && (
+              <div className="absolute inset-0 z-30 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-4">
+                 <RefreshCw className="w-12 h-12 text-primary animate-spin" />
+                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Initializing Template...</span>
+              </div>
+           )}
+           
+           <div className="relative shadow-[0_30px_70px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden bg-black w-[600px] h-[600px]">
+              <canvas 
+                ref={canvasRef} 
+                width={600}
+                height={600}
+                className="w-[600px] h-[600px]"
+              />
+              {sourceData && !isLoadingMedia && (
+                 <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 opacity-0 group-hover/canvas:opacity-100 transition-opacity">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Production View</span>
+                 </div>
+              )}
+           </div>
         </div>
       </div>
     </ToolLayout>

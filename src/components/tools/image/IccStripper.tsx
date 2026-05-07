@@ -117,7 +117,7 @@ export function IccStripper({ embedded = false }: { embedded?: boolean }) {
   if (!file) {
     return (
       <ToolUploadLayout title="ICC Profile Stripper" description="Remove embedded color profiles to ensure consistent web-standard sRGB rendering." icon={PaintBucket} hideHeader={embedded}>
-        <div className={cn("flex justify-center", embedded ? "mt-2 mb-4" : "mb-10")}>
+        <div className={cn("flex justify-center", embedded ? "mt-0 mb-4" : "mb-10")}>
            <PillToggle 
              activeId={processMode}
              onChange={(mode) => { setProcessMode(mode as any); handleBack(); }}

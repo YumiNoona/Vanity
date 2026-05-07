@@ -13,7 +13,7 @@ import {
   EyeOff, ImagePlay, FastForward, Award, Database, FileSearch,
   Globe2, MapPin, MonitorSmartphone, Shield, Fingerprint, KeySquare, Calculator,
   Percent, Wallet, Receipt, Repeat, Table,
-  BookOpen, Share2, Maximize, Network, Eraser
+  BookOpen, Share2, Maximize, Network, Eraser, CalendarRange, Globe, Braces
 } from "lucide-react"
 
 // Types to allow easier custom icons
@@ -107,16 +107,15 @@ export const DEV_TOOLS: Tool[] = [
   { id: "url-encoder", title: "URL Encoder / Decoder", description: "Encode or decode query strings and full URLs safely.", icon: Link2, path: "/tools/dev/url", isPopular: true },
   { id: "regex-tester", title: "Regex Tester", description: "Live regex matching with highlighting, group capture, and flags.", icon: Terminal, path: "/tools/dev/regex", keywords: ["test", "match", "regular"] },
   { id: "uuid-hash", title: "UUID & Hash Generator", description: "Generate UUIDs, MD5, and SHA-256 hashes.", icon: Key, path: "/tools/dev/uuid-hash" },
-  { id: "timestamp-converter", title: "Timestamp Converter", description: "Unix epoch to human-readable date and back with timezones.", icon: Clock, path: "/tools/dev/timestamp", keywords: ["time", "unix", "date"] },
-  { id: "jwt-decoder", title: "JWT Decoder", description: "Decode JSON Web Tokens visually locally without validation.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["token", "auth", "base64"] },
-  { id: "cron-builder", title: "CRON Expression Tester", description: "Validate CRON strings and preview immediate run times.", icon: Calendar, path: "/tools/dev/cron", keywords: ["schedule", "time", "job"] },
+  { id: "timestamp-converter", title: "Chronos Studio", description: "Advanced epoch converter, relative time engine, and business day architect.", icon: Clock, path: "/tools/dev/timestamp", keywords: ["time", "unix", "date", "business", "relative"] },
+  { id: "jwt-decoder", title: "JWT Decoder", description: "Decode and inspect JSON Web Tokens locally with security audits.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["auth", "token", "payload"] },
+  { id: "cron-builder", title: "Cron Builder", description: "Build and verify cron schedules with human-readable descriptions.", icon: CalendarRange, path: "/tools/dev/cron", keywords: ["schedule", "linux", "job"] },
   { id: "env-editor", title: "ENV File Editor", description: "Upload and edit .env files in a clean table UI locally.", icon: FileCode, path: "/tools/dev/env", keywords: ["config", "environment", "dotenv"] },
-  { id: "json-to-csv", title: "JSON to CSV / Excel", description: "Convert JSON arrays or objects into CSV or spreadsheet formats.", icon: FileSpreadsheet, path: "/tools/dev/json-to-csv", keywords: ["export", "excel", "table"] },
-  { id: "yaml-json", title: "YAML ↔ JSON", description: "Convert between YAML and JSON formats seamlessly.", icon: ArrowLeftRight, path: "/tools/dev/yaml-json", isPopular: true, keywords: ["yaml", "json", "parse"] },
+  { id: "json-to-csv", title: "Data Format Studio", description: "Consolidated suite for TOML, YAML, and CSV cross-format synchronization.", icon: ArrowLeftRight, path: "/tools/text/format-converter", keywords: ["toml", "yaml", "csv", "json"] },
   { id: "html-entity", title: "HTML Entity Encoder", description: "Encode or decode HTML entities safely.", icon: Code, path: "/tools/dev/html-entity", keywords: ["escape", "decode", "entities"] },
   { id: "color-contrast", title: "Color Contrast Checker", description: "Calculate contrast ratio and check WCAG accessibility.", icon: Eye, path: "/tools/dev/color-contrast", keywords: ["wcag", "a11y", "accessibility"] },
   { id: "css-effects", title: "CSS Effects Builder", description: "Visual editor for box-shadows and CSS filters.", icon: Layers, path: "/tools/dev/css-effects", keywords: ["box-shadow", "filter", "blur"] },
-  { id: "json-schema", title: "JSON Schema Validator", description: "Validate JSON data against draft-7 JSON Schema instantly.", icon: FileCheck, path: "/tools/dev/json-schema", keywords: ["ajv", "validate", "schema"] },
+  { id: "json-schema", title: "JSON Schema Validator", description: "Validate JSON objects against custom schemas with error reporting.", icon: Braces, path: "/tools/dev/json-schema", keywords: ["lint", "schema", "validate"] },
 ]
 
 export const VIDEO_TOOLS: Tool[] = [
@@ -134,13 +133,12 @@ export const TEXT_TOOLS: Tool[] = [
   { id: "markdown-preview", title: "Markdown Preview", description: "Paste markdown, get a live rendered preview.", icon: Eye, path: "/tools/text/md-preview", isPopular: true },
   { id: "text-diff", title: "Text Diff Checker", description: "Compare two texts and see additions/removals.", icon: Diff, path: "/tools/text/diff", isPopular: true },
   { id: "text-analyser", title: "Text Analyser", description: "Word count, reading time, and top words analysis.", icon: Search, path: "/tools/text/analyser" },
-  { id: "csv-json", title: "CSV ↔ JSON Converter", description: "Convert spreadsheet data to JSON and back.", icon: ArrowLeftRight, path: "/tools/text/csv-json" },
+  { id: "csv-json", title: "Data Format Studio", description: "Consolidated suite for TOML, YAML, and CSV cross-format synchronization.", icon: ArrowLeftRight, path: "/tools/text/format-converter", keywords: ["toml", "yaml", "csv", "json"] },
   { id: "string-case", title: "String Case Converter", description: "Convert between camelCase, snake_case, PascalCase simultaneously.", icon: Type, path: "/tools/text/string-case" },
   { id: "lorem-ipsum", title: "Lorem Ipsum Generator", description: "Customizable placeholder text generator natively.", icon: AlignLeft, path: "/tools/text/lorem" },
   { id: "word-frequency", title: "Word Frequency Counter", description: "Analyze text and visualize word percentages dynamically.", icon: BarChart3, path: "/tools/text/word-frequency" },
   { id: "number-base", title: "Number Base Converter", description: "Live conversions between decimal, binary, hex, and octal.", icon: Hash, path: "/tools/text/number-base" },
-  { id: "fake-data", title: "Fake Data Generator", description: "Generate realistic datasets: names, emails, addresses, IPs.", icon: Database, path: "/tools/text/fake-data", keywords: ["mock", "dummy", "csv", "json"] },
-  { id: "toml-json", title: "TOML ↔ JSON", description: "Bidirectional conversion between TOML and JSON formats.", icon: Repeat, path: "/tools/text/toml-json", keywords: ["config", "cargo", "rust"] },
+  { id: "fake-data", title: "Data Forge", description: "Generate enterprise-ready synthetic datasets with localized context and SQL exports.", icon: Database, path: "/tools/text/fake-data", keywords: ["mock", "dummy", "csv", "json", "sql", "india"] },
   { id: "unicode-explorer", title: "Unicode Explorer", description: "Inspect code points, categories, and bytes for any character.", icon: Languages, path: "/tools/text/unicode", keywords: ["utf8", "entity", "hex"] },
   { id: "name-formatter", title: "Name Case Formatter", description: "Bulk-fix name casing (JOHN DOE → John Doe) with prefix support.", icon: Type, path: "/tools/text/name-case", keywords: ["cleanup", "list", "format"] },
   { id: "table-to-md", title: "Table to Markdown / HTML", description: "Convert spreadsheet selections or CSV into Markdown or HTML tables.", icon: Table, path: "/tools/text/table-to-md", keywords: ["convert", "excel", "spreadsheet"] },
@@ -155,6 +153,8 @@ export const BROWSER_TOOLS: Tool[] = [
   { id: "ua-parser", title: "User Agent Parser", description: "Break down any UA string into browser, OS, and device.", icon: MonitorSmartphone, path: "/tools/browser/ua", keywords: ["header", "detect", "client"] },
   { id: "mime-types", title: "MIME Type Lookup", description: "Find mappings between file extensions and MIME types.", icon: FileSearch, path: "/tools/browser/mime", keywords: ["content-type", "extension", "mapping"] },
   { id: "subnet-calc", title: "Subnet Calculator", description: "CIDR network calculations, host ranges, and subnet masks.", icon: Network, path: "/tools/browser/subnet", keywords: ["cidr", "ip", "network", "mask"] },
+  { id: "link-shortener", title: "Link Shortener", description: "Create clean, short links using public anonymizing services.", icon: Scissors, path: "/tools/browser/link-shortener", keywords: ["short", "tinyurl", "link", "compress"] },
+  { id: "header-inspector", title: "Header Oracle", description: "Inspect raw HTTP response headers, security policies, and caching directives.", icon: Globe, path: "/tools/dev/headers", keywords: ["http", "inspect", "cors", "security"] },
 ]
 
 export const SECURITY_TOOLS: Tool[] = [

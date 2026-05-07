@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react"
-import { Braces, Code, Database, FileCode, Copy, CheckCircle, Trash2, Maximize2, Minimize2, AlertCircle } from "lucide-react"
+import { Braces, Code, Database, FileCode, Copy, CheckCircle, Trash2, Maximize2, Minimize2, AlertCircle, Info } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { toast } from "sonner"
@@ -71,6 +71,37 @@ export function CodeFormatterStudio() {
     return formatted.substring(1, formatted.length - 3)
   }
 
+  /**
+   * Smarter JSON parsing that handles:
+   * 1. Trailing commas
+   * 2. Single quotes
+   * 3. Unquoted keys (common in JS objects)
+   */
+  const smartJsonParse = (str: string) => {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      // If native fails, try to "fix" common JS object literal patterns to make them valid JSON
+      let fixed = str.trim();
+      
+      // Wrap in braces if it looks like a naked object
+      if (fixed.startsWith('muted:') || (fixed.includes(':') && !fixed.startsWith('{') && !fixed.startsWith('['))) {
+        fixed = '{' + fixed + '}';
+      }
+
+      fixed = fixed
+        .replace(/,\s*([\]}])/g, '$1') // Remove trailing commas
+        .replace(/'/g, '"')            // Replace single quotes with double quotes
+        .replace(/([{,]\s*)([a-zA-Z0-9_]+?)\s*:/g, '$1"$2":'); // Quote unquoted keys
+
+      try {
+        return JSON.parse(fixed);
+      } catch (innerError) {
+        throw e; // Throw the original error for better debugging
+      }
+    }
+  }
+
   const process = useCallback((beautify: boolean) => {
     if (!input.trim()) {
       setOutput("")
@@ -81,7 +112,7 @@ export function CodeFormatterStudio() {
     try {
       setError(null)
       if (mode === "json") {
-        const parsed = JSON.parse(input)
+        const parsed = smartJsonParse(input)
         setOutput(beautify ? JSON.stringify(parsed, null, 2) : JSON.stringify(parsed))
       } else if (mode === "html") {
         setOutput(beautify ? formatHTML(input) : input.replace(/\s+/g, " ").replace(/>\s+</g, "><").trim())
@@ -99,7 +130,12 @@ export function CodeFormatterStudio() {
       }
       toast.success(`${mode.toUpperCase()} ${beautify ? "Formatted" : "Minified"}!`)
     } catch (e: any) {
-      setError(e.message)
+      const msg = e.message;
+      if (mode === "json" && msg.includes("unexpected character")) {
+         setError("JSON requires double quotes around keys and no trailing commas. (e.g. \"key\": \"value\")");
+      } else {
+         setError(msg);
+      }
       toast.error(`Invalid ${mode.toUpperCase()}`)
     }
   }, [input, mode])
@@ -175,9 +211,12 @@ export function CodeFormatterStudio() {
                 spellCheck={false}
               />
               {error && (
-                <div className="absolute bottom-4 left-4 right-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3 text-red-400 text-xs animate-in slide-in-from-bottom-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span className="font-medium truncate">{error}</span>
+                <div className="absolute bottom-4 left-4 right-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-400 text-[11px] animate-in slide-in-from-bottom-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                     <p className="font-black uppercase tracking-tighter">Parsing Error</p>
+                     <p className="opacity-80 leading-relaxed">{error}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -212,9 +251,15 @@ export function CodeFormatterStudio() {
                 </div>
               )}
             </div>
-            <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 grid grid-cols-2 gap-4">
-               <div className="text-[10px] text-muted-foreground font-bold uppercase">Size: <span className="text-white font-mono">{output.length} ch</span></div>
-               <div className="text-[10px] text-muted-foreground font-bold uppercase">Lines: <span className="text-white font-mono">{output.split('\n').length}</span></div>
+            <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between">
+               <div className="flex gap-6">
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Size: <span className="text-white font-mono">{output.length} ch</span></div>
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Lines: <span className="text-white font-mono">{output.split('\n').length}</span></div>
+               </div>
+               <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                  <Info className="w-3 h-3 text-primary" />
+                  <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Local Processing</span>
+               </div>
             </div>
           </div>
         </div>

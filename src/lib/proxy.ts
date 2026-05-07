@@ -1,7 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000"
+const API_BASE = import.meta.env.VITE_API_URL || ""
 
 export const getProxyUrl = (url: string) => {
-  return `${API_BASE}/proxy?url=${encodeURIComponent(url)}`
+  return `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`
 }
 
 export const proxyFetch = async (url: string, options: RequestInit = {}) => {

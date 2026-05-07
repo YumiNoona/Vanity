@@ -104,6 +104,7 @@ export function PixelMosaic() {
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
+        if (file instanceof File) URL.revokeObjectURL(img.src)
         const canvas = document.createElement('canvas')
         canvas.width = sidelen
         canvas.height = sidelen

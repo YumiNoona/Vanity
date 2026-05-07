@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
-export function YamlJsonConverter() {
+export function YamlJsonConverter({ embedded = false }: { embedded?: boolean } = {}) {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [mode, setMode] = useState<"json2yaml" | "yaml2json">("yaml2json")
@@ -50,6 +50,7 @@ export function YamlJsonConverter() {
       icon={ArrowLeftRight} 
       centered={true} 
       maxWidth="max-w-6xl"
+      hideHeader={embedded}
     >
       <div className="flex flex-col md:flex-row items-center gap-4 justify-center mb-8">
         <div className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all ${mode === "yaml2json" ? "bg-primary/20 text-primary" : "bg-white/5 text-muted-foreground"}`}>

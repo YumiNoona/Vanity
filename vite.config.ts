@@ -9,6 +9,46 @@ export default defineConfig({
       "Cross-Origin-Opener-Policy": "same-origin",
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
+    proxy: {
+      "/api/proxy": {
+        target: "http://localhost:5173",
+        bypass: (req, res) => {
+          const proxyUrl = new URL(req.url || "", `http://${req.headers.host}`).searchParams.get("url")
+          if (!proxyUrl || !res) {
+            if (res) {
+              res.statusCode = 400
+              res.end("Missing url parameter")
+            }
+            return
+          }
+          
+          // Use Node's built-in https for maximum compatibility if global fetch is missing
+          const protocol = proxyUrl.startsWith('https') ? require('https') : require('http');
+          
+          const proxyReq = protocol.request(proxyUrl, {
+            method: req.method,
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Vanity Tool Proxy)",
+              "Accept": "*/*"
+            }
+          }, (proxyRes: any) => {
+            res.writeHead(proxyRes.statusCode || 200, {
+              ...proxyRes.headers,
+              "Access-Control-Allow-Origin": "*"
+            });
+            proxyRes.pipe(res);
+          });
+
+          proxyReq.on('error', (err: any) => {
+            res.statusCode = 500
+            res.end(err.message)
+          });
+
+          req.pipe(proxyReq);
+          return
+        }
+      },
+    },
   },
   resolve: {
     alias: {

@@ -69,6 +69,8 @@ const UaParser = lazy(() => import("./components/tools/browser/UaParser").then(m
 const MimeLookup = lazy(() => import("./components/tools/browser/MimeLookup").then(m => ({ default: m.MimeLookup })))
 const SubnetCalculator = lazy(() => import("./components/tools/dev/SubnetCalculator").then(m => ({ default: m.SubnetCalculator })))
 const LinkShortener = lazy(() => import("./components/tools/browser/LinkShortener").then(m => ({ default: m.LinkShortener })))
+const HttpHeaderInspector = lazy(() => import("./components/tools/dev/HttpHeaderInspector").then(m => ({ default: m.HttpHeaderInspector })))
+const FormatConverterStudio = lazy(() => import("./components/tools/text/FormatConverterStudio").then(m => ({ default: m.FormatConverterStudio })))
 
 // Security Tools
 const TotpGen = lazy(() => import("./components/tools/security/TotpGen").then(m => ({ default: m.TotpGen })))
@@ -263,6 +265,7 @@ function App() {
             <Route path="/tools/dev/color-contrast" element={<ColorContrastChecker />} />
             <Route path="/tools/dev/css-effects" element={<CssEffectsBuilder />} />
             <Route path="/tools/dev/json-schema" element={<JsonSchemaValidator />} />
+            <Route path="/tools/dev/headers" element={<HttpHeaderInspector />} />
 
             {/* Video Tools */}
             <Route path="/tools/video/compress" element={<VideoCompressor />} />
@@ -292,6 +295,7 @@ function App() {
             <Route path="/tools/text/table-to-md" element={<TableToMd />} />
             <Route path="/tools/text/readme" element={<ReadmeViewer />} />
             <Route path="/tools/text/pastebin" element={<Pastebin />} />
+            <Route path="/tools/text/format-converter" element={<FormatConverterStudio />} />
             
             {/* Browser Tools */}
             <Route path="/tools/browser/dns" element={<DnsLookup />} />
