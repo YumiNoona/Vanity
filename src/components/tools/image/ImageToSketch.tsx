@@ -86,13 +86,14 @@ function colorDodgeAndCompose(
     const edgeVal = maxEdge > 0 ? (edges[i] / maxEdge) * 255 * edgeStrength : 0
     let v = Math.max(0, dodgeVal - edgeVal)
     
-    // Contrast Curve
+    // Fix 4: Remove sigmoid, replace with Power Curve (Gamma < 1)
     const x = v / 255
-    const curved = 1 / (1 + Math.exp(-steepness * (x - midpoint)))
-    v = curved * 255
+    v = Math.pow(x, 0.7) * 255 
 
     const i4 = i * 4
-    data[i4] = data[i4+1] = data[i4+2] = v
+    // Fix 2: Add paper texture noise
+    const noise = (Math.random() - 0.5) * 12
+    data[i4] = data[i4+1] = data[i4+2] = Math.min(255, Math.max(0, v + noise))
     data[i4+3] = 255
   }
   return out
@@ -154,12 +155,14 @@ export function ImageToSketch() {
       const gray = buildLuminanceGray(srcData)
 
       // Pass 2: Blur (Dodge source)
-      const blurRadius = 1 + (intensity / 100) * 22
+      // Fix 1: Tighter range for sketch feel
+      const blurRadius = 0.5 + (intensity / 100) * 8
       const blurred = gaussianBlur(gray, w, h, blurRadius)
 
       // Pass 3: Edges
       const { edges, max: maxEdge } = sobelEdges(gray, w, h)
-      const edgeStrength = 0.45 - (intensity / 100) * 0.25
+      // Fix 3: Stronger edges
+      const edgeStrength = 1.2 - (intensity / 100) * 0.6
 
       // Pass 4: Final Compose
       const finalImageData = colorDodgeAndCompose(gray, blurred, edges, maxEdge, edgeStrength, intensity, w, h, ctx)

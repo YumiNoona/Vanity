@@ -111,7 +111,6 @@ export const DEV_TOOLS: Tool[] = [
   { id: "jwt-decoder", title: "JWT Decoder", description: "Decode and inspect JSON Web Tokens locally with security audits.", icon: ShieldCheck, path: "/tools/dev/jwt", keywords: ["auth", "token", "payload"] },
   { id: "cron-builder", title: "Cron Builder", description: "Build and verify cron schedules with human-readable descriptions.", icon: CalendarRange, path: "/tools/dev/cron", keywords: ["schedule", "linux", "job"] },
   { id: "env-editor", title: "ENV File Editor", description: "Upload and edit .env files in a clean table UI locally.", icon: FileCode, path: "/tools/dev/env", keywords: ["config", "environment", "dotenv"] },
-  { id: "json-to-csv", title: "Data Format Studio", description: "Consolidated suite for TOML, YAML, and CSV cross-format synchronization.", icon: ArrowLeftRight, path: "/tools/text/format-converter", keywords: ["toml", "yaml", "csv", "json"] },
   { id: "html-entity", title: "HTML Entity Encoder", description: "Encode or decode HTML entities safely.", icon: Code, path: "/tools/dev/html-entity", keywords: ["escape", "decode", "entities"] },
   { id: "color-contrast", title: "Color Contrast Checker", description: "Calculate contrast ratio and check WCAG accessibility.", icon: Eye, path: "/tools/dev/color-contrast", keywords: ["wcag", "a11y", "accessibility"] },
   { id: "css-effects", title: "CSS Effects Builder", description: "Visual editor for box-shadows and CSS filters.", icon: Layers, path: "/tools/dev/css-effects", keywords: ["box-shadow", "filter", "blur"] },

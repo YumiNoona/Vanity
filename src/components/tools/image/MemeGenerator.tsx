@@ -43,6 +43,10 @@ export function MemeGenerator() {
     try {
       if (uploadedFile.type.startsWith('video/')) {
          const url = URL.createObjectURL(uploadedFile)
+         // Fix Bug B: Set cleanupRef immediately to prevent leaks if onloadedmetadata hangs or unmounts
+         if (cleanupRef.current) cleanupRef.current()
+         cleanupRef.current = () => { URL.revokeObjectURL(url); }
+
          const video = document.createElement('video')
          video.src = url
          video.crossOrigin = "anonymous"
@@ -57,8 +61,23 @@ export function MemeGenerator() {
          
          if (jobId !== jobIdRef.current || unmountedRef.current) return
          
-         if (cleanupRef.current) cleanupRef.current()
-         cleanupRef.current = () => { URL.revokeObjectURL(url); video.pause(); video.src = ""; }
+         // Fix Bug D: Wait for first decoded frame before setting sourceData
+         await video.play()
+         // @ts-ignore
+         if (video.requestVideoFrameCallback) {
+            // @ts-ignore
+            await new Promise(r => video.requestVideoFrameCallback(r))
+         } else {
+            await new Promise(r => setTimeout(r, 100))
+         }
+         video.pause() // Pause until Fabric starts the loop
+
+         cleanupRef.current = () => { 
+            URL.revokeObjectURL(url); 
+            video.pause(); 
+            video.src = ""; 
+            video.load();
+         }
          
          const { width, height } = guardDimensions(video.videoWidth, video.videoHeight)
          videoRef.current = video
@@ -165,7 +184,7 @@ export function MemeGenerator() {
         if (sourceData.type === 'video' && videoRef.current) {
             videoRef.current.play()
             const renderLoop = () => {
-              if (!unmountedRef.current && fabricCanvas.current && !isRecording) {
+              if (!unmountedRef.current && fabricCanvas.current) {
                  fabricCanvas.current.requestRenderAll()
                  if (fabric.util?.requestAnimFrame) {
                     fabric.util.requestAnimFrame(renderLoop)
@@ -246,6 +265,13 @@ export function MemeGenerator() {
          const video = videoRef.current
          video.currentTime = 0
          await video.play()
+         
+         // Wait for first frame after play()
+         await new Promise<void>(r => 
+           'requestVideoFrameCallback' in video 
+             ? (video as any).requestVideoFrameCallback(() => r())
+             : setTimeout(r, 150)
+         )
 
          const canvasEl = fabricCanvas.current.getElement()
          const stream = canvasEl.captureStream(30)
@@ -276,15 +302,6 @@ export function MemeGenerator() {
          
          video.loop = false
          video.addEventListener('ended', onEnded)
-         
-         const animLoop = () => {
-            if (isRecording) {
-               fabricCanvas.current.renderAll()
-               requestAnimationFrame(animLoop)
-            }
-         }
-         requestAnimationFrame(animLoop)
-         
       } else {
          const fabricElement = fabricCanvas.current.toCanvasElement(2) 
          const blob = await exportCanvas(fabricElement, "image/png", 1.0)

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AppLayout } from "./components/layout/AppLayout"
 import { Loader2 } from "lucide-react"
 
@@ -249,7 +249,7 @@ function App() {
             <Route path="/tools/dev/formatter" element={<CodeFormatterStudio />} />
             <Route path="/tools/dev/http-builder" element={<HttpRequestBuilder />} />
             <Route path="/tools/dev/color" element={<ColorStudio />} />
-            <Route path="/tools/dev/gradient" element={<ColorStudio />} />
+            <Route path="/tools/dev/gradient" element={<Navigate to="/tools/dev/color" replace />} />
             <Route path="/tools/dev/base64-studio" element={<Base64Studio />} />
             <Route path="/tools/dev/uuid-hash" element={<UuidHashGenerator />} />
             <Route path="/tools/dev/regex" element={<RegexTester />} />
@@ -257,10 +257,10 @@ function App() {
             <Route path="/tools/dev/jwt" element={<JwtDecoder />} />
             <Route path="/tools/dev/url" element={<UrlEncoder />} />
             <Route path="/tools/dev/cron" element={<CronBuilder />} />
-            <Route path="/tools/dev/css-units" element={<UnitStudio />} />
+            <Route path="/tools/dev/css-units" element={<Navigate to="/tools/math/units" replace />} />
             <Route path="/tools/dev/env" element={<EnvEditor />} />
-            <Route path="/tools/dev/json-to-csv" element={<CsvJsonConverter />} />
-            <Route path="/tools/dev/yaml-json" element={<YamlJsonConverter />} />
+            <Route path="/tools/dev/json-to-csv" element={<Navigate to="/tools/text/format-converter" replace />} />
+            <Route path="/tools/dev/yaml-json" element={<Navigate to="/tools/text/format-converter" replace />} />
             <Route path="/tools/dev/html-entity" element={<HtmlEntityEncoder />} />
             <Route path="/tools/dev/color-contrast" element={<ColorContrastChecker />} />
             <Route path="/tools/dev/css-effects" element={<CssEffectsBuilder />} />
@@ -282,14 +282,14 @@ function App() {
             <Route path="/tools/text/md-preview" element={<MarkdownPreview />} />
             <Route path="/tools/text/analyser" element={<TextAnalyser />} />
             <Route path="/tools/text/diff" element={<TextDiff />} />
-            <Route path="/tools/text/csv-json" element={<CsvJsonConverter />} />
+            <Route path="/tools/text/csv-json" element={<Navigate to="/tools/text/format-converter" replace />} />
             <Route path="/tools/text/lorem" element={<LoremIpsumGenerator />} />
             <Route path="/tools/text/password" element={<PasswordGenerator />} />
             <Route path="/tools/text/string-case" element={<StringCaseConverter />} />
             <Route path="/tools/text/word-frequency" element={<WordFrequency />} />
             <Route path="/tools/text/number-base" element={<NumberBaseConverter />} />
             <Route path="/tools/text/fake-data" element={<FakeData />} />
-            <Route path="/tools/text/toml-json" element={<TomlJson />} />
+            <Route path="/tools/text/toml-json" element={<Navigate to="/tools/text/format-converter" replace />} />
             <Route path="/tools/text/unicode" element={<UnicodeExplorer />} />
             <Route path="/tools/text/name-case" element={<NameFormatter />} />
             <Route path="/tools/text/table-to-md" element={<TableToMd />} />

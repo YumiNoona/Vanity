@@ -60,14 +60,15 @@ export default defineConfig({
     cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
+        // Fix Bug 6: Explicit advanced chunk grouping for framer-motion
+        // This is the correct way for Vite/Rollup builds
         manualChunks(id) {
-          // Group heavy node_modules into stable vendor chunks
           if (id.includes("node_modules")) {
+            if (id.includes("framer-motion")) return "vendor-framer"
             if (id.includes("@ffmpeg")) return "vendor-ffmpeg"
             if (id.includes("pdfjs-dist")) return "vendor-pdfjs"
             if (id.includes("pdf-lib") || id.includes("jspdf")) return "vendor-pdf-lib"
             if (id.includes("@tensorflow") || id.includes("upscaler")) return "vendor-ai-engine"
-            if (id.includes("framer-motion")) return "vendor-framer"
             if (id.includes("lucide-react")) return "vendor-ui-core"
             if (id.includes("react-colorful") || id.includes("qrcode") || id.includes("jsbarcode") || id.includes("canvas-confetti")) return "vendor-ui-utils"
             return "vendor"

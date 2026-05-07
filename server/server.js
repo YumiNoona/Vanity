@@ -157,56 +157,55 @@ app.post("/unlock", upload.single("file"), (req, res) => {
 });
 
 // 🌐 Generic Proxy (Handles CORS-restricted APIs)
-app.get("/proxy", async (req, res) => {
+// 🌐 Generic Proxy (Handles CORS-restricted APIs)
+app.get("/api/proxy", async (req, res) => {
   const target = req.query.url;
   if (!target) return res.status(400).json({ error: "No URL provided" });
-
   try {
-    const response = await fetch(target);
+    const response = await fetch(target as string);
     const contentType = response.headers.get("content-type");
-    const data = await response.text();
-    
     if (contentType) res.setHeader("Content-Type", contentType);
-    res.send(data);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
   } catch (e) {
-    console.error("Proxy error:", e.message);
     res.status(500).json({ error: "Failed to proxy request" });
   }
 });
 
-app.post("/proxy", upload.any(), async (req, res) => {
+app.post("/api/proxy", upload.any(), async (req, res) => {
   const target = req.query.url;
   if (!target) return res.status(400).json({ error: "No URL provided" });
-
   try {
-    // If it's a file upload, we need to reconstruct the form data
     const formData = new FormData();
-    
-    // Add fields
-    for (const key in req.body) {
-      formData.append(key, req.body[key]);
-    }
-    
-    // Add files
+    for (const key in req.body) formData.append(key, req.body[key]);
     if (req.files) {
-      for (const file of req.files) {
+      for (const file of (req.files as any[])) {
         const buffer = fs.readFileSync(file.path);
         const blob = new Blob([buffer], { type: file.mimetype });
         formData.append(file.fieldname, blob, file.originalname);
-        cleanup(file.path); // Cleanup temp file
+        cleanup(file.path);
       }
     }
-
-    const response = await fetch(target, {
-      method: "POST",
-      body: formData
-    });
-    
+    const response = await fetch(target as string, { method: "POST", body: formData });
     const data = await response.text();
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.send(data);
   } catch (e) {
-    console.error("Proxy POST error:", e.message);
     res.status(500).json({ error: "Failed to proxy POST request" });
+  }
+});
+
+app.head("/api/proxy", async (req, res) => {
+  const target = req.query.url;
+  if (!target) return res.status(400).json({ error: "Missing url" });
+  try {
+    const response = await fetch(decodeURIComponent(target as string), { method: "HEAD" });
+    response.headers.forEach((v, k) => res.setHeader(k, v));
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.status(response.status).end();
+  } catch { 
+    res.status(500).end(); 
   }
 });
 
