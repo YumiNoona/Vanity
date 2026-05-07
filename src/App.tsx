@@ -59,6 +59,7 @@ const SpriteSlicer = lazy(() => import("./components/tools/image/SpriteSlicer").
 
 const ColorBlindness = lazy(() => import("./components/tools/image/ColorBlindness").then(m => ({ default: m.ColorBlindness })))
 const CollageMaker = lazy(() => import("./components/tools/image/CollageMaker").then(m => ({ default: m.CollageMaker })))
+const PixelMosaic = lazy(() => import("./components/tools/image/PixelMosaic").then(m => ({ default: m.PixelMosaic })))
 
 // Browser Tools
 const DnsLookup = lazy(() => import("./components/tools/browser/DnsLookup").then(m => ({ default: m.DnsLookup })))
@@ -158,6 +159,7 @@ export const loaders = {
   "upscale": () => import("./components/tools/image/AiUpscaler"),
   "merge-pdf": () => import("./components/tools/pdf/MergePdf"),
   "images-to-pdf": () => import("./components/tools/pdf/ImagesToPdf"),
+  "pixel-mosaic": () => import("./components/tools/image/PixelMosaic"),
 }
 
 function PageLoader() {
@@ -220,6 +222,7 @@ function App() {
 
             <Route path="/tools/image/color-blind" element={<ColorBlindness />} />
             <Route path="/tools/image/collage" element={<CollageMaker />} />
+            <Route path="/tools/image/pixel-mosaic" element={<PixelMosaic />} />
 
 
 

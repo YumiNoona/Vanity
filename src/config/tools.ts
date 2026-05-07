@@ -62,6 +62,7 @@ export const IMAGE_TOOLS: Tool[] = [
   { id: "meme", title: "Meme Generator", description: "Create viral memes with custom text and templates.", icon: MessageSquare, path: "/tools/image/meme" },
   { id: "color-blind", title: "Color Blind Simulator", description: "Simulate exact visual perception using direct pixel matrices.", icon: EyeOff, path: "/tools/image/color-blind", keywords: ["accessibility", "protanopia", "sight"] },
   { id: "collage-maker", title: "Collage Maker", description: "Arrange multiple images into grids or masonry layouts.", icon: Layout, path: "/tools/image/collage", keywords: ["grid", "masonry", "layout"] },
+  { id: "pixel-mosaic", title: "Pixel Mosaic", description: "Genetic algorithm that re-arranges pixels to form a new image.", icon: Sparkles, path: "/tools/image/pixel-mosaic", isPopular: true, keywords: ["obama", "cat", "sigma", "scramble", "mosaic", "art"] },
 ]
 
 
