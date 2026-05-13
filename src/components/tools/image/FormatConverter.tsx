@@ -400,7 +400,7 @@ showpage
 
   return (
     <ToolLayout
-      title={activeTab === "single" ? "Image Converter" : "Bulk Convert"}
+      title="Image Converter"
       description={activeTab === "single" ? `Editing: ${file?.name}` : `${bulkFiles.length} images queued`}
       icon={activeTab === "single" ? ArrowLeftRight : Layers}
       maxWidth="max-w-6xl"

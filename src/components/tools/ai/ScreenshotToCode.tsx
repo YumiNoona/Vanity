@@ -93,7 +93,7 @@ export function ScreenshotToCode() {
 
   return (
     <ToolLayout 
-      title="Visual Coder" 
+      title="Screenshot to Code" 
       description={`Translating pixels to responsive HTML · ${activeProvider}`} 
       icon={Code} 
       centered={true}

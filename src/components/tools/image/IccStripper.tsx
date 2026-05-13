@@ -144,12 +144,13 @@ export function IccStripper({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <ToolLayout
-      title={processMode === 'remove' ? "Color Normalizer" : "ICC Inspector"}
+      title="ICC Profile Stripper"
       description={`Target: ${file?.name}`}
       icon={PaintBucket}
       centered={true}
       maxWidth="max-w-4xl"
-      hideHeader={embedded}
+      onBack={handleBack}
+      backLabel="Make New"
     >
       {processMode === 'view' ? (
         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

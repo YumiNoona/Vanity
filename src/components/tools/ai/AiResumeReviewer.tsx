@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { FileText, Loader2, Award, Zap, AlertCircle, Sparkles, Target, CheckCircle2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 import { toast } from "sonner"
 
 import { useActiveProvider } from "@/components/shared/ApiKeyManager"
@@ -42,8 +43,7 @@ export function AiResumeReviewer() {
      setLoadingStep("Extracting textual vectors from resume...")
      
      const pdfjsLib = await import("pdfjs-dist")
-     const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-     pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+     await setupPdfWorker()
 
      const arrayBuffer = await pdfFile.arrayBuffer()
      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise

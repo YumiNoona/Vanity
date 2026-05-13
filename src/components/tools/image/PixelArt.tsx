@@ -114,14 +114,22 @@ export function PixelArt() {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Pixel Art Studio" description="Convert any image into retro pixel art." icon={Binary}>
+      <ToolUploadLayout title="Pixel Art Converter" description="Convert any image into retro pixel art." icon={Binary}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image to pixelate" />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Pixel Studio" description="Advanced pixelation & palette control." icon={Binary} centered maxWidth="max-w-6xl">
+    <ToolLayout 
+      title="Pixel Art Converter" 
+      description="Advanced pixelation & palette control." 
+      icon={Binary} 
+      centered 
+      maxWidth="max-w-6xl"
+      onBack={() => setFile(null)}
+      backLabel="Make New"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">
           <div className="glass-panel p-4 rounded-3xl flex items-center justify-center min-h-[500px] bg-black/40 relative shadow-2xl border-white/5 overflow-auto">

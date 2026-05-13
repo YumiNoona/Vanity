@@ -11,7 +11,7 @@ export function FormatConverterStudio() {
 
   return (
     <ToolLayout 
-      title="Data Converter Studio" 
+      title="Data Format Studio" 
       description="Consolidated suite for TOML, YAML, and CSV cross-format synchronization."
       icon={ArrowLeftRight}
       centered={true}

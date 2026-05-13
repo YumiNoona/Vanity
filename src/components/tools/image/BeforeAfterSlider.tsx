@@ -29,6 +29,15 @@ export function BeforeAfterSlider() {
     }
   }
 
+  const handleReset = () => {
+    setFile1(null)
+    setFile2(null)
+    clearImgUrl1()
+    clearImgUrl2()
+    setDims1(null)
+    setDims2(null)
+  }
+
   const updateFromEvent = (e: React.MouseEvent | React.TouchEvent) => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
@@ -116,11 +125,13 @@ export function BeforeAfterSlider() {
 
   return (
     <ToolLayout
-      title="Comparison Deck"
+      title="Before / After Slider"
       description="Drag the handle to reveal differences."
       icon={SplitSquareHorizontal}
       centered={true}
       maxWidth="max-w-6xl"
+      onBack={handleReset}
+      backLabel="Make New"
     >
       {aspectWarning && (
         <div className="mb-8">

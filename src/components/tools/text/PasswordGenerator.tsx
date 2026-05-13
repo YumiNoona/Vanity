@@ -160,7 +160,7 @@ export function PasswordGenerator() {
   }
 
   return (
-    <ToolLayout title="Security Architect" description="Generate enterprise-grade passwords and passphrases with entropy metrics." icon={KeyRound} centered maxWidth="max-w-6xl">
+    <ToolLayout title="Password Generator" description="Generate enterprise-grade passwords and passphrases with entropy metrics." icon={KeyRound} centered maxWidth="max-w-6xl">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
         <div className="lg:col-span-5 space-y-6">
           <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-black/20 space-y-8">

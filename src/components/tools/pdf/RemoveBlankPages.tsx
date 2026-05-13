@@ -4,6 +4,7 @@ import { FileMinus, Download, RefreshCw, Layers, ShieldCheck } from "lucide-reac
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 // pdfjs-dist is loaded dynamically in renderPreview
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 
@@ -56,10 +57,8 @@ export function RemoveBlankPages() {
     setRemovedCount(0)
 
     try {
-      // Dynamic import
       const pdfjs = await import("pdfjs-dist")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
       
       const { PDFDocument } = await import("pdf-lib")
       const arrayBuffer = await pdfFile.arrayBuffer()
@@ -120,7 +119,7 @@ export function RemoveBlankPages() {
   }
 
   return (
-    <ToolLayout title="Sanitization Hub" description={file.name} icon={Layers} centered={true} maxWidth="max-w-6xl">
+    <ToolLayout title="Remove Blank Pages" description={file.name} icon={Layers} centered={true} maxWidth="max-w-6xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">

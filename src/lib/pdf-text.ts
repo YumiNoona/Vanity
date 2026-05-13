@@ -1,4 +1,5 @@
 import { PreloadPool } from "./preload-pool"
+import { setupPdfWorker } from "./pdf-worker"
 
 export interface ExtractPdfTextOptions {
   onProgress?: (percent: number) => void
@@ -18,8 +19,7 @@ export async function extractPdfText(
   
   // Dynamic import of heavy PDF.js engine
   const pdfjsLib = await import("pdfjs-dist")
-  const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+  await setupPdfWorker()
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
   const pageTexts: string[] = []

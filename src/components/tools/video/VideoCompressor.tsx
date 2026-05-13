@@ -84,11 +84,13 @@ export function VideoCompressor() {
 
   return (
     <ToolLayout 
-      title="Encoding Engine" 
+      title="Video Compressor" 
       description={`${file.name} (${Math.round(file.size / 1024 / 1024)} MB)`} 
       icon={Zap} 
       maxWidth="max-w-5xl"
       centered={true}
+      onBack={() => setFile(null)}
+      backLabel="Make New"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 import {
   Download,
   Loader2,
@@ -76,8 +77,7 @@ export function PdfEditor() {
 
     try {
       const pdfjs = await import("pdfjs-dist")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
 
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise

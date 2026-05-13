@@ -100,7 +100,7 @@ export function JwtDecoder() {
 
   return (
     <ToolLayout 
-      title="JWT Studio" 
+      title="JWT Decoder" 
       description="Decode, verify, and build JSON Web Tokens entirely in your browser." 
       icon={ShieldCheck} 
       maxWidth="max-w-6xl"

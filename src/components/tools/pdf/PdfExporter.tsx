@@ -9,6 +9,7 @@ import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { cn } from "@/lib/utils"
 import { PillToggle } from "@/components/shared/PillToggle"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 
 type ExportMode = "images" | "text" | "word"
 
@@ -61,11 +62,7 @@ export function PdfExporter() {
       const JSZipModule = await import("jszip")
       const JSZip = JSZipModule.default
       
-      // @ts-ignore
-      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        // @ts-ignore
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
-      }
+      await setupPdfWorker()
 
       const arrayBuffer = await file.arrayBuffer()
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
@@ -144,11 +141,7 @@ export function PdfExporter() {
       const pdfjsLib = await import("pdfjs-dist")
       const { Document, Packer, Paragraph, TextRun } = await import("docx")
       
-      // @ts-ignore
-      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        // @ts-ignore
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
-      }
+      await setupPdfWorker()
 
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise

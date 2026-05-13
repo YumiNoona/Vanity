@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { FileCheck, Download, RefreshCw, FileText, CheckCircle, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 // pdf-lib is loaded dynamically
 import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
@@ -28,8 +29,7 @@ export function PdfFlatten() {
     setIsRendering(true)
     try {
       const pdfjsLib = await import("pdfjs-dist")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
 
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -111,7 +111,7 @@ export function PdfFlatten() {
   }
 
   return (
-    <ToolLayout title="Flattening Suite" description={file.name} icon={FileText} centered={true}>
+    <ToolLayout title="Flatten PDF" description={file.name} icon={FileText} centered={true}>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
         <div className="glass-panel p-12 rounded-[2.5rem] flex flex-col items-center justify-center bg-black/40 border-white/5 shadow-2xl relative overflow-hidden min-h-[500px]">

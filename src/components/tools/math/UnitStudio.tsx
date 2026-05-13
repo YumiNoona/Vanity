@@ -10,7 +10,7 @@ export function UnitStudio() {
 
   return (
     <ToolLayout 
-      title="Unit Studio" 
+      title="Unit Converter" 
       description="Universal and CSS unit conversion tools."
       icon={ArrowLeftRight}
       centered={true}

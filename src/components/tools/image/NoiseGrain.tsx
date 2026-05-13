@@ -110,11 +110,13 @@ export function NoiseGrain() {
 
   return (
     <ToolLayout 
-      title="Grain Studio" 
+      title="Noise & Grain" 
       description="Fine-tune the analog look and feel." 
       icon={Sparkles} 
       maxWidth="max-w-6xl"
       centered={true}
+      onBack={handleBack}
+      backLabel="Make New"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">

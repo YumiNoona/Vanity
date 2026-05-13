@@ -159,7 +159,7 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Image Privacy" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck} hideHeader={embedded}>
+      <ToolUploadLayout title="EXIF Sanitizer" description="Protect your identity by managing hidden GPS and device metadata." icon={ShieldCheck} hideHeader={embedded}>
         <div className={cn("flex justify-center", embedded ? "mt-0 mb-4" : "mb-10")}>
            <PillToggle 
              activeId={processMode}
@@ -187,12 +187,13 @@ export function ExifSanitizer({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <ToolLayout
-      title={processMode === 'remove' ? "Privacy Shield" : "Metadata Viewer"}
+      title="EXIF Sanitizer"
       description={`Target: ${file?.name}`}
       icon={ShieldCheck}
       centered={true}
       maxWidth="max-w-6xl"
-      hideHeader={embedded}
+      onBack={handleBack}
+      backLabel="Make New"
     >
       {processMode === 'view' ? (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

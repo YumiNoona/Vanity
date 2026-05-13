@@ -176,7 +176,7 @@ Return ONLY the raw string. No markdown.`
 
   if (queue.length === 0) {
     return (
-      <ToolUploadLayout title="AI Alt-Text Writer (Batch)" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers} hideHeader={embedded}>
+      <ToolUploadLayout title="AI Alt-Text Writer" description="Drop an entire folder of images to generate SEO-optimized alt text sequentially exporting directly to CSV." icon={Layers} hideHeader={embedded}>
         <div className="max-w-2xl mx-auto space-y-6">
           <AIProviderHint />
           <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
@@ -187,7 +187,7 @@ Return ONLY the raw string. No markdown.`
 
   return (
     <ToolLayout 
-      title="AI Alt-Text Writer (Batch)" 
+      title="AI Alt-Text Writer" 
       description={`${queue.length} items loaded · ${activeProvider}`} 
       icon={Layers} 
       centered={true}

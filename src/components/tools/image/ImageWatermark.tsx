@@ -247,7 +247,7 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Deep Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles} hideHeader={embedded}>
+      <ToolUploadLayout title="Image Watermark" description="Add interactive text, images, or branded watermarks with full control." icon={Sparkles} hideHeader={embedded}>
         <div className="max-w-2xl mx-auto">
           <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} />
         </div>
@@ -257,11 +257,13 @@ export function ImageWatermark({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <ToolLayout 
-      title="Watermark Editor" 
+      title="Image Watermark" 
       description="Rotate, scale, and place watermarks anywhere." 
       maxWidth="max-w-7xl"
       centered={true}
       hideHeader={embedded}
+      onBack={() => setFile(null)}
+      backLabel="Make New"
     >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

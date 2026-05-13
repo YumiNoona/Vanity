@@ -96,7 +96,7 @@ JSON Structure requirement:
 
   if (!file || !imgUrl) {
     return (
-       <ToolUploadLayout title="Font Matcher (Vision)" description="Drop a screenshot of any text to heuristically determine its closest typographic family." icon={Type}>
+       <ToolUploadLayout title="Font Detector Vision" description="Drop a screenshot of any text to heuristically determine its closest typographic family." icon={Type}>
          <AIProviderHint />
          <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop image with text" />
       </ToolUploadLayout>
@@ -105,7 +105,7 @@ JSON Structure requirement:
 
   return (
     <ToolLayout 
-      title="Font Matcher (Vision)" 
+      title="Font Detector Vision" 
       description={`${file.name} · ${activeProvider}`} 
       icon={Type} 
       centered={true}

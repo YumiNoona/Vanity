@@ -124,11 +124,13 @@ export function ColorBlindness() {
 
   return (
     <ToolLayout 
-      title="Blindness Simulator" 
+      title="Color Blindness Simulator" 
       description={`Simulating ${mode.toUpperCase()} vision against 1:1 pixel matrices.`} 
       icon={Eye} 
       centered={true}
       maxWidth="max-w-6xl"
+      onBack={handleBack}
+      backLabel="Make New"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
          <div className="lg:col-span-8">

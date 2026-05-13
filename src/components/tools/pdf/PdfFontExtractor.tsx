@@ -4,6 +4,7 @@ import { Type, Download, AlertTriangle, CheckCircle, Search, RefreshCw, XCircle 
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 
 // pdfjs-dist is loaded dynamically in handleDrop
 export interface PdfFont {
@@ -35,8 +36,7 @@ export function PdfFontExtractor() {
     
     try {
       const pdfjsLib = await import("pdfjs-dist")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
 
       const arrayBuffer = await pdfFile.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -129,7 +129,7 @@ export function PdfFontExtractor() {
   }
 
   return (
-    <ToolLayout title="Discovery Table" description={file.name} icon={Search} centered={true} maxWidth="max-w-6xl">
+    <ToolLayout title="PDF Font Extractor" description={file.name} icon={Search} centered={true} maxWidth="max-w-6xl">
 
       <div className="glass-panel rounded-3xl overflow-hidden border-amber-500/10 shadow-2xl">
          {isProcessing ? (

@@ -82,7 +82,7 @@ export function CronBuilder() {
 
   return (
     <ToolLayout 
-      title="CRON Expression Tester" 
+      title="Cron Builder" 
       description="Validate schedules and visualize precision run times for automation tasks." 
       icon={Calendar} 
       maxWidth="max-w-6xl"

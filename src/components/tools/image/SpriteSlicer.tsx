@@ -280,20 +280,40 @@ export function SpriteSlicer() {
   }
 
   // Zoom controls
-  const zoomIn = () => setZoom(prev => Math.min(prev + 0.25, 4))
-  const zoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.25))
+  const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 4))
+  const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.1))
   const resetZoom = () => setZoom(1)
+
+  const handleReset = () => {
+    setFile(null)
+    setImgData(null)
+    setIsSliced(false)
+    frames.forEach(f => URL.revokeObjectURL(f.url))
+    setFrames([])
+    clearZipUrl()
+    setIsPlaying(false)
+    setCurrentFrame(0)
+    setZoom(1)
+  }
 
   if (!file) {
     return (
-      <ToolUploadLayout title="Sprite Slicer" description="Upload a sprite sheet to extract individual frames, preview animations, and export." icon={Scissors}>
+      <ToolUploadLayout title="Sprite Sheet Slicer" description="Upload a sprite sheet to extract individual frames, preview animations, and export." icon={Scissors}>
         <DropZone onDrop={handleDrop} accept={{ "image/*": [] }} label="Drop sprite sheet here" />
       </ToolUploadLayout>
     )
   }
 
   return (
-    <ToolLayout title="Sprite Studio" description={`${file.name} — ${imgData?.width}×${imgData?.height}px`} icon={Grid3X3} centered={true} maxWidth="max-w-[1600px]">
+    <ToolLayout 
+      title="Sprite Sheet Slicer" 
+      description={`${file.name} — ${imgData?.width}×${imgData?.height}px`} 
+      icon={Grid3X3} 
+      centered={true} 
+      maxWidth="max-w-[1600px]"
+      onBack={handleReset}
+      backLabel="Make New"
+    >
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Controls */}

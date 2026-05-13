@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Crop, Download, RefreshCw, FileText, CheckCircle, SlidersHorizontal, Loader2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 // pdf-lib and pdfjs-dist are loaded dynamically
 import { prewarmPdf } from "@/lib/pdf-text"
 import { toast } from "sonner"
@@ -36,6 +37,14 @@ export function PdfCrop() {
     left: 50,
     right: 50
   })
+
+  const handleReset = () => {
+    setFile(null)
+    clearPreviewUrl()
+    clearResultUrl()
+    setPageSize(null)
+    setMargins({ top: 50, bottom: 50, left: 50, right: 50 })
+  }
 
   // Mouse Interaction Handlers
   const handleInteractionStart = (e: React.MouseEvent, type: string) => {
@@ -105,8 +114,7 @@ export function PdfCrop() {
     setIsRendering(true)
     try {
       const pdfjsLib = await import("pdfjs-dist")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
 
       const arrayBuffer = await file.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -207,11 +215,13 @@ export function PdfCrop() {
 
   return (
     <ToolLayout
-      title="Cropping Engine"
+      title="Crop PDF"
       description={file.name}
       icon={FileText}
       centered={true}
       maxWidth="max-w-5xl"
+      onBack={handleReset}
+      backLabel="Make New"
     >
       <div className="flex gap-4 mb-6">
         <button 

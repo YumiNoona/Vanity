@@ -499,7 +499,7 @@ export function Pastebin() {
   }
 
   return (
-    <ToolLayout title="Advanced Sharing" description="Share snippets, large files, or entire folders securely and instantly." icon={Share2} centered={true} maxWidth="max-w-7xl">
+    <ToolLayout title="Serverless Pastebin" description="Share snippets, large files, or entire folders securely and instantly." icon={Share2} centered={true} maxWidth="max-w-7xl">
       <div className="space-y-6 pb-20">
         
         {/* Send / Receive Mode Toggle */}

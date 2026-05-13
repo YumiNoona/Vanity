@@ -99,7 +99,15 @@ export function AsciiArt() {
   }
 
   return (
-    <ToolLayout title="Character Studio" description="Fine-tune resolution and character sets." icon={Type} centered={true} maxWidth="max-w-7xl">
+    <ToolLayout 
+      title="ASCII Art Converter" 
+      description="Fine-tune resolution and character sets." 
+      icon={Type} 
+      centered={true} 
+      maxWidth="max-w-7xl"
+      onBack={() => setFile(null)}
+      backLabel="Make New"
+    >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8">

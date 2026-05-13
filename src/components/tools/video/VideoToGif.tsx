@@ -71,11 +71,13 @@ export function VideoToGif() {
 
   return (
     <ToolLayout 
-      title="GIF Transcoder" 
+      title="Video to GIF" 
       description={file.name} 
       icon={Film} 
       maxWidth="max-w-5xl"
       centered={true}
+      onBack={() => setFile(null)}
+      backLabel="Make New"
     >
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

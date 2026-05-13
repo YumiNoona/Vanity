@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react"
 import { DropZone } from "@/components/shared/DropZone"
 import { Download, Loader2, Minimize2, CheckCircle, AlertTriangle, ShieldCheck, Info, Gauge, Zap, Layers, Trash2 } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import { setupPdfWorker } from "@/lib/pdf-worker"
 import { usePremium } from "@/hooks/usePremium"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -84,8 +85,7 @@ export function CompressPdf() {
     
     try {
       const pdfjsLib = await safeImport(() => import("pdfjs-dist"), "PDF Engine")
-      const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+      await setupPdfWorker()
 
       const arrayBuffer = await uploadedFile.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -126,8 +126,7 @@ export function CompressPdf() {
 
   const runExtremeCompress = async (fileToCompress: File, targetKB: number) => {
     const pdfjsLib = await safeImport(() => import("pdfjs-dist"), "PDF Engine")
-    const pdfWorker = (await import("pdfjs-dist/build/pdf.worker?url")).default
-    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
+    await setupPdfWorker()
     const { PDFDocument } = await import("pdf-lib")
     
     const arrayBuffer = await fileToCompress.arrayBuffer()
@@ -305,7 +304,7 @@ export function CompressPdf() {
 
   if (activeTab === "single" && !file) {
     return (
-      <ToolUploadLayout title="Smart PDF Compressor" description="The most intelligent PDF optimizer. Analyzes content to choose the best strategy." icon={Minimize2} iconColor="accent">
+      <ToolUploadLayout title="Compress PDF" description="The most intelligent PDF optimizer. Analyzes content to choose the best strategy." icon={Minimize2} iconColor="accent">
         {renderTabSwitcher()}
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop PDF here" />
       </ToolUploadLayout>
@@ -314,7 +313,7 @@ export function CompressPdf() {
 
   if (activeTab === "bulk" && bulkFiles.length === 0) {
     return (
-      <ToolUploadLayout title="Bulk PDF Compressor" description="Compress entire batches of PDF files locally and securely." icon={Layers} iconColor="accent">
+      <ToolUploadLayout title="Bulk Compress PDF" description="Compress entire batches of PDF files locally and securely." icon={Layers} iconColor="accent">
         {renderTabSwitcher()}
         <DropZone onDrop={handleDrop} accept={{ "application/pdf": [".pdf"] }} label="Drop multiple PDFs" multiple />
       </ToolUploadLayout>
@@ -323,7 +322,7 @@ export function CompressPdf() {
 
   return (
     <ToolLayout
-      title={activeTab === "single" ? "Smart PDF Compressor" : "Bulk PDF Compressor"}
+      title={activeTab === "single" ? "Compress PDF" : "Bulk Compress PDF"}
       description={activeTab === "single" ? (file ? `Optimizing: ${file.name}` : "The most intelligent PDF optimizer.") : `Batched: ${bulkFiles.length} files`}
       icon={activeTab === "single" ? Minimize2 : Layers}
       centered={true}

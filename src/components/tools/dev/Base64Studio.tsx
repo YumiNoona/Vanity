@@ -69,7 +69,7 @@ export function Base64Studio({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <ToolLayout 
-      title="Base64 Tool" 
+      title="Base64 Studio" 
       description="Encode or decode strings and files instantly." 
       icon={Hash} 
       maxWidth="max-w-6xl"

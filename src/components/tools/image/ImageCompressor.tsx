@@ -174,7 +174,7 @@ export function ImageCompressor() {
 
   if (activeTab === "bulk" && bulkFiles.length === 0) {
     return (
-      <ToolUploadLayout title="Bulk Image Compressor" description="Compress entire batches of images locally and securely." icon={Layers}>
+      <ToolUploadLayout title="Image Compressor" description="Compress entire batches of images locally and securely." icon={Layers}>
         {renderTabSwitcher()}
         <DropZone onDrop={handleFiles} accept={{ "image/*": [] }} label="Drop multiple images" multiple />
       </ToolUploadLayout>
@@ -183,11 +183,13 @@ export function ImageCompressor() {
 
   return (
     <ToolLayout
-      title={activeTab === "single" ? "Image Compressor" : "Bulk Compress"}
+      title="Image Compressor"
       description={activeTab === "single" ? `Editing: ${file?.name}` : `${bulkFiles.length} images queued`}
       icon={activeTab === "single" ? Minimize2 : Layers}
       centered={true}
       maxWidth="max-w-6xl"
+      onBack={handleBack}
+      backLabel="Make New"
     >
       {activeTab === "single" ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">

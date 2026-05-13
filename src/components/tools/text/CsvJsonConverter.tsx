@@ -92,7 +92,7 @@ export function CsvJsonConverter({ embedded = false }: { embedded?: boolean } = 
 
   return (
     <ToolLayout 
-      title="Data Converter" 
+      title="Data Format Studio" 
       description="Switch between CSV and JSON formats effortlessly." 
       icon={FileSpreadsheet} 
       centered={true}

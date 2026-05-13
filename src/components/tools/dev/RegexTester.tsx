@@ -196,7 +196,7 @@ export function RegexTester() {
   ]
 
   return (
-    <ToolLayout title="Regex Studio" description="Powerful pattern matching with named group support and live explanations." icon={Terminal} maxWidth="max-w-7xl" centered>
+    <ToolLayout title="Regex Tester" description="Powerful pattern matching with named group support and live explanations." icon={Terminal} maxWidth="max-w-7xl" centered>
       <div className="space-y-8 pb-20">
         <div className="flex justify-center">
           <PillToggle activeId={mode} onChange={(id) => setMode(id as ToolMode)} options={[{ id: "test", label: "Test Patterns", icon: Search }, { id: "replace", label: "Batch Replace", icon: Repeat }]} />

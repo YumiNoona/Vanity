@@ -121,7 +121,7 @@ export function HttpRequestBuilder() {
   }
 
   return (
-    <ToolLayout title="API Architect" description="Full-stack request builder with response diffing and history." icon={Globe} maxWidth="max-w-7xl" centered>
+    <ToolLayout title="HTTP Request Builder" description="Full-stack request builder with response diffing and history." icon={Globe} maxWidth="max-w-7xl" centered>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
         <div className="lg:col-span-8 space-y-6">
           <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6">

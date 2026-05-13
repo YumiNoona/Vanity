@@ -152,7 +152,7 @@ export function SmartCensor({ embedded = false }: { embedded?: boolean } = {}) {
   }
 
   return (
-    <ToolLayout title="Privacy Guard" description={`Censoring: ${file.name}`} icon={ShieldAlert} centered={true} maxWidth="max-w-7xl" hideHeader={embedded}>
+    <ToolLayout title="Smart Censor" description={`Censoring: ${file.name}`} icon={ShieldAlert} centered={true} maxWidth="max-w-7xl" hideHeader={embedded}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
         <div className="lg:col-span-9">
           <div className="glass-panel p-2 rounded-2xl flex items-center justify-center bg-black/40 shadow-inner overflow-hidden relative group border border-white/5">

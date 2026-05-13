@@ -10,7 +10,7 @@ export function ColorStudio() {
 
   return (
     <ToolLayout 
-      title="Color Studio" 
+      title="Color Converter" 
       description="Professional color tools for developers and designers."
       icon={Palette}
       centered={true}
