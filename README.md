@@ -1,5 +1,5 @@
 <h1 align="center">✦ Vanity</h1>
-<p align="center"><strong>The All-In-One Private Image, PDF & Dev Utility Suite — 100% Free</strong></p>
+<p align="center"><strong>Image, PDF & Dev tools — all private, all free</strong></p>
 
 <p align="center">
   <a href="https://vanity.venusapp.in"><img src="https://img.shields.io/badge/🌐_Live_Site-vanity.venusapp.in-F59E0B?style=for-the-badge" alt="Live Site" /></a>
@@ -24,146 +24,131 @@
 
 ---
 
-## 📖 About
+## About
 
-**Vanity** is a modern, premium-grade web application that replaces clunky desktop software and subscription-heavy utility sites. It bundles dozens of powerful Image, PDF, and Dev tools into a completely **client-side** application.
+Vanity is a browser-first utility suite that replaces those clunky desktop apps and overpriced subscription sites. 100+ tools for images, PDFs, video, text, and dev work — all running on your machine. Nothing gets uploaded.
 
-> **🔒 Privacy by Design** — Vanity leverages modern Web APIs including `Canvas`, `WebAssembly`, `Fabric.js`, and browser-native file streams to process all user data locally. **Your files never leave your machine.**
-
-### 🏗️ Architecture Highlights
-
-- **Standardized Tool Architecture** — All 100+ tools migrated to a unified `ToolLayout` and `ToolUploadLayout` system for consistent UX and responsive design.
-- **Dynamic Optimization** — Strategic code-splitting and lazy-loading for heavy libraries like `fabric`, `pdf-lib`, and `zxcvbn` to ensure sub-second initial load.
-- **Unified Color Engine** — Custom-built `ColorPickerInput` with native **EyeDropper API** integration across all creative tools.
-- **Industrial Dimensions Guard** — Mobile-aware (10MP) vs Desktop (20MP) scaling protects against OOM crashes.
-- **Time-Budgeted Yielding** — 10ms `maybeYield` loops maintain 60fps during heavy pixel manipulations.
-- **Bulletproof Memory Hygiene** — Tracked Object URL lifecycles via `useObjectUrl` and recursive canvas disposal.
+> **Your files stay yours.** Everything runs locally using Canvas, WebAssembly, Fabric.js, and browser file streams. No servers, no uploads, no tracking.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🖼️ Image Tools
-| Tool | Description |
-|---|---|
-| **EXIF Sanitizer** | Strip GPS and device metadata locally; batch mode supported. |
-| **Social Media Resizer** | Cinematic 16:9 previews with one-click resize for IG, TikTok, YouTube. |
-| **Collage Maker** | Interactive canvas with custom gaps, backgrounds, and multi-layer exports. |
-| **ICC Profile Stripper** | Normalize colors to sRGB by removing embedded color profiles. |
-| **Image Compressor** | Iterative smart encoding to hit target file sizes in KB. |
-| **GIF Maker** | Combine images into animated GIFs with frame control. |
+### Image Tools
 
-### 📄 PDF Tools
-| Tool | Description |
+| Tool | What it does |
 |---|---|
-| **PDF Editor Lite** | Add text, signatures, and highlights with high-fidelity canvas overlays. |
-| **Merge & Split** | Drag, arrange, and seamlessly combine or extract PDF files. |
-| **PDF Watermark** | Add persistent text stamps across all pages with opacity control. |
-| **Password Manager** | Add **AES-256** encryption or remove passwords via local `qpdf` backend. |
+| **EXIF Sanitizer** | Strips GPS and device metadata. Works in batch. |
+| **Social Media Resizer** | One-click resize for Instagram, TikTok, YouTube. |
+| **Collage Maker** | Drag, gap, background — export multi-layer collages. |
+| **ICC Profile Stripper** | Removes embedded color profiles, normalizes to sRGB. |
+| **Image Compressor** | Smart encoding to hit specific file sizes. |
+| **GIF Maker** | Turns images into animated GIFs with frame control. |
 
-### 🛠️ Developer Tools
-| Tool | Description |
+### PDF Tools
+
+| Tool | What it does |
 |---|---|
-| **Color Studio** | Pro picker with **EyeDropper**, Palette Builder, and WCAG Accessibility audit. |
-| **Secure Pastebin** | Serverless sharing with **Client-Side AES Encryption** and file upload. |
-| **JSON Schema Validator** | Live validation against Draft-7 schemas with inline error highlighting. |
-| **CSS Effects Builder** | Visual editor for complex Box-Shadows and CSS Filters. |
-| **Fake Data Generator** | Generate millions of rows for SQL/JSON/CSV with custom schemas. |
+| **PDF Editor Lite** | Add text, signatures, highlights via canvas overlays. |
+| **Merge & Split** | Drag to rearrange, combine, or extract pages. |
+| **PDF Watermark** | Stamps text across pages with opacity control. |
+| **Password Manager** | AES-256 encrypt or decrypt via local `qpdf`. |
+
+### Developer Tools
+
+| Tool | What it does |
+|---|---|
+| **Color Studio** | Picker, palette builder, WCAG contrast audit. |
+| **Secure Pastebin** | Encrypted sharing via URL fragments. No server storage. |
+| **JSON Schema Validator** | Live validation against Draft-7 schemas. |
+| **CSS Effects Builder** | Visual box-shadow and filter editor. |
+| **Fake Data Generator** | Generates SQL/JSON/CSV with custom schemas. |
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Runtime** | React, TypeScript | Type-safe component architecture |
-| **Build** | Vite + LightningCSS | Sub-second HMR, optimized code splitting, ultra-fast CSS |
-| **Encryption** | Crypto-JS | Client-side AES-256 for secure links and PDF metadata |
-| **Canvas Engine** | Fabric.js | Rich interactive canvas editing & composition |
-| **Video Engine** | `ffmpeg.wasm` | Multi-threaded browser video processing |
-| **Serverless API** | Vercel Functions | Secure AI API key proxying (Gemini & Groq) |
-| **Icons** | Lucide React | Consistent icon system across all tools |
+| Layer | What we use |
+|---|---|
+| **Runtime** | React + TypeScript |
+| **Build** | Vite + LightningCSS |
+| **Encryption** | Crypto-JS (client-side AES-256) |
+| **Canvas** | Fabric.js |
+| **Video** | ffmpeg.wasm |
+| **Serverless** | Vercel Functions (AI proxy only) |
+| **Icons** | Lucide React |
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
-├── src/
-│   ├── components/
-│   │   ├── layout/                  # ToolLayout, ToolUploadLayout, Navbar
-│   │   ├── shared/                  # ColorPickerInput, PillToggle, DropZone
-│   │   ├── tools/                   # 110+ Categorized tools (Lazy Loaded)
-│   │   └── ui/                      # shadcn/ui primitives
-│   ├── hooks/
-│   │   ├── useObjectUrl.ts          # Centralized memory management
-│   │   └── useCopyToClipboard.ts    # Secure state-aware clipboard logic
-│   ├── lib/
-│   │   ├── canvas/                  # draw, export, guards, loadImage
-│   │   └── utils.ts                 # cn, maybeYield, safeRevoke
-│   └── main.tsx                     # React DOM mount
+src/
+├── components/
+│   ├── layout/       # ToolLayout, ToolUploadLayout, Navbar
+│   ├── shared/       # ColorPickerInput, PillToggle, DropZone
+│   ├── tools/        # 110+ tools, lazy loaded by category
+│   └── ui/           # shadcn/ui primitives
+├── hooks/
+│   ├── useObjectUrl.ts
+│   └── useCopyToClipboard.ts
+├── lib/
+│   ├── canvas/       # draw, export, guards, loadImage
+│   └── utils.ts
+└── main.tsx
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### Prerequisites
-
-- **Node.js** ≥ 18
-- **npm** ≥ 9
-- **qpdf** (Required only for PDF password removal/encryption features)
-
-### Installation
+**Requirements:** Node.js ≥ 18, npm ≥ 9
 
 ```bash
 git clone https://github.com/YumiNoona/Vanity.git
 cd Vanity
 npm install
-```
-
-#### 🌐 Start Development
-```bash
 npm run dev
 ```
+
 Open [http://localhost:5173](http://localhost:5173).
 
+> `qpdf` is needed only for PDF password features.
+
 ---
 
-## 🎨 Design System
+## Design System
 
-| Token | Value | Usage |
+| Token | Value | Where it's used |
 |---|---|---|
-| **Background** | `#0A0A0A` | Pure dark aesthetic base |
-| **Primary** | `#F59E0B` (Amber) | Interactive elements, CTAs, glows |
-| **Font (Display)** | Syne | Headlines, branding, tool titles |
-| **Font (Body)** | DM Sans | Paragraphs, labels, descriptions |
-| **Glass Panels** | `bg-white/[0.03]` | Depth without hard borders |
+| Background | `#0A0A0A` | Dark mode base |
+| Primary | `#F59E0B` (Amber) | Buttons, links, glows |
+| Font (Display) | Syne | Headlines, tool titles |
+| Font (Body) | DM Sans | Body text, labels |
+| Glass | `bg-white/[0.03]` | Cards, panels |
 
 ---
 
-## 💖 Support the Project
+## Support
 
-Vanity is and will always be **100% free** and open. We don't show ads, we don't track you, and we don't sell your data. To keep this project alive and cover the costs of hosting and AI processing, we rely entirely on community donations.
+Vanity is and will always be free. No ads, no tracking, no data selling. If you want to help keep it running:
 
-- **UPI ID**: `rushikeshingale2001@okicici`
-- **Goal**: Keep Vanity forever free for everyone.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+- **UPI**: `rushikeshingale2001@okicici`
 
 ---
 
-## 📝 License
+## Contributing
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+Open an issue first if you want to change something. PRs welcome.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ---
 
 <p align="center">
-  <sub>Built with ☕ and obsessive attention to detail</sub><br/>
-  <a href="https://vanity.venusapp.in"><strong>vanity.venusapp.in</strong></a>
+  Built with 💙 Made by Veil
 </p>
