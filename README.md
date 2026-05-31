@@ -1,5 +1,5 @@
 <h1 align="center">✦ Vanity</h1>
-<p align="center"><strong>Image, PDF & Dev tools — all private, all free</strong></p>
+<p align="center"><strong>Image, PDF & Dev tools all private, all free</strong></p>
 
 <p align="center">
   <a href="https://vanity.venusapp.in"><img src="https://img.shields.io/badge/🌐_Live_Site-vanity.venusapp.in-F59E0B?style=for-the-badge" alt="Live Site" /></a>
@@ -26,7 +26,7 @@
 
 ## About
 
-Vanity is a browser-first utility suite that replaces those clunky desktop apps and overpriced subscription sites. 100+ tools for images, PDFs, video, text, and dev work — all running on your machine. Nothing gets uploaded.
+Vanity is a browser-first utility suite that replaces clunky desktop software and overpriced subscription sites. 110+ tools for images, PDFs, video, text, and dev work all running on your machine. Nothing gets uploaded.
 
 > **Your files stay yours.** Everything runs locally using Canvas, WebAssembly, Fabric.js, and browser file streams. No servers, no uploads, no tracking.
 
@@ -34,35 +34,163 @@ Vanity is a browser-first utility suite that replaces those clunky desktop apps 
 
 ## Features
 
+### AI Tools
+
+| Tool | What it does |
+|---|---|
+| **Screenshot to Code** | Turns UI screenshots into HTML + Tailwind via Claude Vision. |
+| **Screenshot to Game Code** | Converts code screenshots to Godot, Unity, or Unreal code. |
+| **AI PDF Summarizer** | Extracts and summarizes PDF content using Claude. |
+| **AI Resume Reviewer** | Evaluates resumes with scorecards and structured feedback. |
+| **AI Background Replacer** | Removes backgrounds and generates new scenes via Claude. |
+| **AI Alt-Text Writer** | Generates accessibility alt text for images (single or batch). |
+| **Image Caption Generator** | Creates contextual social captions for images. |
+| **Font Detector Vision** | Identifies typography from images. |
+| **Explain UI** | Deconstructs UI screenshots into hierarchy trees. |
+| **Mock JSON Generator** | Generates deterministic mock JSON data from schemas. |
+| **Providers** | Manages Gemini, Anthropic, OpenAI, and Groq API keys. |
+
 ### Image Tools
 
 | Tool | What it does |
 |---|---|
-| **EXIF Sanitizer** | Strips GPS and device metadata. Works in batch. |
-| **Social Media Resizer** | One-click resize for Instagram, TikTok, YouTube. |
-| **Collage Maker** | Drag, gap, background — export multi-layer collages. |
-| **ICC Profile Stripper** | Removes embedded color profiles, normalizes to sRGB. |
-| **Image Compressor** | Smart encoding to hit specific file sizes. |
-| **GIF Maker** | Turns images into animated GIFs with frame control. |
+| **Image Converter** | Converts between WEBP, PNG, JPG, GIF, PDF, SVG, HEIC, ICO, TIFF, BMP, TGA, AVIF, EPS. |
+| **Remove Background** | AI-powered background removal, runs locally in your browser. |
+| **Image Upscaler** | Enhances resolution by 2x or 4x using AI super-resolution. |
+| **Image Compressor** | Compresses images without losing quality. |
+| **Crop Image** | Crops and resizes free-hand or to specific dimensions. |
+| **Object Eraser** | AI brush to erase unwanted objects, watermarks, or people. |
+| **Scan Suite** | Generates QR codes and standard barcodes. |
+| **OCR Image to Text** | Extracts text from images using AI-powered OCR. |
+| **Social Media Resizer** | One-click resize for Instagram, Twitter, LinkedIn. |
+| **Image Effects** | Applies filters, adjusts brightness, contrast. |
+| **GIF Maker** | Combines images into animated GIFs with frame control. |
+| **Pixel Art Converter** | Downscales images into retro pixel art. |
+| **Noise & Grain** | Adds film grain, noise, or vintage textures. |
+| **Sketch Studio** | Turns photos into pencil-sketch illustrations. |
+| **Sprite Sheet Slicer** | Cuts sprite grids into individual files in a zip. |
+| **Before / After Slider** | Creates interactive comparison sliders for two images. |
+| **Color Palette** | Extracts design palettes from photographs. |
+| **Smart Censor** | Pixelates sensitive information and faces. |
+| **Privacy Vault** | Sanitizes EXIF metadata and strips ICC color profiles. |
+| **ASCII Art Converter** | Turns images into text-based ASCII renderings. |
+| **Meme Generator** | Creates memes with custom text and templates. |
+| **Color Blindness Simulator** | Simulates visual perception for accessibility testing. |
+| **Collage Maker** | Arranges multiple images into grids or masonry layouts. |
+| **Pixel Mosaic** | Genetic algorithm that rearranges pixels into a new image. |
 
 ### PDF Tools
 
 | Tool | What it does |
 |---|---|
-| **PDF Editor Lite** | Add text, signatures, highlights via canvas overlays. |
-| **Merge & Split** | Drag to rearrange, combine, or extract pages. |
-| **PDF Watermark** | Stamps text across pages with opacity control. |
-| **Password Manager** | AES-256 encrypt or decrypt via local `qpdf`. |
+| **Merge PDFs** | Combines multiple PDFs into one file. |
+| **Split PDF** | Extracts pages into separate files. |
+| **PDF Editor Lite** | Annotates, draws, and modifies PDF content. |
+| **Compress PDF** | Reduces file size while optimizing quality. |
+| **Images to PDF** | Combines images into a professional PDF. |
+| **PDF Exporter Suite** | Exports PDFs to ZIP images, raw text, or Word docs. |
+| **PDF Passwords** | Adds or removes AES-256 password protection. |
+| **Reorder PDF** | Drag and drop to rearrange pages. |
+| **PDF Watermark** | Stamps text or logos across all pages. |
+| **Rotate PDF Pages** | Rotates pages 90°, 180°, or 270°. |
+| **Flatten PDF** | Converts form fields into permanent content. |
+| **Crop PDF** | Adjusts margins to remove whitespace or crop content. |
+| **Remove Blank Pages** | Auto-detects and strips empty or white pages. |
+| **N-up Imposition** | Prints 2 or 4 pages per sheet. |
+| **PDF Font Extractor** | Extracts embedded font subsets from PDFs. |
 
 ### Developer Tools
 
 | Tool | What it does |
 |---|---|
-| **Color Studio** | Picker, palette builder, WCAG contrast audit. |
-| **Secure Pastebin** | Encrypted sharing via URL fragments. No server storage. |
-| **JSON Schema Validator** | Live validation against Draft-7 schemas. |
-| **CSS Effects Builder** | Visual box-shadow and filter editor. |
-| **Fake Data Generator** | Generates SQL/JSON/CSV with custom schemas. |
+| **Mock JSON Generator** | Generates deterministic mock data from schemas. |
+| **Code Formatter Studio** | Prettifies and minifies JSON, HTML, SQL, XML. |
+| **Color Converter** | Picks and converts between HEX, RGB, HSL, CMYK. |
+| **Base64 Studio** | Encodes or decodes text, images, or files to base64. |
+| **HTTP Request Builder** | Composes and tests API requests with custom headers. |
+| **URL Encoder / Decoder** | Encodes or decodes URLs and query strings. |
+| **Regex Tester** | Live regex matching with group capture and flags. |
+| **UUID & Hash Generator** | Generates UUIDs, MD5, and SHA-256 hashes. |
+| **Chronos Studio** | Epoch converter, relative time, business date calculator. |
+| **JWT Decoder** | Decodes and inspects JSON Web Tokens locally. |
+| **Cron Builder** | Builds cron schedules with human-readable descriptions. |
+| **ENV File Editor** | Uploads and edits .env files in a clean table UI. |
+| **HTML Entity Encoder** | Encodes or decodes HTML entities. |
+| **Color Contrast Checker** | Calculates contrast ratios and checks WCAG compliance. |
+| **CSS Effects Builder** | Visual editor for box-shadows and CSS filters. |
+| **JSON Schema Validator** | Validates JSON against custom schemas. |
+| **Header Oracle** | Inspects HTTP response headers, security policies, caching. |
+
+### Video & Audio Tools
+
+| Tool | What it does |
+|---|---|
+| **Video Compressor** | Compresses MP4/WebM files locally via FFMPEG. |
+| **Video Trimmer** | Slices and clips video segments via stream-copying. |
+| **Audio Studio** | Audio converter, normalizer, and video-to-audio extraction. |
+| **Video to GIF** | Converts video clips into GIFs. |
+| **Video Grid Extractor** | Pulls high-resolution thumbnail sheets from video. |
+| **Audio Waveform Visualizer** | Inspects audio tracks and trims segments visually. |
+| **Video Speed Changer** | Speeds up or slows down video with pitch correction. |
+
+### Text & Data Tools
+
+| Tool | What it does |
+|---|---|
+| **Password Generator** | Generates strong passwords with length and symbol configs. |
+| **Markdown Studio** | Live rendered preview of pasted markdown. |
+| **Text Diff Checker** | Compares two texts and highlights differences. |
+| **Text Analyser** | Word count, reading time, and frequency analysis. |
+| **Data Format Studio** | Converts between TOML, YAML, CSV, and JSON. |
+| **String Case Converter** | Converts between camelCase, snake_case, PascalCase. |
+| **Lorem Ipsum Studio** | Generates customizable placeholder text. |
+| **Word Frequency Counter** | Analyzes text and visualizes word distribution. |
+| **Number Base Converter** | Live conversion between decimal, binary, hex, octal. |
+| **Data Forge** | Generates synthetic datasets with SQL/JSON/CSV export. |
+| **Unicode Explorer** | Inspects code points, categories, and byte encodings. |
+| **Name Case Formatter** | Bulk-fixes name casing with prefix support. |
+| **Table to Markdown / HTML** | Converts CSV or spreadsheet data into tables. |
+| **README Previewer** | Previews GitHub READMEs with templates and badges. |
+| **Serverless Pastebin** | Shares text snippets via encrypted URL fragments. |
+
+### Browser & Network Tools
+
+| Tool | What it does |
+|---|---|
+| **DNS Lookup** | Checks A, AAAA, MX, TXT records via Cloudflare DNS. |
+| **IP Lookup** | Gets geolocation, ASN, and ISP info for any IP. |
+| **SSL Checker** | Verifies SSL certificates, expiry dates, and issuers. |
+| **User Agent Parser** | Breaks down UA strings into browser, OS, device. |
+| **MIME Type Lookup** | Maps file extensions to MIME types. |
+| **Subnet Calculator** | CIDR calculations, host ranges, subnet masks. |
+| **Link Shortener** | Creates short links via public anonymizing services. |
+
+### Security & Crypto Tools
+
+| Tool | What it does |
+|---|---|
+| **TOTP Generator** | Generates 2FA codes locally from a secret key. |
+| **Bcrypt Hasher** | Hashes and verifies passwords using bcrypt. |
+| **RSA Key Generator** | Generates RSA public/private key pairs in PEM format. |
+| **Checksum Verifier** | Verifies file integrity via MD5, SHA-1, SHA-256. |
+
+### Math & Science Tools
+
+| Tool | What it does |
+|---|---|
+| **Matrix Calculator** | Adds, multiplies, and finds determinants for 2x2–5x5 matrices. |
+| **Unit Converter** | Converts length, weight, temperature, and more. |
+| **Scientific Calculator** | Advanced math functions including trig and logs. |
+| **Percentage Calculator** | Calculates percent change, percent of, and ratios. |
+| **Aspect Ratio Calculator** | Computes dimensions, simplifies ratios, generates CSS. |
+
+### Finance Tools
+
+| Tool | What it does |
+|---|---|
+| **Finance Studio** | Loan EMI, mortgage, and investment SIP calculators. |
+| **Currency Converter** | Formats numbers into any world currency locale. |
+| **GST Calculator** | Computes tax-inclusive and tax-exclusive prices. |
 
 ---
 
@@ -145,7 +273,7 @@ Open an issue first if you want to change something. PRs welcome.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT see [LICENSE](LICENSE).
 
 ---
 
