@@ -21,19 +21,6 @@ export async function maybeYield(budget = 10) {
   }
 }
 
-/**
- * Bulletproof Object URL revocation.
- */
-export function safeRevoke(urls: string[]) {
-  urls.forEach(u => {
-    try {
-      if (u && u.startsWith("blob:")) URL.revokeObjectURL(u)
-    } catch (e) {
-      console.warn("Revoke failed", e)
-    }
-  })
-}
-
 export function formatSize(bytes: number) {
   if (bytes === 0) return "0 B"
   const k = 1024

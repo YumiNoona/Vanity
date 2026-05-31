@@ -208,7 +208,7 @@ export function ImageToSketch() {
   if (!file) {
     return (
       <ToolUploadLayout
-        title="Image to Sketch"
+        title="Sketch Studio"
         description="Instantly turn any photo into a professional pencil-sketch illustration."
         icon={Pencil}
       >
@@ -219,7 +219,7 @@ export function ImageToSketch() {
 
   return (
     <ToolLayout
-      title="Sketch Studio"
+        title="Sketch Studio"
       description="Adjust intensity for different artistic styles."
       icon={Pencil}
       centered={true}

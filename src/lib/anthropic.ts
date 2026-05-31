@@ -2,7 +2,7 @@ const STORAGE_KEY = "vanity_anthropic_key"
 const PRIMARY_MODEL = "claude-sonnet-4-20250514"
 const FALLBACK_MODEL = "claude-3-5-sonnet-20241022"
 
-export class ClaudeError extends Error {
+class ClaudeError extends Error {
   code: "NO_KEY" | "RATE_LIMITED" | "INVALID_KEY" | "NETWORK_ERROR" | "UNKNOWN"
 
   constructor(message: string, code: ClaudeError["code"]) {
@@ -12,7 +12,7 @@ export class ClaudeError extends Error {
   }
 }
 
-export interface ClaudeMessage {
+interface ClaudeMessage {
   role: "user" | "assistant"
   content: any
 }
@@ -38,7 +38,7 @@ const handleApiError = (status: number, message: string) => {
   throw new ClaudeError(`Anthropic API error: ${message}`, "UNKNOWN")
 }
 
-export async function callClaude({
+async function callClaude({
   messages,
   systemPrompt,
   maxTokens = 4096,
@@ -145,7 +145,7 @@ export const fileToBase64 = (file: File | Blob): Promise<{ base64: string; mimeT
   })
 }
 
-export async function callClaudeVision({
+async function callClaudeVision({
   file,
   prompt,
   systemPrompt,
