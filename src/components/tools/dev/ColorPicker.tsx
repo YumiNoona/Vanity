@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Copy, CheckCircle, Palette, RefreshCw, Plus, Trash2, Download, ShieldCheck, AlertTriangle, X, Pipette } from "lucide-react"
+import { Copy, CheckCircle, Palette, RefreshCw, Plus, Trash2, Download, AlertTriangle, X, Pipette } from "lucide-react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -23,6 +23,8 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
   const [showPicker, setShowPicker] = useState(false)
   const [pickerMode, setPickerMode] = useState<"hex" | "rgb">("hex")
   const [isConfirmingClear, setIsConfirmingClear] = useState(false)
+  const [exportFormat, setExportFormat] = useState<"png" | "jpg">("png")
+  const [selectedCodeFormat, setSelectedCodeFormat] = useState<"css" | "tailwind" | "json" | null>(null)
   const pickerRef = React.useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -135,6 +137,44 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
       content = JSON.stringify(palette, null, 2)
     }
     copy(content, `${format.toUpperCase()} copied to clipboard`)
+  }
+
+  const exportPaletteAsImage = () => {
+    if (palette.length === 0) {
+      toast.error("Add some colors to your palette first!")
+      return
+    }
+
+    const canvas = document.createElement("canvas")
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const cubeSize = 200
+    const gap = 0
+    const totalWidth = cubeSize * palette.length + gap * (palette.length - 1)
+    canvas.width = totalWidth
+    canvas.height = cubeSize
+
+    // Draw colors as simple cubes
+    palette.forEach((color, index) => {
+      const x = index * (cubeSize + gap)
+      ctx.fillStyle = color
+      ctx.fillRect(x, 0, cubeSize, cubeSize)
+    })
+
+    // Download
+    const mimeType = exportFormat === "png" ? "image/png" : "image/jpeg"
+    const extension = exportFormat === "png" ? "png" : "jpg"
+    canvas.toBlob((blob) => {
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `vanity-palette-${Date.now()}.${extension}`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success("Palette downloaded!")
+    }, mimeType, exportFormat === "jpg" ? 0.95 : undefined)
   }
 
   const randomColor = () => {
@@ -308,28 +348,7 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-white/5">
-                 <div className="flex items-center justify-between mb-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Accessibility Audit</span>
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className={cn("p-4 rounded-2xl border transition-all", parseFloat(ratio) >= 4.5 ? "bg-emerald-500/5 border-emerald-500/20" : "bg-orange-500/5 border-orange-500/20")}>
-                       <span className="text-[9px] font-black uppercase text-muted-foreground block mb-2">WCAG AA</span>
-                       <div className="flex items-center gap-3">
-                          {parseFloat(ratio) >= 4.5 ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <AlertTriangle className="w-5 h-5 text-orange-400" />}
-                          <span className="text-sm font-black text-white">{parseFloat(ratio) >= 4.5 ? "Pass" : "Fail"}</span>
-                       </div>
-                    </div>
-                    <div className={cn("p-4 rounded-2xl border transition-all", parseFloat(ratio) >= 7 ? "bg-emerald-500/5 border-emerald-500/20" : "bg-orange-500/5 border-orange-500/20")}>
-                       <span className="text-[9px] font-black uppercase text-muted-foreground block mb-2">WCAG AAA</span>
-                       <div className="flex items-center gap-3">
-                          {parseFloat(ratio) >= 7 ? <ShieldCheck className="w-5 h-5 text-emerald-400" /> : <AlertTriangle className="w-5 h-5 text-orange-400" />}
-                          <span className="text-sm font-black text-white">{parseFloat(ratio) >= 7 ? "Pass" : "Fail"}</span>
-                       </div>
-                    </div>
-                 </div>
-              </div>
+
            </div>
         </div>
 
@@ -433,21 +452,68 @@ export function ColorPicker({ embedded = false }: { embedded?: boolean } = {}) {
                        </p>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3">
-                       {[
-                         { id: "css", label: "CSS Variables" },
-                         { id: "tailwind", label: "Tailwind Config" },
-                         { id: "json", label: "JSON Data" },
-                       ].map((fmt) => (
-                         <button 
-                           key={fmt.id}
-                           disabled={palette.length === 0}
-                           onClick={() => exportPalette(fmt.id as any)}
-                           className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
-                         >
-                           {fmt.label}
-                         </button>
-                       ))}
+                    <div className="space-y-4">
+                      {/* Code Export Section */}
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-3">
+                          {[
+                            { id: "css", label: "CSS Variables" },
+                            { id: "tailwind", label: "Tailwind Config" },
+                            { id: "json", label: "JSON Data" },
+                          ].map((fmt) => (
+                            <button 
+                              key={fmt.id}
+                              disabled={palette.length === 0}
+                              onClick={() => setSelectedCodeFormat(fmt.id as "css" | "tailwind" | "json")}
+                              className={cn(
+                                "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
+                                selectedCodeFormat === fmt.id
+                                  ? "bg-primary text-primary-foreground border border-primary"
+                                  : "bg-white/5 border border-white/10 text-white hover:bg-primary hover:border-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                              )}
+                            >
+                              {fmt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <button 
+                          disabled={palette.length === 0 || !selectedCodeFormat}
+                          onClick={() => selectedCodeFormat && exportPalette(selectedCodeFormat)}
+                          className="w-full px-6 py-4 bg-primary border border-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-[0_0_30px_rgba(var(--primary),0.3)] active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <Copy className="w-4 h-4" /> Copy Selected Code
+                        </button>
+                      </div>
+
+                      <div className="border-t border-white/5 pt-4 space-y-4">
+                        {/* Image Export Section */}
+                        <div className="flex flex-wrap gap-3">
+                          {[
+                            { id: "png", label: "PNG" },
+                            { id: "jpg", label: "JPG" },
+                          ].map((fmt) => (
+                            <button
+                              key={fmt.id}
+                              onClick={() => setExportFormat(fmt.id as "png" | "jpg")}
+                              className={cn(
+                                "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
+                                exportFormat === fmt.id
+                                  ? "bg-primary text-primary-foreground border border-primary"
+                                  : "bg-white/5 border border-white/10 text-white hover:bg-primary hover:border-primary"
+                              )}
+                            >
+                              {fmt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <button 
+                          disabled={palette.length === 0}
+                          onClick={exportPaletteAsImage}
+                          className="w-full px-6 py-4 bg-primary border border-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-[0_0_30px_rgba(var(--primary),0.3)] active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <Download className="w-4 h-4" /> Download as Image
+                        </button>
+                      </div>
                     </div>
 
                     {palette.length === 0 && (

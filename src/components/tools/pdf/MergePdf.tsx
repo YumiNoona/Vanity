@@ -1,145 +1,227 @@
-import React, { useState, useEffect } from "react"
-import { DropZone } from "@/components/shared/DropZone"
-import { Download, Layers, FileText, Trash2, ArrowUp, ArrowDown, Loader2, CheckCircle } from "lucide-react"
-// pdf-lib is loaded dynamically in handleMerge
-import { prewarmPdf } from "@/lib/pdf-text"
-import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
+import React, { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { DropZone } from '@/components/shared/DropZone'
+import {
+  ArrowRight,
+  CheckCircle,
+  Download,
+  FileText,
+  GripVertical,
+  Layers,
+  Loader2,
+  Plus,
+  Trash2,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useDropzone } from 'react-dropzone'
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { usePremium } from '@/hooks/usePremium'
+import { useObjectUrl } from '@/hooks/useObjectUrl'
+import { ToolLayout, ToolUploadLayout } from '@/components/layout/ToolLayout'
+import { PillToggle } from '@/components/shared/PillToggle'
+import { downloadBlob } from '@/lib/canvas/export'
 
-import { motion, Reorder } from "framer-motion"
-import { usePremium } from "@/hooks/usePremium"
-import { toast } from "sonner"
-
-import { useObjectUrl } from "@/hooks/useObjectUrl"
-
-interface PdfFile {
+interface MergablePdf {
   id: string
   file: File
-  name: string
-  size: number
+  pageCount: number
+}
+
+interface SortablePdfCardProps {
+  pdf: MergablePdf
+  removePdf: (id: string) => void
+}
+
+const SortablePdfCard: React.FC<SortablePdfCardProps> = ({ pdf, removePdf }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pdf.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : 'auto',
+    position: 'relative' as const,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group relative flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl transition-all hover:bg-white/10"
+    >
+      <div className="flex items-center gap-4 overflow-hidden">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-white/30 hover:text-white/60 transition-colors">
+          <GripVertical className="w-5 h-5" />
+        </div>
+        <div className="flex flex-col overflow-hidden">
+          <span className="text-sm font-medium text-white truncate">{pdf.file.name}</span>
+          <span className="text-xs text-muted-foreground">{pdf.pageCount} pages</span>
+        </div>
+      </div>
+      <button 
+        onClick={() => removePdf(pdf.id)}
+        className="p-2 text-white/30 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  )
 }
 
 export function MergePdf() {
-  const { limits, validateFiles } = usePremium()
-  const [pdfs, setPdfs] = useState<PdfFile[]>([])
-  const [isProcessing, setIsProcessing] = useState(false)
-  const { url: resultUrl, setUrl: setResultUrl, clear: clearResultUrl } = useObjectUrl()
+  const { validateFiles } = usePremium()
+  const [activeTab, setActiveTab] = useState<'single' | 'bulk'>('bulk')
+  const [pdfs, setPdfs] = useState<MergablePdf[]>([])
+  const [isMerging, setIsMerging] = useState(false)
+  const { url: mergedUrl, setUrl: setMergedUrl, clear: clearMergedUrl } = useObjectUrl()
+  const [mergedBlob, setMergedBlob] = useState<Blob | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
-  useEffect(() => {
-    prewarmPdf()
-  }, [])
+  const handleDrop = async (acceptedFiles: File[]) => {
+    if (!validateFiles(acceptedFiles, pdfs.length)) return
+    
+    const newPdfs: MergablePdf[] = []
+    const pdfjsLib = await import('pdfjs-dist')
+    await (window as any).pdfWorkerPromise
 
-  const handleDrop = (files: File[]) => {
-    if (!validateFiles(files, pdfs.length)) return
+    for (const file of acceptedFiles) {
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+        newPdfs.push({
+          id: Math.random().toString(36).substring(7),
+          file,
+          pageCount: pdf.numPages,
+        })
+        await pdf.destroy()
+      } catch (error) {
+        console.error('Failed to process file:', file.name, error)
+        toast.error(`Failed to load ${file.name}`)
+      }
+    }
 
-    const newPdfs = files.map(file => ({
-      id: Math.random().toString(36).substring(7),
-      file,
-      name: file.name,
-      size: file.size
-    }))
     setPdfs(prev => [...prev, ...newPdfs])
   }
 
   const removePdf = (id: string) => {
-    setPdfs(prev => prev.filter(p => p.id !== id))
+    setPdfs(prev => prev.filter(pdf => pdf.id !== id))
   }
 
-  const movePdf = (index: number, direction: 'up' | 'down') => {
-    const newPdfs = [...pdfs]
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (targetIndex < 0 || targetIndex >= newPdfs.length) return
-    
-    [newPdfs[index], newPdfs[targetIndex]] = [newPdfs[targetIndex], newPdfs[index]]
-    setPdfs(newPdfs)
-  }
-
-  const handleMerge = async () => {
-    if (pdfs.length < 2) return
-    setIsProcessing(true)
-    
-    try {
-      const { PDFDocument } = await import("pdf-lib")
-      const mergedPdf = await PDFDocument.create()
-      
-      for (const pdf of pdfs) {
-        const arrayBuffer = await pdf.file.arrayBuffer()
-        const loadedPdf = await PDFDocument.load(arrayBuffer)
-        const copiedPages = await mergedPdf.copyPages(loadedPdf, loadedPdf.getPageIndices())
-        copiedPages.forEach(page => mergedPdf.addPage(page))
-      }
-      
-      const mergedPdfBytes = await mergedPdf.save()
-      const blob = new Blob([mergedPdfBytes as any], { type: "application/pdf" })
-      setResultUrl(blob)
-      
-      toast.success("PDFs merged successfully!")
-      
-    } catch (error: any) {
-      console.error(error)
-      toast.error("Failed to merge PDFs", {
-        description: error?.message || "An unexpected error occurred."
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      setPdfs((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id)
+        const newIndex = items.findIndex(item => item.id === over.id)
+        return arrayMove(items, oldIndex, newIndex)
       })
-    } finally {
-      setIsProcessing(false)
-      // Help GC
-      // @ts-ignore
-      if (typeof mergedPdfBytes !== 'undefined') mergedPdfBytes = null
     }
   }
 
-  const handleDownload = () => {
-    if (!resultUrl) return
-    const a = document.createElement("a")
-    a.href = resultUrl
-    a.download = `vanity-merged-${Date.now()}.pdf`
-    a.click()
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id)
   }
 
-  if (resultUrl && !isProcessing) {
-    return (
-      <ToolLayout
-        title="Merge PDFs"
-        description="Your new PDF is ready to download."
-        icon={CheckCircle}
-        centered={true}
-      >
-        <div className="max-w-2xl mx-auto py-8 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
-          <div className="inline-flex items-center justify-center p-8 bg-accent/10 rounded-full mb-8 text-accent shadow-2xl border border-accent/20">
-            <CheckCircle className="w-16 h-16" />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-            <button 
-              onClick={handleDownload}
-              className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-accent text-accent-foreground hover:bg-accent/90 rounded-2xl shadow-[0_0_40px_rgba(252,211,77,0.3)] transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-95 w-full md:w-auto justify-center"
-            >
-              <Download className="w-6 h-6" /> Export
-            </button>
-            <button 
-              onClick={() => { setPdfs([]); clearResultUrl(); }}
-              className="px-12 py-5 text-lg font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all w-full md:w-auto justify-center"
-            >
-              Start New
-            </button>
-          </div>
-        </div>
-      </ToolLayout>
-    )
+  const mergeFiles = async () => {
+    if (pdfs.length < 2) {
+      toast.error('Add at least 2 PDFs to merge')
+      return
+    }
+
+    setIsMerging(true)
+    try {
+      const { PDFDocument } = await import('pdf-lib')
+      const mergedPdf = await PDFDocument.create()
+
+      for (const pdfData of pdfs) {
+        const arrayBuffer = await pdfData.file.arrayBuffer()
+        const pdf = await PDFDocument.load(arrayBuffer)
+        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices())
+        copiedPages.forEach((page) => mergedPdf.addPage(page))
+      }
+
+      const pdfBytes = await mergedPdf.save()
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      setMergedBlob(blob)
+      setMergedUrl(blob)
+      toast.success('PDFs merged successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to merge PDFs')
+    } finally {
+      setIsMerging(false)
+    }
   }
 
-  if (pdfs.length === 0) {
+  const resetTool = () => {
+    setPdfs([])
+    clearMergedUrl()
+    setMergedBlob(null)
+    setIsMerging(false)
+  }
+
+  const getDropzoneProps = () => {
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      onDrop: handleDrop,
+      accept: { 'application/pdf': ['.pdf'] },
+      multiple: true,
+    })
+    return { getRootProps, getInputProps, isDragActive }
+  }
+
+  const { getRootProps, getInputProps, isDragActive } = getDropzoneProps()
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const renderTabSwitcher = () => (
+    <div className="mb-10 flex justify-center">
+      <PillToggle
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as any)}
+        options={[
+          { id: 'single', label: 'Single Merge', icon: Layers },
+          { id: 'bulk', label: 'Bulk Merge', icon: Layers },
+        ]}
+      />
+    </div>
+  )
+
+  if (pdfs.length === 0 && !mergedUrl) {
     return (
       <ToolUploadLayout
         title="Merge PDFs"
         description="Combine multiple PDF files into one. 100% locally on your machine."
         icon={Layers}
       >
-        <DropZone 
-          onDrop={handleDrop} 
-          accept={{ "application/pdf": [".pdf"] }} 
-          maxFiles={limits.maxFiles} 
-          label="Drop PDF files here" 
-        />
+        {renderTabSwitcher()}
+        <DropZone onDrop={handleDrop} accept={{ 'application/pdf': ['.pdf'] }} label="Drop PDF files here" multiple />
       </ToolUploadLayout>
     )
   }
@@ -147,67 +229,137 @@ export function MergePdf() {
   return (
     <ToolLayout
       title="Merge PDFs"
-      description="Combine multiple PDF files into one. 100% locally on your machine."
+      description={mergedUrl ? 'Merge complete' : `${pdfs.length} PDFs ready to merge`}
       icon={Layers}
       centered={true}
+      maxWidth="max-w-3xl"
     >
-      <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="mb-10 flex justify-center">
+        <PillToggle
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as any)}
+          options={[
+            { id: 'single', label: 'Single Merge', icon: Layers },
+            { id: 'bulk', label: 'Bulk Merge', icon: Layers },
+          ]}
+        />
+      </div>
 
-
-        <div className="glass-panel p-6 rounded-xl space-y-6">
-          <h3 className="font-bold font-syne flex items-center gap-2 border-b border-border/50 pb-4">
-            <FileText className="w-5 h-5 text-accent" />
-            Files to Merge ({pdfs.length} / {limits.maxFiles})
-          </h3>
-          
-          <Reorder.Group axis="y" values={pdfs} onReorder={setPdfs} className="space-y-3">
-            {pdfs.map((pdf, index) => (
-              <Reorder.Item 
-                key={pdf.id} 
-                value={pdf}
-                className="flex items-center gap-4 bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-colors cursor-grab active:cursor-grabbing group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{pdf.name}</p>
-                  <p className="text-xs text-muted-foreground">{(pdf.size / 1024 / 1024).toFixed(2)} MB</p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-12">
+          <div className="glass-panel p-8 rounded-2xl space-y-6">
+            {mergedUrl ? (
+              <div className="text-center space-y-6 animate-in zoom-in-95 duration-500">
+                <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-2xl mb-2">
+                  <CheckCircle className="w-20 h-20 text-emerald-500 opacity-50" />
                 </div>
-                
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); movePdf(index, 'up'); }}
-                    disabled={index === 0}
-                    className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); movePdf(index, 'down'); }}
-                    disabled={index === pdfs.length - 1}
-                    className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                  >
-                    <ArrowDown className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removePdf(pdf.id); }}
-                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div>
+                  <h2 className="text-2xl font-bold font-syne">Merge Complete!</h2>
+                  <p className="text-muted-foreground mt-2">Your PDF has been merged successfully.</p>
                 </div>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
 
-          <div className="pt-4 flex justify-between items-center">
-            <p className="text-xs text-muted-foreground italic">Drag files to reorder merge sequence</p>
-            <button 
-              onClick={handleMerge}
-              disabled={pdfs.length < 2 || isProcessing}
-              className="px-8 py-3 font-bold bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-[0_0_20px_rgba(252,211,77,0.2)] transition-all flex items-center gap-2"
-            >
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Layers className="w-5 h-5" />}
-              {isProcessing ? "Merging PDFs..." : "Merge PDFs now"}
-            </button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => {
+                      if (mergedUrl && mergedBlob) {
+                        downloadBlob(mergedBlob, 'vanity-merged.pdf')
+                      }
+                    }}
+                    variant="primary"
+                    className="px-8 py-5 text-lg font-bold shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    <Download className="w-6 h-6 mr-2" /> Download Merged PDF
+                  </Button>
+                  <Button
+                    onClick={resetTool}
+                    variant="secondary"
+                    className="px-8 py-5 text-lg font-bold border border-white/10 transition-all"
+                  >
+                    Merge New PDFs
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+                  <h3 className="font-bold font-syne text-white flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Files to Merge ({pdfs.length})
+                  </h3>
+                  <div {...getRootProps()} className="cursor-pointer">
+                    <input {...getInputProps()} />
+                    <Button variant="secondary" className="border border-white/10">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add PDFs
+                    </Button>
+                  </div>
+                </div>
+
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                  onDragStart={handleDragStart}
+                >
+                  <SortableContext
+                    items={pdfs.map(pdf => pdf.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+                      {pdfs.map(pdf => (
+                        <SortablePdfCard
+                          key={pdf.id}
+                          pdf={pdf}
+                          removePdf={removePdf}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+
+                  <DragOverlay>
+                    {activeId ? (
+                      <div className="p-4 bg-white/10 border border-accent rounded-xl shadow-2xl">
+                        {(() => {
+                          const pdf = pdfs.find(p => p.id === activeId)
+                          return pdf ? (
+                            <div className="flex items-center gap-4">
+                              <div className="p-2 bg-accent/20 rounded">
+                                <FileText className="w-5 h-5 text-accent" />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-white">{pdf.file.name}</span>
+                                <span className="text-xs text-muted-foreground">{pdf.pageCount} pages</span>
+                              </div>
+                            </div>
+                          ) : null
+                        })()}
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+
+                <div className="pt-6">
+                  <Button
+                    onClick={mergeFiles}
+                    disabled={isMerging || pdfs.length < 2}
+                    variant="primary"
+                    className="w-full px-8 py-5 text-lg font-bold shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {isMerging ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Merging PDFs...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="w-5 h-5 mr-2" />
+                        Merge PDFs Now
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -156,12 +156,24 @@ app.post("/unlock", upload.single("file"), (req, res) => {
   });
 });
 
+// Allowlist of hostnames that the proxy can access
+const ALLOWED_HOSTNAMES = new Set([
+  'is.gd',
+  '0x0.st',
+  'dpaste.org',
+  'ix.io',
+]);
+
 // 🌐 Generic Proxy (Handles CORS-restricted APIs)
 // 🌐 Generic Proxy (Handles CORS-restricted APIs)
 app.get("/api/proxy", async (req, res) => {
   const target = req.query.url;
   if (!target) return res.status(400).json({ error: "No URL provided" });
   try {
+    const url = new URL(target as string);
+    if (!ALLOWED_HOSTNAMES.has(url.hostname)) {
+      return res.status(403).json({ error: "Access to this hostname is not allowed" });
+    }
     const response = await fetch(target as string);
     const contentType = response.headers.get("content-type");
     if (contentType) res.setHeader("Content-Type", contentType);
@@ -177,6 +189,10 @@ app.post("/api/proxy", upload.any(), async (req, res) => {
   const target = req.query.url;
   if (!target) return res.status(400).json({ error: "No URL provided" });
   try {
+    const url = new URL(target as string);
+    if (!ALLOWED_HOSTNAMES.has(url.hostname)) {
+      return res.status(403).json({ error: "Access to this hostname is not allowed" });
+    }
     const formData = new FormData();
     for (const key in req.body) formData.append(key, req.body[key]);
     if (req.files) {
@@ -200,7 +216,12 @@ app.head("/api/proxy", async (req, res) => {
   const target = req.query.url;
   if (!target) return res.status(400).json({ error: "Missing url" });
   try {
-    const response = await fetch(decodeURIComponent(target as string), { method: "HEAD" });
+    const decodedUrl = decodeURIComponent(target as string);
+    const url = new URL(decodedUrl);
+    if (!ALLOWED_HOSTNAMES.has(url.hostname)) {
+      return res.status(403).end();
+    }
+    const response = await fetch(decodedUrl, { method: "HEAD" });
     response.headers.forEach((v, k) => res.setHeader(k, v));
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(response.status).end();

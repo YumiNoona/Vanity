@@ -336,7 +336,7 @@ type ActiveProvider = { provider: ProviderConfig; apiKey: string | null; useProx
 
 let cachedProvider: ActiveProvider | null = null
 
-export const invalidateProviderCache = () => {
+const invalidateProviderCache = () => {
   cachedProvider = null
 }
 

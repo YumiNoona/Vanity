@@ -1,20 +1,25 @@
 import React, { useState, useEffect, useRef } from "react"
 import { DropZone } from "@/components/shared/DropZone"
-import { Pipette, Copy, CheckCircle } from "lucide-react"
+import { Pipette, Copy, CheckCircle, Download, Image as ImageIcon } from "lucide-react"
 import { ToolLayout, ToolUploadLayout } from "@/components/layout/ToolLayout"
 import { toast } from "sonner"
 import { useImageProcessor } from "@/hooks/useImageProcessor"
 import { useObjectUrl } from "@/hooks/useObjectUrl"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { drawToCanvas } from "@/lib/canvas"
+import { PillToggle } from "@/components/shared/PillToggle"
+
+type DownloadFormat = "png" | "jpg"
 
 export function ColorPalette() {
   const [file, setFile] = useState<File | null>(null)
   const [palette, setPalette] = useState<string[]>([])
+  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("png")
   const { isProcessing, processImage } = useImageProcessor()
   const { url: preview, setUrl: setPreview, clear: clearPreview } = useObjectUrl()
   const { copy } = useCopyToClipboard()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const exportCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const handleDrop = async (files: File[]) => {
     const uploadedFile = files[0]
@@ -88,6 +93,46 @@ export function ColorPalette() {
     clearPreview()
   }
 
+  const handleDownload = () => {
+    if (palette.length === 0) return
+
+    const canvas = exportCanvasRef.current || document.createElement("canvas")
+    exportCanvasRef.current = canvas
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const padding = 40
+    const colorHeight = 120
+    const gap = 20
+    canvas.width = 600
+    canvas.height = padding * 2 + palette.length * (colorHeight + gap) - gap
+
+    // Fill background
+    ctx.fillStyle = "#0a0a0a"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw colors
+    palette.forEach((color, index) => {
+      const y = padding + index * (colorHeight + gap)
+      ctx.fillStyle = color
+      ctx.fillRect(padding, y, canvas.width - padding * 2, colorHeight)
+    })
+
+    // Download
+    const mimeType = downloadFormat === "png" ? "image/png" : "image/jpeg"
+    const extension = downloadFormat === "png" ? "png" : "jpg"
+    canvas.toBlob((blob) => {
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `vanity-color-palette-${Date.now()}.${extension}`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success("Palette downloaded!")
+    }, mimeType, downloadFormat === "jpg" ? 0.95 : undefined)
+  }
+
   if (!file) {
     return (
       <ToolUploadLayout title="Color Palette" description="Extract the core color story from any image for your design projects." icon={Pipette}>
@@ -102,9 +147,10 @@ export function ColorPalette() {
         <div className="glass-panel p-4 rounded-xl flex items-center justify-center bg-black/40">
            {preview && <img src={preview} alt="Original" className="max-h-[400px] object-contain rounded" />}
            <canvas ref={canvasRef} className="hidden" />
+           <canvas ref={exportCanvasRef} className="hidden" />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Dominant Colors</h3>
            <div className="grid grid-cols-2 gap-4">
               {palette.map(color => (
@@ -124,12 +170,29 @@ export function ColorPalette() {
            <p className="text-[10px] text-muted-foreground pt-4 leading-relaxed">
              Click any color to copy its Hex code. These are extracted by analyzing pixel density across the image canvas.
            </p>
-           <button 
-             onClick={handleBack}
-             className="w-full py-4 mt-8 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all shadow-lg"
-           >
-             Start New Extraction
-           </button>
+
+           <div className="space-y-4">
+             <PillToggle
+               activeId={downloadFormat}
+               onChange={(val) => setDownloadFormat(val as DownloadFormat)}
+               options={[
+                 { id: "png", label: "PNG" },
+                 { id: "jpg", label: "JPG" },
+               ]}
+             />
+             <button 
+               onClick={handleDownload}
+               className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+             >
+               <Download className="w-5 h-5" /> Download Palette
+             </button>
+             <button 
+               onClick={handleBack}
+               className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl border border-white/10 transition-all shadow-lg"
+             >
+               Start New Extraction
+             </button>
+           </div>
         </div>
       </div>
     </ToolLayout>

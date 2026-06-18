@@ -2,7 +2,7 @@
  * Rendering logic for high-reliability canvas drawing
  */
 
-export interface DrawOptions {
+interface DrawOptions {
   fillBackground?: string; // e.g., "#ffffff" for JPEGs
   clear?: boolean;
   filter?: string; // e.g., "blur(5px)"

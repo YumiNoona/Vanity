@@ -1,7 +1,7 @@
 import { fetchFile } from "@ffmpeg/util"
 import { getFFmpeg } from "@/lib/ffmpeg"
 
-export interface RunFFmpegJobOptions {
+interface RunFFmpegJobOptions {
   file: File
   inputName: string
   outputName: string

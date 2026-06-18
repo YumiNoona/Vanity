@@ -26,12 +26,12 @@ const ScreenshotToCode = lazy(() => import("./components/tools/ai/ScreenshotToCo
 const ScreenshotToGameCode = lazy(() => import("./components/tools/ai/ScreenshotToGameCode").then(m => ({ default: m.ScreenshotToGameCode })))
 const AltTextStudio = lazy(() => import("./components/tools/ai/AltTextStudio").then(m => ({ default: m.AltTextStudio })))
 const PdfSummariser = lazy(() => import("./components/tools/ai/PdfSummariser").then(m => ({ default: m.PdfSummariser })))
-const BgReplacer = lazy(() => import("./components/tools/ai/BgReplacer").then(m => ({ default: m.BgReplacer })))
+
 const AiResumeReviewer = lazy(() => import("./components/tools/ai/AiResumeReviewer").then(m => ({ default: m.AiResumeReviewer })))
 const FontDetectorVision = lazy(() => import("./components/tools/ai/FontDetectorVision").then(m => ({ default: m.FontDetectorVision })))
 const ExplainUi = lazy(() => import("./components/tools/ai/ExplainUi").then(m => ({ default: m.ExplainUi })))
 const ImageCaptionGenerator = lazy(() => import("./components/tools/ai/ImageCaptionGenerator").then(m => ({ default: m.ImageCaptionGenerator })))
-const MockApiGenerator = lazy(() => import("./components/tools/ai/MockApiGenerator").then(m => ({ default: m.MockApiGenerator })))
+
 const ApiKeysPage = lazy(() => import("./components/shared/ApiKeyManager").then(m => ({ default: m.ApiKeysPage })))
 
 // Image Tools
@@ -145,14 +145,14 @@ const CsvJsonConverter = lazy(() => import("./components/tools/text/CsvJsonConve
 const LoremIpsumGenerator = lazy(() => import("./components/tools/text/LoremIpsumGenerator").then(m => ({ default: m.LoremIpsumGenerator })))
 const PasswordGenerator = lazy(() => import("./components/tools/text/PasswordGenerator").then(m => ({ default: m.PasswordGenerator })))
 const StringCaseConverter = lazy(() => import("./components/tools/text/StringCaseConverter").then(m => ({ default: m.StringCaseConverter })))
-const WordFrequency = lazy(() => import("./components/tools/text/WordFrequency").then(m => ({ default: m.WordFrequency })))
+
 const NumberBaseConverter = lazy(() => import("./components/tools/text/NumberBaseConverter").then(m => ({ default: m.NumberBaseConverter })))
 const FakeData = lazy(() => import("./components/tools/text/FakeData").then(m => ({ default: m.FakeData })))
 const TomlJson = lazy(() => import("./components/tools/text/TomlJson").then(m => ({ default: m.TomlJson })))
 const UnicodeExplorer = lazy(() => import("./components/tools/text/UnicodeExplorer").then(m => ({ default: m.UnicodeExplorer })))
 const NameFormatter = lazy(() => import("./components/tools/text/NameFormatter").then(m => ({ default: m.NameFormatter })))
 const TableToMd = lazy(() => import("./components/tools/text/TableToMd").then(m => ({ default: m.TableToMd })))
-const ReadmeViewer = lazy(() => import("./components/tools/text/ReadmeViewer").then(m => ({ default: m.ReadmeViewer })))
+
 const Pastebin = lazy(() => import("./components/tools/text/Pastebin").then(m => ({ default: m.Pastebin })))
 
 // Export loaders for prefetching popular tools
@@ -191,12 +191,10 @@ function App() {
             <Route path="/tools/ai/screenshot-to-game-code" element={<ScreenshotToGameCode />} />
             <Route path="/tools/ai/alt-text" element={<AltTextStudio />} />
             <Route path="/tools/ai/summarizer" element={<PdfSummariser />} />
-            <Route path="/tools/ai/bg-replacer" element={<BgReplacer />} />
             <Route path="/tools/ai/resume" element={<AiResumeReviewer />} />
             <Route path="/tools/ai/font-match" element={<FontDetectorVision />} />
             <Route path="/tools/ai/explain-ui" element={<ExplainUi />} />
             <Route path="/tools/ai/caption" element={<ImageCaptionGenerator />} />
-            <Route path="/tools/ai/mock-api" element={<MockApiGenerator />} />
             <Route path="/tools/ai/providers" element={<ApiKeysPage />} />
 
             {/* Image Tools */}
@@ -286,14 +284,12 @@ function App() {
             <Route path="/tools/text/lorem" element={<LoremIpsumGenerator />} />
             <Route path="/tools/text/password" element={<PasswordGenerator />} />
             <Route path="/tools/text/string-case" element={<StringCaseConverter />} />
-            <Route path="/tools/text/word-frequency" element={<WordFrequency />} />
             <Route path="/tools/text/number-base" element={<NumberBaseConverter />} />
             <Route path="/tools/text/fake-data" element={<FakeData />} />
             <Route path="/tools/text/toml-json" element={<Navigate to="/tools/text/format-converter" replace />} />
             <Route path="/tools/text/unicode" element={<UnicodeExplorer />} />
             <Route path="/tools/text/name-case" element={<NameFormatter />} />
             <Route path="/tools/text/table-to-md" element={<TableToMd />} />
-            <Route path="/tools/text/readme" element={<ReadmeViewer />} />
             <Route path="/tools/text/pastebin" element={<Pastebin />} />
             <Route path="/tools/text/format-converter" element={<FormatConverterStudio />} />
             

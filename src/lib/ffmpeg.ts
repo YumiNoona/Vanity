@@ -75,17 +75,4 @@ export function prewarmFFmpeg() {
   PreloadPool.ffmpeg(() => getFFmpeg())
 }
 
-/**
- * Terminate the FFmpeg instance and free memory
- */
-export function disposeFFmpeg() {
-  if (ffmpegInstance) {
-    try {
-      ffmpegInstance.terminate()
-    } catch (e) {
-      console.warn("FFmpeg termination error", e)
-    }
-    ffmpegInstance = null
-    initPromise = null
-  }
-}
+

@@ -5,7 +5,7 @@
 const MAX_PIXELS = 20_000_000; // 20MP
 const MAX_DIMENSION = 8192; // Max width or height for most GPUs
 
-export interface GuardedDimensions {
+interface GuardedDimensions {
   width: number;
   height: number;
   scale: number;

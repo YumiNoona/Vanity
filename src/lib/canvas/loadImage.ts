@@ -2,7 +2,7 @@
  * High-reliability image loading with EXIF orientation support
  */
 
-export interface LoadedImage {
+interface LoadedImage {
   source: ImageBitmap | HTMLImageElement;
   width: number;
   height: number;

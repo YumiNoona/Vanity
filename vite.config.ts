@@ -12,7 +12,7 @@ export default defineConfig({
     proxy: {
       "/api/proxy": {
         target: "http://localhost:5173",
-        bypass: (req, res) => {
+        bypass: async (req, res) => {
           const proxyUrl = new URL(req.url || "", `http://${req.headers.host}`).searchParams.get("url")
           if (!proxyUrl || !res) {
             if (res) {
@@ -22,29 +22,39 @@ export default defineConfig({
             return
           }
           
-          // Use Node's built-in https for maximum compatibility if global fetch is missing
-          const protocol = proxyUrl.startsWith('https') ? require('https') : require('http');
-          
-          const proxyReq = protocol.request(proxyUrl, {
-            method: req.method,
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Vanity Tool Proxy)",
-              "Accept": "*/*"
-            }
-          }, (proxyRes: any) => {
-            res.writeHead(proxyRes.statusCode || 200, {
-              ...proxyRes.headers,
-              "Access-Control-Allow-Origin": "*"
+          try {
+            const response = await fetch(proxyUrl, {
+              method: req.method,
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Vanity Tool Proxy)",
+                "Accept": "*/*"
+              }
             });
-            proxyRes.pipe(res);
-          });
-
-          proxyReq.on('error', (err: any) => {
-            res.statusCode = 500
-            res.end(err.message)
-          });
-
-          req.pipe(proxyReq);
+            
+            const headers = new Headers(response.headers);
+            headers.set("Access-Control-Allow-Origin", "*");
+            res.writeHead(response.status || 200, Object.fromEntries(headers.entries()));
+            
+            if (response.body) {
+              const reader = response.body.getReader();
+              const decoder = new TextDecoder();
+              let done = false;
+              
+              while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                if (value) {
+                  res.write(Buffer.from(value));
+                }
+              }
+            }
+            
+            res.end();
+          } catch (err: any) {
+            res.statusCode = 500;
+            res.end(err.message);
+          }
+          
           return
         }
       },

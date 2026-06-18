@@ -95,16 +95,6 @@ export function Sidebar() {
                           )}
                         >
                           <Icon className={cn("h-3.5 w-3.5 transition-all duration-300 group-hover/link:scale-110", isActive ? "text-primary" : "text-muted-foreground/70")} />
-                          {tool.isBulk && (
-                            <span
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                isActive ? "bg-primary" : "bg-emerald-400/80"
-                              )}
-                              title="Bulk tool"
-                              aria-label="Bulk tool"
-                            />
-                          )}
                           <span className="text-ellipsis-single">{tool.title}</span>
                         </Link>
                       )

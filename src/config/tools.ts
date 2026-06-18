@@ -67,12 +67,12 @@ export const IMAGE_TOOLS: Tool[] = [
 
 
 export const PDF_TOOLS: Tool[] = [
-  { id: "merge-pdf", title: "Merge PDFs", description: "Combine multiple PDFs into a single file easily.", icon: Layers, path: "/tools/pdf/merge", isPopular: true, keywords: ["combine", "join", "add"] },
-  { id: "split-pdf", title: "Split PDF", description: "Extract pages from your PDF into separate files.", icon: SplitSquareHorizontal, path: "/tools/pdf/split", isPopular: true },
+  { id: "merge-pdf", title: "Merge PDFs", description: "Combine multiple PDFs into a single file easily.", icon: Layers, path: "/tools/pdf/merge", isPopular: true, isBulk: true, keywords: ["combine", "join", "add"] },
+  { id: "split-pdf", title: "Split PDF", description: "Extract pages from your PDF into separate files.", icon: SplitSquareHorizontal, path: "/tools/pdf/split", isPopular: true, isBulk: true },
   { id: "pdf-editor", title: "PDF Editor Lite", description: "Annotate, draw, and modify PDF content directly.", icon: FileEdit, path: "/tools/pdf/editor", isPopular: true, keywords: ["edit", "draw", "modify"] },
   { id: "compress-pdf", title: "Compress PDF", description: "Reduce file size while optimizing for quality.", icon: Minimize2, path: "/tools/pdf/compress", isPopular: true },
   { id: "images-to-pdf", title: "Images to PDF", description: "Combine multiple images into a professional PDF.", icon: FileImage, path: "/tools/pdf/images-to-pdf", isPopular: true },
-  { id: "pdf-exporter", title: "PDF Exporter Suite", description: "Export PDFs into ZIP images, raw text, or editable Word documents.", icon: FileSearch, path: "/tools/pdf/exporter", keywords: ["doc", "docx", "text", "page", "images"] },
+  { id: "pdf-exporter", title: "PDF Exporter Suite", description: "Export PDFs into ZIP images, raw text, or editable Word documents.", icon: FileSearch, path: "/tools/pdf/exporter", isBulk: true, keywords: ["doc", "docx", "text", "page", "images"] },
   { id: "pdf-password", title: "PDF Passwords", description: "Add or remove password protection from PDFs.", icon: Lock, path: "/tools/pdf/password", isPopular: true },
   { id: "reorder-pdf", title: "Reorder PDF", description: "Drag and drop to rearrange pages in your PDF.", icon: ListOrdered, path: "/tools/pdf/reorder" },
   { id: "pdf-watermark", title: "PDF Watermark", description: "Stamp text or logos across all PDF pages.", icon: Stamp, path: "/tools/pdf/watermark" },
@@ -89,7 +89,7 @@ export const AI_TOOLS: Tool[] = [
   { id: "ai-screenshot-to-game-code", title: "Screenshot to Game Code", description: "Convert code screenshots to Godot, Unity, or Unreal code using Gemini or OCR fallback.", icon: Code2, path: "/tools/ai/screenshot-to-game-code", isPopular: true, keywords: ["godot", "unity", "unreal", "ocr", "gemini"] },
   { id: "ai-summarizer", title: "AI PDF Summarizer", description: "Extract and summarize PDF content using Claude.", icon: Sigma, path: "/tools/ai/summarizer", isPopular: true, keywords: ["tl;dr", "reading", "study"] },
   { id: "ai-resume-reviewer", title: "AI Resume Reviewer", description: "Elite recruiter JSON evaluations and visual scorecards.", icon: Award, path: "/tools/ai/resume", isPopular: true, keywords: ["job", "audit", "cv"] },
-  { id: "ai-bg-replacer", title: "AI Background Replacer", description: "Remove BG and describe a new scene to Claude.", icon: ImagePlus, path: "/tools/ai/bg-replacer", keywords: ["generative", "creative", "edit"] },
+
   { id: "ai-alt-text", title: "AI Alt-Text Writer", description: "Generate accessibility alt text for images (Single or Batch).", icon: BrainCircuit, path: "/tools/ai/alt-text", keywords: ["seo", "accessibility", "description", "bulk", "vision"] },
   { id: "caption-generator", title: "Image Caption Generator", description: "Generate contextual social captions securely.", icon: MessageSquare, path: "/tools/ai/caption", keywords: ["social", "instagram", "post"] },
   { id: "vision-font-detector", title: "Font Detector Vision", description: "Heuristically determine typography via image layers.", icon: Type, path: "/tools/ai/font-match", keywords: ["font", "type", "scan"] },
@@ -98,8 +98,6 @@ export const AI_TOOLS: Tool[] = [
 ]
 
 export const DEV_TOOLS: Tool[] = [
-  { id: "mock-api-generator", title: "Mock JSON Generator", description: "Synthesize strict deterministic schema arrays seamlessly.", icon: Database, path: "/tools/ai/mock-api", keywords: ["dummy", "data", "scaffold"] },
-
   { id: "code-formatter", title: "Code Formatter Studio", description: "Consolidated prettifier and minifier for JSON, HTML, SQL, and XML.", icon: Code, path: "/tools/dev/formatter", isPopular: true, keywords: ["pretty", "minify", "json", "html", "sql", "xml"] },
   { id: "color-picker", title: "Color Converter", description: "Pick any color, convert between HEX, RGB, HSL, CMYK.", icon: Palette, path: "/tools/dev/color", isPopular: true },
   { id: "base64-studio", title: "Base64 Studio", description: "Encode/Decode text, images, or files to base64 strings.", icon: Code2, path: "/tools/dev/base64-studio", isPopular: true, keywords: ["string", "encode", "embed"] },
@@ -136,13 +134,11 @@ export const TEXT_TOOLS: Tool[] = [
   { id: "csv-json", title: "Data Format Studio", description: "Consolidated suite for TOML, YAML, and CSV cross-format synchronization.", icon: ArrowLeftRight, path: "/tools/text/format-converter", keywords: ["toml", "yaml", "csv", "json"] },
   { id: "string-case", title: "String Case Converter", description: "Convert between camelCase, snake_case, PascalCase simultaneously.", icon: Type, path: "/tools/text/string-case" },
   { id: "lorem-ipsum", title: "Lorem Ipsum Studio", description: "Customizable placeholder text generator natively.", icon: AlignLeft, path: "/tools/text/lorem" },
-  { id: "word-frequency", title: "Word Frequency Counter", description: "Analyze text and visualize word percentages dynamically.", icon: BarChart3, path: "/tools/text/word-frequency" },
   { id: "number-base", title: "Number Base Converter", description: "Live conversions between decimal, binary, hex, and octal.", icon: Hash, path: "/tools/text/number-base" },
   { id: "fake-data", title: "Data Forge", description: "Generate enterprise-ready synthetic datasets with localized context and SQL exports.", icon: Database, path: "/tools/text/fake-data", keywords: ["mock", "dummy", "csv", "json", "sql", "india"] },
   { id: "unicode-explorer", title: "Unicode Explorer", description: "Inspect code points, categories, and bytes for any character.", icon: Languages, path: "/tools/text/unicode", keywords: ["utf8", "entity", "hex"] },
   { id: "name-formatter", title: "Name Case Formatter", description: "Bulk-fix name casing (JOHN DOE → John Doe) with prefix support.", icon: Type, path: "/tools/text/name-case", keywords: ["cleanup", "list", "format"] },
   { id: "table-to-md", title: "Table to Markdown / HTML", description: "Convert spreadsheet selections or CSV into Markdown or HTML tables.", icon: Table, path: "/tools/text/table-to-md", keywords: ["convert", "excel", "spreadsheet"] },
-  { id: "readme-viewer", title: "README Previewer", description: "Preview GitHub READMEs with templates, badges, and live rendering.", icon: BookOpen, path: "/tools/text/readme", isPopular: true, keywords: ["github", "markdown", "badge", "shield", "template"] },
   { id: "pastebin", title: "Serverless Pastebin", description: "Share text snippets securely via URL. Zero server storage.", icon: Share2, path: "/tools/text/pastebin", keywords: ["share", "snippet", "link"] },
 ]
 

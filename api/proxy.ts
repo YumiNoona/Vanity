@@ -1,5 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+// Allowlist of hostnames that the proxy can access
+const ALLOWED_HOSTNAMES = new Set([
+  'is.gd',
+  '0x0.st',
+  'dpaste.org',
+  'ix.io',
+]);
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const targetUrl = req.query.url as string;
 
@@ -8,6 +16,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const url = new URL(targetUrl);
+    
+    // Check if hostname is in allowlist
+    if (!ALLOWED_HOSTNAMES.has(url.hostname)) {
+      return res.status(403).json({ error: 'Access to this hostname is not allowed' });
+    }
+
     const fetchOptions: RequestInit = {
       method: req.method,
       headers: {

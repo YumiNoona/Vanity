@@ -44,18 +44,23 @@ export function TextAnalyser() {
     // Gunning Fog Index
     const gunningFog = 0.4 * ((wordCount / sentenceCount) + 100 * (complexWords / wordCount))
 
-    // Top words
+    // Word frequency (all words, top 100 with percentages)
     const wordFreq: Record<string, number> = {}
     words.forEach(w => {
       const clean = w.toLowerCase().replace(/[^a-z0-9]/g, "")
-      if (clean.length > 3) {
+      if (clean) {
         wordFreq[clean] = (wordFreq[clean] || 0) + 1
       }
     })
 
-    const topWords = Object.entries(wordFreq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
+    const freqAnalysis = Object.entries(wordFreq)
+      .map(([word, count]) => ({
+        word,
+        count,
+        percentage: (count / wordCount) * 100
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 100)
 
     return {
       wordCount,
@@ -65,7 +70,8 @@ export function TextAnalyser() {
       fleschEase: Math.round(fleschEase * 10) / 10,
       fleschKincaid: Math.round(fleschKincaid * 10) / 10,
       gunningFog: Math.round(gunningFog * 10) / 10,
-      topWords
+      freqAnalysis,
+      totalWords: wordCount
     }
   }, [input])
 
@@ -151,22 +157,33 @@ export function TextAnalyser() {
                  </div>
               </div>
 
-              {/* Word Density */}
-              <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-6">
-                 <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Word Density (Long Words)</span>
+              {/* Word Frequency */}
+              <div className="glass-panel p-6 rounded-3xl border border-white/5 bg-black/20 space-y-4">
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                       <TrendingUp className="w-4 h-4 text-sky-400" />
+                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Word Frequency</span>
+                    </div>
+                    <span className="text-xs px-2 py-1 bg-white/5 rounded font-bold text-sky-400">{stats.totalWords} Total Words</span>
                  </div>
-                 <div className="space-y-3">
-                    {stats.topWords.map(([word, freq], idx) => (
-                      <div key={word} className="flex items-center justify-between group">
-                        <span className="text-xs font-medium text-white/70 w-24 truncate">{word}</span>
-                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden mx-4">
-                           <div className="h-full bg-primary/40 rounded-full" style={{ width: `${(freq / stats.topWords[0][1]) * 100}%` }} />
-                        </div>
-                        <span className="text-xs font-mono font-bold text-primary w-6 text-right">{freq}</span>
-                      </div>
-                    ))}
+                 <div className="h-[300px] overflow-y-auto custom-scrollbar space-y-2">
+                    {stats.freqAnalysis.map((item, idx) => {
+                       const maxPct = stats.freqAnalysis[0].percentage
+                       const width = (item.percentage / maxPct) * 100
+                       return (
+                         <div key={item.word} className="bg-white/[0.02] border border-white/5 p-2 rounded-lg flex items-center justify-between relative overflow-hidden group hover:border-sky-500/30 transition-colors">
+                            <div className="absolute top-0 left-0 bottom-0 bg-sky-500/10 transition-all duration-1000 z-0" style={{ width: `${Math.max(1, width)}%` }} />
+                            <div className="relative z-10 flex items-center gap-3">
+                               <span className="text-[10px] font-bold text-muted-foreground w-3 text-right">{idx + 1}.</span>
+                               <span className="text-xs font-bold text-white group-hover:text-sky-400 transition-colors">{item.word}</span>
+                            </div>
+                            <div className="relative z-10 text-right">
+                               <div className="font-mono text-xs font-bold text-white">{item.count}</div>
+                               <div className="text-[9px] text-muted-foreground">{item.percentage.toFixed(2)}%</div>
+                            </div>
+                         </div>
+                       )
+                    })}
                  </div>
               </div>
             </>

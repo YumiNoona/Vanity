@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { ToolLayout } from "@/components/layout/ToolLayout"
-import { Download, RefreshCw, Plus, Trash2, Database, FileJson, FileSpreadsheet, Play, Code, Save, Table, Globe, Hash, Monitor } from "lucide-react"
+import { Download, RefreshCw, Plus, Trash2, Database, FileJson, FileSpreadsheet, Play, Code, Save, Table, Globe, Hash, Monitor, Loader2, Copy, CheckCircle, SlidersHorizontal, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useDownload } from "@/hooks/useDownload"
+import { useActiveProvider } from "@/components/shared/ApiKeyManager"
+import { AIProviderHint } from "@/components/shared/AIProviderHint"
+import { AIProviderError, callAI } from "@/lib/ai-providers"
+import { PillToggle } from "@/components/shared/PillToggle"
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 
 type DataType = "id" | "name" | "email" | "address" | "ip" | "date" | "uuid" | "phone" | "company" | "price" | "bool" | "color" | "userAgent" | "paragraph"
 
@@ -62,6 +67,7 @@ const GENERATORS: Record<DataType, (locale: Locale) => any> = {
 }
 
 export function FakeData() {
+  const [mode, setMode] = useState<"local" | "ai">("local")
   const [locale, setLocale] = useState<Locale>("us")
   const [tableName, setTableName] = useState("users")
   const [columns, setColumns] = useState<Column[]>([
@@ -73,6 +79,16 @@ export function FakeData() {
   const [rowCount, setRowCount] = useState(25)
   const [results, setResults] = useState<any[]>([])
   const { download: downloadBlob } = useDownload()
+  const activeProvider = useActiveProvider()
+  const { isCopied: copied, copy } = useCopyToClipboard()
+
+  // AI mode state
+  const [modelName, setModelName] = useState("User")
+  const [schema, setSchema] = useState("id: uuid\nname: string\nemail: string\nrole: admin | user\ncreatedAt: iso_date")
+  const [aiCount, setAiCount] = useState<number>(5)
+  const [isAiProcessing, setIsAiProcessing] = useState(false)
+  const [aiResult, setAiResult] = useState<string>("")
+  const requestControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem("vanity_fake_data_schema")
@@ -90,6 +106,60 @@ export function FakeData() {
     setResults(data)
     toast.success(`Synthesized ${rowCount} unique records`)
   }, [rowCount, columns, locale])
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort()
+    }
+  }, [])
+
+  const generateAiData = async () => {
+    if (!schema.trim()) return
+    setIsAiProcessing(true)
+    setAiResult("")
+    requestControllerRef.current?.abort()
+    const controller = new AbortController()
+    requestControllerRef.current = controller
+
+    try {
+      const systemPrompt = `You are a strict data generation API. You emit NOTHING but raw, valid JSON arrays.
+CRITICAL INSTRUCTION: You MUST NOT use markdown code formatting. Do NOT wrap the JSON in \`\`\`json or \`\`\`.
+Do not output any explanation. If the prompt fails, return an empty array [].
+Your output must be immediately parsable by JavaScript's JSON.parse().`
+
+      const prompt = `Generate exactly ${aiCount} mock JSON objects representing the entity: ${modelName}.
+Use this schema/field definition as a guide:
+${schema}`
+
+      const responseText = await callAI({
+         prompt,
+         systemPrompt,
+         signal: controller.signal
+      })
+
+      let cleaned = responseText.trim()
+      if (cleaned.startsWith("```json")) cleaned = cleaned.replace(/^```json/, "")
+      if (cleaned.startsWith("```")) cleaned = cleaned.replace(/^```/, "")
+      if (cleaned.endsWith("```")) cleaned = cleaned.replace(/```$/, "")
+      cleaned = cleaned.trim()
+
+      const parsed = JSON.parse(cleaned)
+      setAiResult(JSON.stringify(parsed, null, 2))
+      toast.success("AI dataset generated!")
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+      if (err instanceof AIProviderError) {
+         toast.error(err.message)
+      } else {
+         toast.error(err.message || "Generation failed")
+      }
+    } finally {
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null
+      }
+      setIsAiProcessing(false)
+    }
+  }
 
   const exportData = (format: "csv" | "json" | "sql") => {
     if (results.length === 0) return toast.error("Generate records first")
@@ -118,55 +188,132 @@ export function FakeData() {
     <ToolLayout title="Data Forge" description="Generate enterprise-ready synthetic datasets with localized context and SQL exports." icon={Database} centered maxWidth="max-w-7xl">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-20">
         <div className="lg:col-span-5 space-y-6">
-          <div className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-black/20 space-y-8">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Architect Schema</label>
-              <div className="flex gap-2">
-                 <button onClick={() => { localStorage.setItem("vanity_fake_data_schema", JSON.stringify(columns)); toast.success("Schema saved locally"); }} className="p-2 hover:bg-white/5 rounded-lg text-muted-foreground hover:text-emerald-400 transition-all"><Save className="w-4 h-4" /></button>
-                 <button onClick={() => setColumns([...columns, { id: Math.random().toString(36).slice(2), name: `col_${columns.length + 1}`, type: "name" }])} className="p-2 bg-primary/20 text-primary rounded-xl hover:scale-110 transition-all"><Plus className="w-4 h-4" /></button>
+          <div className="glass-panel p-6 rounded-[2.5rem] border border-white/5 bg-black/20 space-y-6">
+            <PillToggle
+              activeId={mode}
+              onChange={(id) => setMode(id as any)}
+              options={[
+                { id: "local", label: "Local Gen", icon: Database },
+                { id: "ai", label: "AI Gen", icon: Sparkles },
+              ]}
+            />
+
+            {mode === "ai" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <AIProviderHint />
+                <div className="border-b border-white/5 pb-4">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4" /> AI Parameters
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Entity Name</label>
+                  <input type="text" value={modelName} onChange={(e) => setModelName(e.target.value)} placeholder="e.g. Product" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:border-primary/50 outline-none text-white transition-colors" />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center justify-between">
+                    <span>Schema Hinting</span>
+                    <button onClick={() => setSchema("")} className="text-muted-foreground hover:text-white"><Trash2 className="w-3 h-3" /></button>
+                  </label>
+                  <textarea value={schema} onChange={(e) => setSchema(e.target.value)} placeholder="id: integer&#10;title: string&#10;price: float" className="w-full h-[150px] bg-black/50 border border-white/10 rounded-xl p-3 font-mono text-xs focus:border-primary/50 outline-none text-white transition-colors resize-none custom-scrollbar" />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Object Count</label>
+                  <div className="flex items-center gap-4 bg-black/50 border border-white/10 rounded-xl p-3">
+                    <input type="range" min="1" max="50" value={aiCount} onChange={(e) => setAiCount(Number(e.target.value))} className="flex-1 accent-primary" />
+                    <span className="font-mono text-xs font-bold text-primary">{aiCount}</span>
+                  </div>
+                </div>
+
+                <button onClick={generateAiData} disabled={isAiProcessing || !schema.trim()} className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all">
+                  {isAiProcessing ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating...</> : <><Sparkles className="w-5 h-5" /> Generate with AI</>}
+                </button>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-3 max-h-[350px] overflow-auto custom-scrollbar pr-2">
-               {columns.map((col, idx) => (
-                 <div key={col.id} className="flex gap-2 items-center group animate-in slide-in-from-left-2">
-                    <input value={col.name} onChange={e => setColumns(columns.map(c => c.id === col.id ? { ...c, name: e.target.value } : c))} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-mono outline-none focus:border-primary/50" />
-                    <select value={col.type} onChange={e => setColumns(columns.map(c => c.id === col.id ? { ...c, type: e.target.value as DataType } : c))} className="bg-white/5 border border-white/10 rounded-xl px-2 py-2.5 text-[10px] font-mono outline-none focus:border-primary/50">
-                      {Object.keys(GENERATORS).map(t => <option key={t} value={t} className="bg-zinc-900">{t}</option>)}
-                    </select>
-                    <button onClick={() => setColumns(columns.filter(c => c.id !== col.id))} className="p-2 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
-                 </div>
-               ))}
-            </div>
-
-            <div className="pt-6 border-t border-white/5 space-y-6">
-               <div className="space-y-4">
-                  <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Dataset Volume</label><span className="text-sm font-mono text-primary font-black">{rowCount} rows</span></div>
-                  <input type="range" min="1" max="1000" value={rowCount} onChange={e => setRowCount(parseInt(e.target.value))} className="w-full accent-primary h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer" />
-               </div>
-
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Locale</label>
-                    <select value={locale} onChange={e => setLocale(e.target.value as Locale)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase outline-none focus:border-primary">
-                      <option value="us" className="bg-zinc-900">GLOBAL / US</option>
-                      <option value="in" className="bg-zinc-900">INDIA / IN</option>
-                    </select>
+            {mode === "local" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Architect Schema</label>
+                  <div className="flex gap-2">
+                     <button onClick={() => { localStorage.setItem("vanity_fake_data_schema", JSON.stringify(columns)); toast.success("Schema saved locally"); }} className="p-2 hover:bg-white/5 rounded-lg text-muted-foreground hover:text-emerald-400 transition-all"><Save className="w-4 h-4" /></button>
+                     <button onClick={() => setColumns([...columns, { id: Math.random().toString(36).slice(2), name: `col_${columns.length + 1}`, type: "name" }])} className="p-2 bg-primary/20 text-primary rounded-xl hover:scale-110 transition-all"><Plus className="w-4 h-4" /></button>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Table Name</label>
-                    <input value={tableName} onChange={e => setTableName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-mono outline-none focus:border-primary" />
-                  </div>
-               </div>
+                </div>
 
-               <button onClick={generateData} className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
-                  <RefreshCw className="w-5 h-5" /> SYNTHESIZE DATA
-               </button>
-            </div>
+                <div className="space-y-3 max-h-[350px] overflow-auto custom-scrollbar pr-2">
+                   {columns.map((col, idx) => (
+                     <div key={col.id} className="flex gap-2 items-center group animate-in slide-in-from-left-2">
+                        <input value={col.name} onChange={e => setColumns(columns.map(c => c.id === col.id ? { ...c, name: e.target.value } : c))} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-mono outline-none focus:border-primary/50" />
+                        <select value={col.type} onChange={e => setColumns(columns.map(c => c.id === col.id ? { ...c, type: e.target.value as DataType } : c))} className="bg-white/5 border border-white/10 rounded-xl px-2 py-2.5 text-[10px] font-mono outline-none focus:border-primary/50">
+                          {Object.keys(GENERATORS).map(t => <option key={t} value={t} className="bg-zinc-900">{t}</option>)}
+                        </select>
+                        <button onClick={() => setColumns(columns.filter(c => c.id !== col.id))} className="p-2 text-muted-foreground hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                     </div>
+                   ))}
+                </div>
+
+                <div className="pt-4 border-t border-white/5 space-y-6">
+                   <div className="space-y-4">
+                      <div className="flex justify-between items-center"><label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Dataset Volume</label><span className="text-sm font-mono text-primary font-black">{rowCount} rows</span></div>
+                      <input type="range" min="1" max="1000" value={rowCount} onChange={e => setRowCount(parseInt(e.target.value))} className="w-full accent-primary h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer" />
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Locale</label>
+                        <select value={locale} onChange={e => setLocale(e.target.value as Locale)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-bold uppercase outline-none focus:border-primary">
+                          <option value="us" className="bg-zinc-900">GLOBAL / US</option>
+                          <option value="in" className="bg-zinc-900">INDIA / IN</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Table Name</label>
+                        <input value={tableName} onChange={e => setTableName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-mono outline-none focus:border-primary" />
+                      </div>
+                   </div>
+
+                   <button onClick={generateData} className="w-full py-5 bg-primary text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
+                      <RefreshCw className="w-5 h-5" /> SYNTHESIZE DATA
+                   </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="lg:col-span-7 space-y-6">
+          {mode === "ai" ? (
+            <div className="glass-panel h-full rounded-[2.5rem] border border-white/5 bg-black/20 flex flex-col overflow-hidden min-h-[650px] shadow-2xl">
+              <div className="p-6 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-3"><FileJson className="w-5 h-5 text-primary" /><span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">AI Generated JSON</span></div>
+                {aiResult && (
+                  <button onClick={() => copy(aiResult, "JSON copied!")} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 hover:bg-white/10 transition-all">
+                    {copied ? <CheckCircle className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 overflow-auto custom-scrollbar">
+                {isAiProcessing ? (
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                    <p className="font-mono text-sm text-muted-foreground">Generating dataset via AI...</p>
+                  </div>
+                ) : aiResult ? (
+                  <textarea readOnly value={aiResult} className="w-full h-full bg-transparent text-emerald-400 font-mono text-xs p-6 outline-none resize-none custom-scrollbar" />
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center opacity-20 space-y-6">
+                    <Sparkles className="w-24 h-24" />
+                    <p className="text-xs font-black uppercase tracking-[0.5em]">Describe & Generate</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
            <div className="glass-panel h-full rounded-[2.5rem] border border-white/5 bg-black/20 flex flex-col overflow-hidden min-h-[650px] shadow-2xl">
               <div className="p-6 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
                  <div className="flex items-center gap-3"><Table className="w-5 h-5 text-primary" /><span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Synthesized Preview</span></div>
@@ -205,6 +352,7 @@ export function FakeData() {
               
               {results.length > 50 && <div className="p-4 bg-primary/5 text-[9px] font-black text-center text-primary/60 uppercase tracking-[0.3em] border-t border-primary/10">Truncated Preview ({results.length} rows total). Export for full dataset.</div>}
            </div>
+          )}
 
            <div className="grid grid-cols-3 gap-4">
               <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl text-center space-y-2"><Monitor className="w-4 h-4 mx-auto text-primary" /><span className="text-[9px] font-black uppercase text-white/40 block">Deterministic</span></div>

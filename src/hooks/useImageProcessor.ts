@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { loadImage } from "../lib/canvas/loadImage";
 import { guardDimensions, maybeYield } from "../lib/utils";
 
-export interface ImageProcessResult {
+interface ImageProcessResult {
   source: ImageBitmap | HTMLImageElement;
   dimensions: { width: number; height: number; scale: number };
   cleanup: () => void;
