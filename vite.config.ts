@@ -65,8 +65,6 @@ export default defineConfig({
     cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
-        // Fix Bug 6: Explicit advanced chunk grouping for framer-motion
-        // This is the correct way for Vite/Rollup builds
         manualChunks(id) {
           if (id.includes("node_modules")) {
             if (id.includes("@ffmpeg")) return "vendor-ffmpeg"
@@ -75,15 +73,6 @@ export default defineConfig({
             if (id.includes("@tensorflow") || id.includes("upscaler")) return "vendor-ai-engine"
             if (id.includes("qrcode") || id.includes("jsbarcode") || id.includes("canvas-confetti")) return "vendor-ui-utils"
             return "vendor"
-          }
-          // Group tool components by domain to reduce fragmentation
-          if (id.includes("src/components/tools/")) {
-            if (id.includes("/pdf/")) return "pdf-tools"
-            if (id.includes("/video/")) return "video-tools"
-            if (id.includes("/ai/")) return "ai-tools"
-            if (id.includes("/image/")) return "image-tools"
-            if (id.includes("/text/")) return "text-tools"
-            if (id.includes("/dev/")) return "dev-tools"
           }
         },
       },
