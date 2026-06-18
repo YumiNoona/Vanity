@@ -11,7 +11,7 @@ export function Navbar({ onDonateOpen }: NavbarProps) {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full px-6 flex h-16 items-center justify-between">
         <div className="flex-1 flex items-center">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
             <span className="text-xl font-bold font-syne text-primary">Vanity</span>
           </Link>
         </div>
@@ -25,14 +25,14 @@ export function Navbar({ onDonateOpen }: NavbarProps) {
         <div className="flex-1 flex items-center justify-end">
           <Link
             to="/tools/ai/providers"
-            className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-white/10 transition-colors border border-white/10 mr-2"
+            className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-white/10 transition-all duration-300 border border-white/10 mr-2 button-press"
           >
             <KeyRound className="h-4 w-4" />
             AI Keys
           </Link>
           <button
             onClick={onDonateOpen}
-            className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-colors border border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+            className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/20 transition-all duration-300 border border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] button-press"
           >
             <Heart className="h-4 w-4 fill-primary/20" />
             Support us

@@ -61,21 +61,21 @@ export function AppLayout() {
                  </div>
 
                  {/* Unified Support Bar Design */}
-                 <div className="flex items-center gap-4 px-6 md:px-10 py-3 bg-white/5 border border-white/10 rounded-full relative group hover:border-primary/20 transition-all">
-                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                     <Heart className="h-4 w-4 fill-primary/20" />
-                   </div>
-                   <div className="flex flex-col text-left">
-                     <span className="font-bold text-foreground">Support Our Service</span>
-                     <span className="text-[10px] opacity-70">If you like Vanity, please consider donating to keep it forever free.</span>
-                   </div>
-                   <button 
-                     onClick={() => setIsDonateOpen(true)}
-                     className="ml-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-[10px] font-bold hover:scale-105 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                   >
-                     DONATE
-                   </button>
-                 </div>
+                 <div className="flex items-center gap-4 px-6 md:px-10 py-3 bg-white/5 border border-white/10 rounded-full relative group hover:border-primary/20 transition-all duration-300">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Heart className="h-4 w-4 fill-primary/20" />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold text-foreground">Support Our Service</span>
+                    <span className="text-[10px] opacity-70">If you like Vanity, please consider donating to keep it forever free.</span>
+                  </div>
+                  <button 
+                    onClick={() => setIsDonateOpen(true)}
+                    className="ml-2 px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-[10px] font-bold hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.2)] button-press"
+                  >
+                    DONATE
+                  </button>
+                </div>
 
                  {/* Links */}
                  <div className="flex items-center lg:justify-end gap-6 lg:w-1/4">

@@ -47,16 +47,17 @@ const ToolCard = React.memo(function ToolCard({
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
     >
       <Link
         to={tool.path}
         onClick={() => onTrack(tool.id)}
         onMouseEnter={handleMouseEnter}
-        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl glass-panel p-8 shadow-sm transition-all hover:bg-white/[0.04] hover:-translate-y-1 h-full border-white/5 hover:border-white/10"
+        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl glass-panel p-8 shadow-sm transition-all duration-300 hover:bg-white/[0.04] hover:-translate-y-1 h-full border-white/5 hover:border-white/10 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.3)]"
       >
         <div>
           <div className="mb-6 inline-flex items-center justify-between w-full">
-            <div className={`inline-flex items-center justify-center rounded-xl bg-${category.color}/10 p-3.5 text-${category.color} group-hover:scale-110 transition-transform`}>
+            <div className={`inline-flex items-center justify-center rounded-xl bg-${category.color}/10 p-3.5 text-${category.color} group-hover:scale-110 transition-transform duration-300`}>
               <Icon className="h-6 w-6" />
             </div>
             <div className="flex items-center gap-2">
@@ -74,14 +75,14 @@ const ToolCard = React.memo(function ToolCard({
               )}
             </div>
           </div>
-          <h3 className="mb-2 font-syne text-xl font-bold group-hover:text-primary transition-colors tracking-tight">{tool.title}</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <h3 className="mb-2 font-syne text-xl font-bold group-hover:text-primary transition-colors tracking-tight text-ellipsis-single">{tool.title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed text-ellipsis-multiline">
             {tool.description}
           </p>
         </div>
         
-        <div className={`mt-8 flex items-center text-xs font-black uppercase tracking-widest text-${category.color}/70 group-hover:text-${category.color} transition-colors`}>
-          Launch Tool <ArrowRight className="ml-2 h-3.5 w-3.5 transition-all group-hover:translate-x-1" />
+        <div className={`mt-8 flex items-center text-xs font-black uppercase tracking-widest text-${category.color}/70 group-hover:text-${category.color} transition-colors duration-300`}>
+          Launch Tool <ArrowRight className="ml-2 h-3.5 w-3.5 transition-all duration-300 group-hover:translate-x-1" />
         </div>
       </Link>
     </motion.div>
@@ -191,7 +192,7 @@ export function Home() {
               <button 
                 key={tag}
                 onClick={() => setSearchQuery(tag)}
-                className="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[10px] font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all"
+                className="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[10px] font-bold text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all duration-300 button-press"
               >
                 {tag}
               </button>
