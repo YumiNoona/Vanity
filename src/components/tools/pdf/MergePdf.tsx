@@ -158,7 +158,7 @@ export function MergePdf() {
       }
 
       const pdfBytes = await mergedPdf.save()
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
       setMergedBlob(blob)
       setMergedUrl(blob)
       toast.success('PDFs merged successfully!')

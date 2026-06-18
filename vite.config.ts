@@ -12,7 +12,7 @@ export default defineConfig({
     proxy: {
       "/api/proxy": {
         target: "http://localhost:5173",
-        bypass: async (req, res) => {
+        bypass: (req, res) => {
           const proxyUrl = new URL(req.url || "", `http://${req.headers.host}`).searchParams.get("url")
           if (!proxyUrl || !res) {
             if (res) {
@@ -22,22 +22,19 @@ export default defineConfig({
             return
           }
           
-          try {
-            const response = await fetch(proxyUrl, {
-              method: req.method,
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Vanity Tool Proxy)",
-                "Accept": "*/*"
-              }
-            });
-            
+          fetch(proxyUrl, {
+            method: req.method,
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Vanity Tool Proxy)",
+              "Accept": "*/*"
+            }
+          }).then(async (response) => {
             const headers = new Headers(response.headers);
             headers.set("Access-Control-Allow-Origin", "*");
             res.writeHead(response.status || 200, Object.fromEntries(headers.entries()));
             
             if (response.body) {
               const reader = response.body.getReader();
-              const decoder = new TextDecoder();
               let done = false;
               
               while (!done) {
@@ -50,12 +47,10 @@ export default defineConfig({
             }
             
             res.end();
-          } catch (err: any) {
+          }).catch((err: any) => {
             res.statusCode = 500;
             res.end(err.message);
-          }
-          
-          return
+          });
         }
       },
     },

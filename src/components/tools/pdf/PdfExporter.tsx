@@ -424,7 +424,7 @@ export function PdfExporter() {
   return (
     <ToolLayout 
       title={activeTab === "single" ? "Export Hub" : "Bulk Export Hub"}
-      description={activeTab === "single" ? file?.name : `Processing ${bulkFiles.length} files`}
+      description={activeTab === "single" ? (file?.name || "") : `Processing ${bulkFiles.length} files`}
       icon={activeTab === "single" ? FileSearch : Layers}
       centered={true}
       maxWidth="max-w-7xl"
