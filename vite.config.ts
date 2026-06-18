@@ -74,7 +74,6 @@ export default defineConfig({
             if (id.includes("pdfjs-dist")) return "vendor-pdfjs"
             if (id.includes("pdf-lib") || id.includes("jspdf")) return "vendor-pdf-lib"
             if (id.includes("@tensorflow") || id.includes("upscaler")) return "vendor-ai-engine"
-            if (id.includes("lucide-react")) return "vendor-ui-core"
             if (id.includes("react-colorful") || id.includes("qrcode") || id.includes("jsbarcode") || id.includes("canvas-confetti")) return "vendor-ui-utils"
             return "vendor"
           }
